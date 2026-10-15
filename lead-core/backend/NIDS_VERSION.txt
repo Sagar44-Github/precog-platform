@@ -3,4 +3,4 @@ Upstream commit     : b30070f20de1d1e22d44d0ad86140892c86c43e6  (9 July 2026, "d
 Licence             : MIT, Copyright (c) 2026 Darshan B.  (full text: lead-core/backend/nids/LICENSE)
 How we use it       : an UNCHANGED copy lives in lead-core/backend/nids/. We never edit those files.
                       Our code imports NIDS and adjusts it from the outside (lead-core/backend/run_app.py).
-Date copied         : WRITE TODAY'S DATE HERE
+Date copied         : 15 October 2026
