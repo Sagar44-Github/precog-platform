@@ -2,9 +2,11 @@
 
 
 class ApiError(Exception):
+
     """Raise this anywhere inside a route. The blueprint turns it into JSON."""
 
     def __init__(self, code, message, status=400):
+        
         super().__init__(message)
         self.code = code
         self.message = message

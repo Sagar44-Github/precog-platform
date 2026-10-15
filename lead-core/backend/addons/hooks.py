@@ -48,11 +48,13 @@ class Hooks:
     def has(self, name):
         return name in self._items
 
+    
     def require(self, name):
         obj = self._items.get(name)
         if obj is None:
             raise ApiError("not_built", "The '%s' part has not been built yet." % name, 501)
         return obj
 
+    
     def registered(self):
         return sorted(self._items)
