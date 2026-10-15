@@ -1,0 +1,71 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/world_state.schema.json",
+  "title": "World state",
+  "description": "What a polling client receives. When changed is false only version and changed are present.",
+  "type": "object",
+  "properties": {
+    "version": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "changed": {
+      "type": "boolean"
+    },
+    "graph": {
+      "$ref": "https://precog.local/contracts/graph_snapshot.schema.json"
+    },
+    "alerts": {
+      "type": "array",
+      "items": {
+        "$ref": "https://precog.local/contracts/security_event.schema.json"
+      }
+    },
+    "forecast": {
+      "anyOf": [
+        {
+          "$ref": "https://precog.local/contracts/forecast.schema.json"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "actions": {
+      "type": "array",
+      "items": {
+        "$ref": "https://precog.local/contracts/containment_action.schema.json"
+      }
+    },
+    "replay": {
+      "$ref": "https://precog.local/contracts/replay_status.schema.json"
+    },
+    "metrics": {
+      "$ref": "https://precog.local/contracts/session_metrics.schema.json"
+    }
+  },
+  "required": [
+    "version",
+    "changed"
+  ],
+  "additionalProperties": false,
+  "if": {
+    "properties": {
+      "changed": {
+        "const": true
+      }
+    }
+  },
+  "then": {
+    "required": [
+      "version",
+      "changed",
+      "graph",
+      "alerts",
+      "forecast",
+      "actions",
+      "replay",
+      "metrics"
+    ]
+  }
+}

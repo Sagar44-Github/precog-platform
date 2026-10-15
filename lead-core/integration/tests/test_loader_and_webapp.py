@@ -9,6 +9,7 @@ from addons.loader import _load_role_packages
 from addons.webapp import register_webapp
 
 
+
 def test_missing_packages_are_reported_not_fatal(ctx):
     report = _load_role_packages(ctx_stub(), ("package_that_does_not_exist",))
     assert report == {"package_that_does_not_exist": "missing"}

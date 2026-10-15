@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/containment_action.schema.json",
+  "title": "Containment action",
+  "description": "A simulated containment, proposed first and executed only after confirmation.",
+  "type": "object",
+  "properties": {
+    "action_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "target_host": {
+      "type": "string",
+      "minLength": 1
+    },
+    "forecast_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "requested_by": {
+      "type": "string",
+      "enum": [
+        "console",
+        "mobile"
+      ]
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "pending_confirmation",
+        "executed",
+        "cancelled",
+        "expired"
+      ]
+    },
+    "proposed_at": {
+      "type": "string",
+      "minLength": 1,
+      "description": "ISO 8601 UTC time, for example 2026-10-03T10:00:03Z"
+    },
+    "confirmed_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "ISO 8601 UTC time or null"
+    },
+    "result": {
+      "type": [
+        "string",
+        "null"
+      ]
+    }
+  },
+  "required": [
+    "action_id",
+    "target_host",
+    "forecast_id",
+    "requested_by",
+    "status",
+    "proposed_at",
+    "confirmed_at",
+    "result"
+  ],
+  "additionalProperties": false
+}

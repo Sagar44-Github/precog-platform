@@ -1,0 +1,139 @@
+{
+  "version": 1,
+  "changed": true,
+  "graph": {
+    "hosts": [
+      {
+        "host_id": "host-a",
+        "name": "Workstation A",
+        "zone": "user",
+        "state": "compromised"
+      },
+      {
+        "host_id": "host-b",
+        "name": "Workstation B",
+        "zone": "user",
+        "state": "normal"
+      },
+      {
+        "host_id": "server-b",
+        "name": "Web Server B",
+        "zone": "dmz",
+        "state": "normal"
+      },
+      {
+        "host_id": "file-server",
+        "name": "File Server",
+        "zone": "internal",
+        "state": "normal"
+      },
+      {
+        "host_id": "db-server",
+        "name": "Database Server",
+        "zone": "internal",
+        "state": "normal"
+      },
+      {
+        "host_id": "domain-controller",
+        "name": "Domain Controller",
+        "zone": "internal",
+        "state": "normal"
+      }
+    ],
+    "edges": [
+      {
+        "from_host": "host-a",
+        "to_host": "host-b",
+        "first_seen": "2026-10-03T10:00:01Z"
+      }
+    ],
+    "compromised_path": [
+      "host-a"
+    ]
+  },
+  "alerts": [
+    {
+      "event_id": "evt-000002",
+      "ts": "2026-10-03T10:00:02Z",
+      "host": "host-a",
+      "packet_id": null,
+      "anomaly": true,
+      "risk_score": 95.0,
+      "severity": "HIGH",
+      "explanation": "Workstation A is now treated as compromised after repeated login attempts.",
+      "technique_id": "T1078",
+      "technique_name": "Valid Accounts",
+      "source": "scripted"
+    },
+    {
+      "event_id": "evt-000001",
+      "ts": "2026-10-03T10:00:01Z",
+      "host": "host-a",
+      "packet_id": 2,
+      "anomaly": false,
+      "risk_score": 88.0,
+      "severity": "HIGH",
+      "explanation": "Workstation A sent a large packet to port 22 (remote login) on Workstation B, which is a common first step in a credential attack.",
+      "technique_id": "T1110",
+      "technique_name": "Brute Force",
+      "source": "nids_detector"
+    }
+  ],
+  "forecast": {
+    "forecast_id": "fc-000001",
+    "ts": "2026-10-03T10:00:03Z",
+    "from_host": "host-a",
+    "targets": [
+      {
+        "rank": 1,
+        "host_id": "server-b",
+        "confidence": 0.74
+      },
+      {
+        "rank": 2,
+        "host_id": "host-b",
+        "confidence": 0.15
+      },
+      {
+        "rank": 3,
+        "host_id": "file-server",
+        "confidence": 0.07
+      }
+    ],
+    "technique_hint": {
+      "technique_id": "T1021",
+      "technique_name": "Remote Services",
+      "probability": 0.41
+    },
+    "source": "repo",
+    "status": "pending",
+    "outcome": null
+  },
+  "actions": [
+    {
+      "action_id": "act-000001",
+      "target_host": "server-b",
+      "forecast_id": "fc-000001",
+      "requested_by": "mobile",
+      "status": "pending_confirmation",
+      "proposed_at": "2026-10-03T10:00:05Z",
+      "confirmed_at": null,
+      "result": null
+    }
+  ],
+  "replay": {
+    "state": "waiting_for_decision",
+    "scenario_id": "golden-path",
+    "speed": 1.0,
+    "position": 4
+  },
+  "metrics": {
+    "forecasts_resolved": 0,
+    "hits": 0,
+    "hit_rate": null,
+    "precision_at_1": null,
+    "precision_at_3": null,
+    "calibration_bins": [],
+    "containment_success_rate": null
+  }
+}

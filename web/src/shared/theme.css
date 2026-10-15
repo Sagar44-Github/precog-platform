@@ -1,0 +1,71 @@
+/* PROVISIONAL colour tokens (owner: LEAD-CORE).
+   The final colour system comes from the UI/UX brief. Change colours here only, never inside screens.
+   Meaning of colours: red = what happened, violet = what Precog predicts, teal = what you did. */
+:root {
+  --bg: #0b0f14;
+  --surface: #121821;
+  --surface-raised: #1a2230;
+  --border: #263042;
+  --text: #e6edf3;
+  --text-muted: #9aa7b8;
+  --accent: #38bdf8;
+
+  --severity-critical: #ef4444;
+  --severity-high: #f97316;
+  --severity-medium: #f59e0b;
+  --severity-low: #64748b;
+
+  --state-compromised: #ef4444;
+  --state-contained: #14b8a6;
+  --state-normal: #64748b;
+  --forecast: #a855f7;
+
+  --font-ui: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+}
+
+* { box-sizing: border-box; }
+
+html, body, #root { height: 100%; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-ui);
+  padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
+}
+
+a { color: var(--accent); }
+code, .mono { font-family: var(--font-mono); }
+.card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
+.muted { color: var(--text-muted); }
+.stale-banner { background: #3b2a05; color: var(--severity-medium); padding: 8px 12px; text-align: center; font-size: 14px; }
+.center-page { min-height: 100%; display: grid; place-items: center; padding: 24px; }
+.field { display: block; width: 100%; margin: 8px 0; padding: 12px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface-raised); color: var(--text); font-size: 16px; }
+.button { width: 100%; margin-top: 8px; padding: 12px; border: 0; border-radius: 8px; background: var(--accent); color: #04121c; font-size: 16px; font-weight: 600; cursor: pointer; }
+.error-text { color: var(--severity-critical); min-height: 1.4em; }
+
+/* ---- added from the UI/UX brief (Section 4.6): extra tokens and shared component classes ---- */
+:root {
+  --border-strong: #66758f;
+  --forecast-text: #c084fc;
+  --text-red: #f87171;
+  --text-slate: #94a3b8;
+  --focus-ring: 2px solid var(--accent);
+  --radius-s: 6px;
+  --radius-m: 12px;
+  --radius-l: 20px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+}
+:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
+.sim-badge { display: inline-block; padding: 2px 8px; border: 1px solid var(--border-strong); border-radius: 999px; color: var(--text-muted); font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em; }
+.empty-state { text-align: center; color: var(--text-muted); padding: var(--space-5); }
+.skeleton { height: 14px; margin: var(--space-2) 0; border-radius: var(--radius-s); background: var(--surface-raised); }
+.toast { position: fixed; left: var(--space-4); right: var(--space-4); bottom: 84px; padding: var(--space-3) var(--space-4); border: 1px solid var(--border-strong); border-radius: var(--radius-m); background: var(--surface-raised); color: var(--text); z-index: 20; }
+@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }

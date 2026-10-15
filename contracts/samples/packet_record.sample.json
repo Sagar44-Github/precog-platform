@@ -1,0 +1,19 @@
+{
+  "id": 2,
+  "timestamp": "2026-10-03 10:00:01",
+  "src_ip": "192.168.1.11",
+  "dst_ip": "192.168.1.12",
+  "protocol": "TCP",
+  "src_port": 40000,
+  "dst_port": 22,
+  "packet_size": 2500,
+  "flags": "S",
+  "anomaly": 1,
+  "risk_score": 49.93,
+  "suspicious_port": true,
+  "alert": true,
+  "severity": "HIGH",
+  "threat_actor": "APT29",
+  "asn": "AS12345 (Evil Corp)",
+  "location": "Russia"
+}

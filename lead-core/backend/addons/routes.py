@@ -23,6 +23,7 @@ def _ctx():
 
 def _body():
     data = request.get_json(silent=True)
+    
     if not isinstance(data, dict):
         raise ApiError("bad_request", "Send a JSON object in the request body.", 400)
     return data
@@ -30,8 +31,10 @@ def _body():
 
 def _text(data, key, required=True):
     value = data.get(key)
+    
     if value is None and not required:
         return None
+    
     if not isinstance(value, str) or not value.strip():
         raise ApiError("bad_request", "'%s' must be a non-empty text value." % key, 400)
     return value.strip()
@@ -40,6 +43,7 @@ def _text(data, key, required=True):
 def _out(contract_name, data):
     """Check data we are about to send against its contract (when checking is switched on)."""
     ctx = _ctx()
+    
     if ctx["contracts"] is not None:
         try:
             ctx["contracts"].validate(contract_name, data)
@@ -51,11 +55,15 @@ def _out(contract_name, data):
 
 @bp.errorhandler(Exception)
 def _handle_errors(exc):
+    
     if isinstance(exc, ApiError):
         return jsonify(exc.to_dict()), exc.status
+    
     if isinstance(exc, HTTPException):
         return jsonify({"error": {"code": exc.name.lower().replace(" ", "_"), "message": exc.description}}), exc.code
+    
     current_app.logger.exception("Unexpected error in /api/x")
+    
     return jsonify({"error": {"code": "internal_error", "message": "Something went wrong on the server."}}), 500
 
 
@@ -63,6 +71,7 @@ def _handle_errors(exc):
 @bp.get("/health")
 def health():
     ctx = _ctx()
+    
     return jsonify({
         "status": "ok", "data_mode": ctx["config"].data_mode, "version": ctx["world"].version,
         "hooks": ctx["hooks"].registered(), "modules": ctx["load_report"],
@@ -73,6 +82,7 @@ def health():
 def login():
     data = _body()
     user = auth.check_login(_ctx()["nids"], data.get("username"), data.get("password"))
+    
     if user is None:
         raise ApiError("invalid_credentials", "Wrong username or password.", 401)
     auth.do_login(user)
@@ -107,16 +117,19 @@ def state():
 @bp.get("/alerts")
 @auth.json_login_required
 def alerts():
+    
     try:
         limit = int(request.args.get("limit", 50))
     except ValueError:
         raise ApiError("bad_request", "'limit' must be a whole number.", 400)
+    
     limit = max(1, min(limit, MAX_ALERT_LIMIT))
     return jsonify(_ctx()["world"].alerts(limit))
 
 
 @bp.get("/alerts/<event_id>")
 @auth.json_login_required
+
 def alert(event_id):
     found = _ctx()["world"].get_alert(event_id)
     if found is None:
@@ -126,14 +139,17 @@ def alert(event_id):
 
 @bp.get("/graph")
 @auth.json_login_required
+
 def graph():
     return jsonify(_out("graph_snapshot", _ctx()["world"].graph()))
+
 
 
 @bp.get("/forecasts")
 @auth.json_login_required
 def forecasts():
     status = request.args.get("status")
+    
     if status is not None and status not in FORECAST_STATUSES:
         raise ApiError("bad_request", "'status' must be one of: %s." % ", ".join(FORECAST_STATUSES), 400)
     return jsonify(_ctx()["world"].forecasts(status))
@@ -142,8 +158,12 @@ def forecasts():
 @bp.get("/forecasts/current")
 @auth.json_login_required
 def forecast_current():
+    
+    
     found = _ctx()["world"].current_forecast()
+    
     if found is None:
+    
         raise ApiError("no_forecast", "No forecast is pending.", 404)
     return jsonify(found)
 
@@ -151,15 +171,18 @@ def forecast_current():
 # ---------- containment (needs the VIZ module) ----------
 @bp.post("/containment/propose")
 @auth.json_login_required
+
 def containment_propose():
     ctx = _ctx()
     data = _body()
     target = _text(data, "target_host")
     forecast_id = _text(data, "forecast_id", required=False)
     requested_by = data.get("requested_by", "console")
+    
     if requested_by not in REQUESTERS:
         raise ApiError("bad_request", "'requested_by' must be 'console' or 'mobile'.", 400)
     action = ctx["hooks"].require("containment").propose(ctx["world"], target, forecast_id, requested_by)
+    
     return jsonify(_out("containment_action", action))
 
 
@@ -168,6 +191,7 @@ def containment_propose():
 def containment_confirm():
     ctx = _ctx()
     action = ctx["hooks"].require("containment").confirm(ctx["world"], _text(_body(), "action_id"))
+    
     return jsonify(_out("containment_action", action))
 
 

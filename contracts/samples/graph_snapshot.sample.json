@@ -1,0 +1,50 @@
+{
+  "hosts": [
+    {
+      "host_id": "host-a",
+      "name": "Workstation A",
+      "zone": "user",
+      "state": "compromised"
+    },
+    {
+      "host_id": "host-b",
+      "name": "Workstation B",
+      "zone": "user",
+      "state": "normal"
+    },
+    {
+      "host_id": "server-b",
+      "name": "Web Server B",
+      "zone": "dmz",
+      "state": "normal"
+    },
+    {
+      "host_id": "file-server",
+      "name": "File Server",
+      "zone": "internal",
+      "state": "normal"
+    },
+    {
+      "host_id": "db-server",
+      "name": "Database Server",
+      "zone": "internal",
+      "state": "normal"
+    },
+    {
+      "host_id": "domain-controller",
+      "name": "Domain Controller",
+      "zone": "internal",
+      "state": "normal"
+    }
+  ],
+  "edges": [
+    {
+      "from_host": "host-a",
+      "to_host": "host-b",
+      "first_seen": "2026-10-03T10:00:01Z"
+    }
+  ],
+  "compromised_path": [
+    "host-a"
+  ]
+}

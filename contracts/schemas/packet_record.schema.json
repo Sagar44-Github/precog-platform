@@ -1,0 +1,109 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/packet_record.schema.json",
+  "title": "Packet record",
+  "description": "One network packet row in NIDS's own shape.",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "integer"
+    },
+    "timestamp": {
+      "type": "string",
+      "description": "NIDS date-time, stored as UTC, printed as YYYY-MM-DD HH:MM:SS"
+    },
+    "src_ip": {
+      "type": "string"
+    },
+    "dst_ip": {
+      "type": "string"
+    },
+    "protocol": {
+      "type": "string"
+    },
+    "src_port": {
+      "type": "integer"
+    },
+    "dst_port": {
+      "type": "integer"
+    },
+    "packet_size": {
+      "type": "integer"
+    },
+    "flags": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "anomaly": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "risk_score": {
+      "type": [
+        "number",
+        "null"
+      ]
+    },
+    "suspicious_port": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "alert": {
+      "type": [
+        "boolean",
+        "null"
+      ]
+    },
+    "severity": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "enum": [
+        "HIGH",
+        "MEDIUM",
+        "LOW",
+        "NORMAL",
+        null
+      ]
+    },
+    "threat_actor": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "SIMULATED value from NIDS. Never show as real intelligence."
+    },
+    "asn": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "SIMULATED value from NIDS."
+    },
+    "location": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "SIMULATED value from NIDS."
+    }
+  },
+  "required": [
+    "id",
+    "timestamp",
+    "src_ip",
+    "dst_ip",
+    "protocol",
+    "src_port",
+    "dst_port",
+    "packet_size"
+  ],
+  "additionalProperties": false
+}

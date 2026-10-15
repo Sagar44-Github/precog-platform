@@ -22,8 +22,10 @@ log = logging.getLogger("precog.run")
 def load_env_file(path):
     """Read KEY=VALUE lines from a .env file. Values already set in the environment win."""
     path = Path(path)
+    
     if not path.is_file():
         return
+    
     for raw in path.read_text(encoding="utf-8").splitlines():
         line = raw.strip()
         if not line or line.startswith("#") or "=" not in line:
@@ -36,6 +38,7 @@ def load_env_file(path):
 
 def require_env(name, hint):
     value = os.environ.get(name, "").strip()
+    
     if not value:
         raise SystemExit("%s is missing. %s" % (name, hint))
     return value
@@ -43,6 +46,7 @@ def require_env(name, hint):
 
 def ensure_admin(nids_app, password):
     """Make sure the demo account exists and uses OUR password (never NIDS's default one)."""
+    
     from database.models import SessionLocal, User
 
     session = SessionLocal()
@@ -54,6 +58,7 @@ def ensure_admin(nids_app, password):
         else:
             admin.password_hash = password_hash
         session.commit()
+    
     finally:
         session.close()
 

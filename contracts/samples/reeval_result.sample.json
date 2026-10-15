@@ -1,0 +1,6 @@
+{
+  "action_id": "act-000001",
+  "attack_progressed": false,
+  "chain_ended_early": true,
+  "summary": "The move toward Web Server B was blocked, so the attack chain ended early."
+}
