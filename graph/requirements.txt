@@ -1,0 +1,2 @@
+# GRAPH's libraries for the backend environment (GRAPH replaces this file with the real list).
+# It is read by lead-core/backend/requirements.txt, so it must exist.

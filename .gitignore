@@ -1,0 +1,44 @@
+# ---- secrets: NEVER commit these ----
+.env
+*.pem
+*.key
+firebase-*.json
+*service-account*.json
+
+# ---- Python ----
+__pycache__/
+*.pyc
+.venv/
+venv/
+env/
+.pytest_cache/
+
+# ---- databases, models and run-time data (created on your own laptop) ----
+*.db
+*.sqlite
+lead-core/backend/data/
+lead-core/backend/nids/data/
+lead-core/backend/nids/ml/*.pkl
+audit/
+logs/
+*.log
+
+# ---- DETECT offline model (own environment, downloaded data) ----
+detect/offline_model/.venv/
+detect/offline_model/vendor/
+
+# ---- web project ----
+node_modules/
+web/dist/
+
+# ---- editors and operating systems ----
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+scratch-ai/
+catboost_info/
+
+# ---- Firebase web settings (kept out of Git) ----
+web/.env.local
+.env.local

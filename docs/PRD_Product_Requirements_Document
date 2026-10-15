@@ -1,0 +1,1010 @@
+# Product Requirements Document (PRD)
+
+## AI Cyber Threat Detection, Attack-Path Reconstruction, Precog Forecasting, Visualization, Mobile SOC & Automated Containment Platform
+
+**5th Semester Project-Based Learning (PBL) — Department of Computer Science and Engineering**
+
+---
+
+## 0. Document Control
+
+| Field | Detail |
+|---|---|
+| **Document** | Product Requirements Document (PRD) |
+| **Version** | 1.2 — Corrected after testing NIDS (PCAP upload does not store packets) |
+| **Date** | 3 October 2026 |
+| **Owner** | LEAD-CORE |
+| **Reviewers** | DETECT, GRAPH, VIZ |
+| **Guide** | Dr. Nandini C — Vice Principal and Head of Department, Department of Computer Science and Engineering |
+| **Related documents** | Master Project Document (full project reference), TRD (how it is built), four Build Guides (LEAD-CORE, DETECT, GRAPH, VIZ) |
+| **Status of values marked "Proposed"** | These are suggested targets that the team has not yet confirmed. They are all collected in Section 17 so nothing is assumed silently |
+
+---
+
+## Naming Convention (Read This First)
+
+The master document uses real names. **Every other project document, including this PRD, uses the role-based aliases below instead of real names.**
+
+| Alias | Real Name | USN | Role |
+|---|---|---|---|
+| **LEAD-CORE** | Sagar R | 1DT24CS232 | Team lead — backend, Precog Engine, integration; the only person who merges code |
+| **DETECT** | Neha | 1DT24CS174 | Flow feature preparation, ML detection, security event processing, ATT&CK correlation |
+| **GRAPH** | Pallavi Bammanni | 1DT24CS185 | Data ingestion, simulation, attack graph, mobile web app (PWA) |
+| **VIZ** | Preethi S Pujari | 1DT24CS195 | 3D visualization, charts, push notifications, containment |
+
+---
+
+## Table of Contents
+
+1. [Introduction](#1-introduction)
+2. [Product Overview](#2-product-overview)
+3. [Goals, Non-Goals and Success Metrics](#3-goals-non-goals-and-success-metrics)
+4. [Users and Personas](#4-users-and-personas)
+5. [Scope, Assumptions, Constraints and Dependencies](#5-scope-assumptions-constraints-and-dependencies)
+6. [User Journeys and Use Cases](#6-user-journeys-and-use-cases)
+7. [Functional Requirements](#7-functional-requirements)
+8. [Non-Functional Requirements](#8-non-functional-requirements)
+9. [Data Requirements](#9-data-requirements)
+10. [Evaluation and Metrics Requirements](#10-evaluation-and-metrics-requirements)
+11. [Platform, Demo and Delivery Requirements](#11-platform-demo-and-delivery-requirements)
+12. [Release Plan, MVP and Milestones](#12-release-plan-mvp-and-milestones)
+13. [Ownership (RACI)](#13-ownership-raci)
+14. [Risks and Mitigations](#14-risks-and-mitigations)
+15. [Acceptance Criteria and Definition of Done](#15-acceptance-criteria-and-definition-of-done)
+16. [Traceability Matrix](#16-traceability-matrix)
+17. [Items for Team Confirmation](#17-items-for-team-confirmation)
+18. [Appendices](#18-appendices)
+
+---
+
+## 1. Introduction
+
+### 1.1 Purpose
+
+This PRD defines **what** the product must do, **for whom**, and **how we will know it is done**. It does not define how the product is built; that belongs to the TRD and the build guides. Every requirement here has an ID, a priority and a testable acceptance criterion, so that all four team members build toward the same target without needing to ask each other.
+
+### 1.2 Product in One Paragraph
+
+The product detects cyber intrusions, reconstructs how they spread through a network, and, through its novel **Precog Engine**, forecasts where the attacker will most likely go next and lets an analyst pre-emptively contain that predicted path before the next step happens. It runs in **Replay Mode**: realistic pre-recorded and scripted attack events are replayed through the same live pipeline that real traffic would use. The analyst sees the result on a 3D console (laptop) and on an installable mobile web app (phone).
+
+### 1.3 Audience
+
+| Reader | What they use this PRD for |
+|---|---|
+| LEAD-CORE, DETECT, GRAPH, VIZ | The single source of truth for what to build and when a piece is done |
+| Guide and evaluators | Understanding the product scope, the evaluation approach and the demo |
+| TRD and build-guide authors | The requirement IDs they must trace back to |
+
+### 1.4 Product Name
+
+The project's working title is the full title above. The novel feature is called the **Precog Engine**. No separate marketing name has been given, so none is invented here.
+
+### 1.5 References
+
+| # | Reference |
+|---|---|
+| R1 | Master Project Document (project reference) |
+| R2 | CICIDS2017 dataset (University of New Brunswick) |
+| R3 | MITRE ATT&CK framework, via the official data in `mitre-attack/attack-stix-data` |
+| R4 | Reused repositories listed in Section 11.4 |
+
+### 1.6 Glossary
+
+| Term | Meaning |
+|---|---|
+| **SOC** | Security Operations Center: the team or room that watches for and responds to cyber attacks |
+| **Analyst** | The person using the product to watch for and respond to attacks |
+| **Node / Host** | One machine in the monitored network, shown as a point on the graph |
+| **Edge** | An observed connection between two hosts |
+| **Attack graph** | The live picture of which hosts are compromised and how the attack moved between them |
+| **Compromised node** | A host the detection engine has confirmed as attacked successfully |
+| **Replay Mode** | Running the pipeline from pre-recorded and scripted attack events instead of live attacks |
+| **Golden path** | The single rehearsed demo scenario that must work every time |
+| **Precog Engine** | The novel feature: predicts the attacker's most likely next targets with confidence scores |
+| **Forecast** | The ranked list (Top-3) of likely next targets with confidence percentages |
+| **Forecast cone** | The glowing directional shape on the 3D graph pointing from the compromised node toward a predicted target |
+| **Containment** | The simulated isolation of a node or segment (a status change plus a logged action) |
+| **Re-evaluation** | Feeding the post-containment state back into the pipeline to confirm the attack stopped |
+| **Closed loop** | Detect → Forecast → Act → Re-evaluate, repeating |
+| **Markov transition model** | A model that estimates, from observed sequences, the probability of moving from one state (node) to the next |
+| **precision@k** | The fraction of the top-k forecasts that contain the node actually attacked next |
+| **Calibration** | Whether a stated confidence (for example 74%) matches how often that forecast is actually right |
+| **False-positive rate** | How often harmless traffic is wrongly flagged as an attack |
+| **PWA** | Progressive Web App: a web app that can be installed on a phone's home screen and behaves like an app |
+| **MVP** | Minimum Viable Product: the smallest version that still works end to end |
+| **MoSCoW** | Priority scale used in this PRD: Must, Should, Could, Won't |
+| **Flask** | The Python web framework used by the reused NIDS backend |
+| **Polling** | The screen asking the server for updates every second or two, instead of the server pushing them |
+
+---
+
+## 2. Product Overview
+
+### 2.1 Problem Statement
+
+Security teams, especially in small organizations without a full SOC, struggle to understand how an intrusion is spreading through their network in real time. By the time the attack path is understood, damage is often already done. This product detects intrusions, reconstructs how they spread, and, via the novel feature, predicts and pre-empts where they are going next.
+
+Three capability gaps make up the problem:
+
+| Gap | Statement |
+|---|---|
+| **G1** | **Detection alone isn't understanding.** A flood of individual alerts does not show how they relate to one unfolding attack |
+| **G2** | **Reconstruction alone is reactive.** An attack-path graph shows only what already happened |
+| **G3** | **No accessible tool closes the loop.** Nothing widely available combines detection, path reconstruction, forecasting and one-tap response in a single continuously re-evaluating system that a small team can build and demonstrate |
+
+### 2.2 Existing Systems and the Gap
+
+| Existing system | Category | Limitation |
+|---|---|---|
+| Bitdefender GravityZone | Endpoint detection and response | Describes what happened; does not forecast what happens next |
+| CrowdStrike Falcon | Endpoint detection and response | Strong at detection and response; does not predict the attacker's next move |
+| Sekoia.io | Attack-path visualization | Shows the path after compromise is detected, not before |
+
+This product targets the specific gap none of them address: live, node-level, confidence-scored forecasting of the next move, combined with a pre-emptive containment action that feeds back into the same live system.
+
+### 2.3 Product Vision
+
+An analyst opens the console or the phone app and sees an attack unfolding live, sees where it is predicted to go next with a confidence score, taps one button to block that path, and watches the attack stop before it happens, not after.
+
+### 2.4 Core Differentiator: The Closed Loop
+
+```mermaid
+flowchart LR
+    A[Detect] --> B[Forecast]
+    B --> C[Act: Pre-emptive Containment]
+    C --> D[Re-evaluate]
+    D --> A
+```
+
+The detection and graph parts are a well-understood category. The novelty and the publishable contribution are the **Precog Engine's forecasting** and the closed loop around it.
+
+### 2.5 Product Context Diagram
+
+```mermaid
+flowchart TB
+    DS["Replayed attack events<br/>(scripted attack sequences written as packet rows)"] --> P["Pipeline: NIDS database and detector, events, graph, ATT&CK, Precog"]
+    P --> API["Backend API (NIDS, extended)"]
+    API --> CON["3D SOC console (laptop)"]
+    API --> MOB["Mobile web app / PWA (phone)"]
+    CON --> AN["Analyst"]
+    MOB --> AN
+    AN -->|"Contain (tap)"| RSP["Simulated containment + re-evaluation"]
+    RSP -->|"new state"| P
+```
+
+---
+
+## 3. Goals, Non-Goals and Success Metrics
+
+### 3.1 Product Goals
+
+| ID | Goal |
+|---|---|
+| **GL-1** | Detect malicious activity in replayed traffic and report it with measured accuracy |
+| **GL-2** | Reconstruct and display how an attack spreads between hosts, live |
+| **GL-3** | Forecast the attacker's most likely next targets, with confidence, before they are reached |
+| **GL-4** | Let an analyst contain a predicted target with one confirmed action, and verify the effect |
+| **GL-5** | Deliver the same live view on a laptop 3D console and an installable phone web app |
+| **GL-6** | Demonstrate a rehearsed, reliable end-to-end golden path, with a recorded backup |
+| **GL-7** | Produce measurable results that support an IEEE paper scoped to the Precog Engine's contribution |
+| **GL-8** | Integrate ML, Computer Graphics and Mobile Application Development, as the PBL requires |
+
+### 3.2 Non-Goals
+
+| ID | Non-goal |
+|---|---|
+| **NG-1** | No live attacks, scanning or exploitation against any real network, device or infrastructure |
+| **NG-2** | No real network enforcement; containment is simulated |
+| **NG-3** | No enterprise authentication or SSO; a mocked demo account is enough |
+| **NG-4** | No hand-coded native Android app; the phone version is an installable web app (an APK only if a teacher requires one, made by wrapping the web app) |
+| **NG-5** | No claim to be a production security product |
+| **NG-6** | No real personal data, credentials or secrets anywhere in the pipeline |
+| **NG-7** | No new features after the scope freeze (end of Week 3); later ideas become "future work" |
+
+### 3.3 Success Metrics
+
+| ID | Metric | Target |
+|---|---|---|
+| **SM-1** | Detection quality on a held-out portion of CICIDS2017 | Precision, recall, F1 and false-positive rate are measured and reported; numeric thresholds are set after the Week 2 baseline |
+| **SM-2** | Precog forecast quality | precision@1, precision@3 and a calibration curve are measured and reported |
+| **SM-3** | Containment success rate under replay | Reported as the share of scripted attacks stopped early by the Contain action |
+| **SM-4** | Live session accuracy counter | Visible in the product during a session |
+| **SM-5** | Golden path reliability | Proposed: runs from start to finish without failure in 5 consecutive rehearsals before demo day |
+| **SM-6** | End-to-end responsiveness | Proposed: see NFR-PERF-1 to NFR-PERF-3 |
+| **SM-7** | Deliverables | A working product, a recorded backup demo video, and an IEEE paper due the first week of December 2026 |
+
+---
+
+## 4. Users and Personas
+
+### 4.1 Primary Persona: The SOC Analyst at a Small Organization
+
+| Attribute | Detail |
+|---|---|
+| Who | A person responsible for watching network security in an organization without a full SOC |
+| Needs | To understand quickly how an attack is spreading, what is likely to be hit next, and what to do about it |
+| Pain points | Too many separate alerts; no sense of how they connect; no time to act before the next step |
+| Environment | At a desk with a laptop, or away from the desk with a phone |
+| Success looks like | Seeing the predicted next target, tapping Contain, and seeing the attack stop |
+
+### 4.2 Secondary Persona: The Evaluator or Faculty Member
+
+| Attribute | Detail |
+|---|---|
+| Who | The guide, department faculty and panel members judging the project |
+| Needs | To see a clear, reliable demo; to see the integration of ML, Computer Graphics and Mobile Application Development; to trust the evaluation |
+| Constraints | Limited time; may not have a security background |
+| Success looks like | A clear "wow moment", honest metrics, and an installable app on a phone |
+
+### 4.3 Tertiary Persona: The Team Member as Developer
+
+| Attribute | Detail |
+|---|---|
+| Who | LEAD-CORE, DETECT, GRAPH and VIZ |
+| Starting point | No prior background in networking, Linux, cybersecurity, 3D graphics or web and mobile development; building with AI-assisted tools on free tiers and modest laptops |
+| Needs | Requirements that are unambiguous, work that does not block on others, and a way to merge with the fewest conflicts |
+| Success looks like | Each person can build and test their own part alone, then hand it to LEAD-CORE to merge |
+
+### 4.4 User Stories
+
+| ID | As a... | I want... | So that... | Linked requirements |
+|---|---|---|---|---|
+| **US-1** | analyst | to see alerts explained in plain English | I understand what happened without being a specialist | FR-EVT, FR-MOB |
+| **US-2** | analyst | to see the attack graph draw itself live | I understand how the attack is spreading | FR-GRP, FR-CON |
+| **US-3** | analyst | to see ranked likely next targets with confidence | I know where to act first | FR-PRE, FR-CON, FR-MOB |
+| **US-4** | analyst | to tap one button to contain the predicted target | I can stop the attack quickly | FR-RSP, FR-MOB |
+| **US-5** | analyst | to confirm before any containment executes | nothing acts without my decision | FR-RSP-3 |
+| **US-6** | analyst | to see whether the attack really stopped | I trust the response | FR-RSP-4 |
+| **US-7** | analyst | to be pushed a notification for high-severity alerts | I notice them when away from my screen | FR-PSH |
+| **US-8** | analyst | to see how accurate the forecasts have been | I know how much to trust them | FR-REP, FR-CHT |
+| **US-9** | evaluator | to see a reliable, repeatable demo | I can judge the project fairly | FR-DEMO, FR-INT |
+| **US-10** | evaluator | to see the app installed on a phone | I can see the mobile deliverable | NFR-COMPAT, Section 11 |
+| **US-11** | team member | to build and test my part against sample data | I am never blocked waiting for another person | Section 9.4 |
+
+---
+
+## 5. Scope, Assumptions, Constraints and Dependencies
+
+### 5.1 In Scope
+
+| Area | In scope |
+|---|---|
+| Event source | Scripted attack sequences written into the NIDS database as packet rows (Replay Mode); a recorded PCAP file may also be replayed (could-have); CICIDS2017 is used offline for the detection evaluation |
+| Pipeline | NIDS ingestion and live detector, security event processing, ATT&CK correlation, attack graph, Precog forecasting; offline CICIDS2017 model for evaluation |
+| Backend | The NIDS Flask backend, used as-is and extended with add-on routes; REST endpoints that both clients poll for live updates |
+| Clients | One web project with a 3D SOC console and a mobile web app (installable PWA) |
+| Response | Simulated containment with human confirmation, then re-evaluation |
+| Alerts | Push notifications for high-severity alerts |
+| Evaluation | Detection metrics, Precog metrics, experiment logging |
+| Deliverables | Working product, golden-path demo with a recorded backup, IEEE paper |
+
+### 5.2 Out of Scope
+
+See Non-Goals (Section 3.2). Additionally: live VMs and live attack execution, real network enforcement, multi-tenant or multi-organization support, real device telemetry, and any hardware.
+
+### 5.3 Assumptions
+
+| ID | Assumption |
+|---|---|
+| **AS-1** | The team builds entirely through AI-assisted ("vibe coding") development, using Antigravity and other AI tools on free tiers |
+| **AS-2** | All four laptops run Windows |
+| **AS-3** | Team laptops are modest and the team has no dedicated strong hardware |
+| **AS-4** | CICIDS2017 is available to download and is suitable for research use |
+| **AS-5** | The permission granted by email for the Precog repository remains valid |
+| **AS-6** | Free tiers of the chosen hosting service (one free backend host) and push notifications are sufficient for the demo |
+| **AS-7** | The guide may not have a security background, so the team validates technical correctness itself |
+
+### 5.4 Constraints
+
+| ID | Constraint |
+|---|---|
+| **CN-1** | Software only; no external IoT hardware |
+| **CN-2** | Must be achievable in one semester by four people |
+| **CN-3** | The IEEE paper (LaTeX/Overleaf, IEEE template) is due in the first week of December 2026 |
+| **CN-4** | Team membership is fixed through the 7th semester |
+| **CN-5** | Mandatory subject integrations: Mobile Application Development, Computer Graphics, Research Methodology; optional: ML |
+| **CN-6** | Reuse an existing best-in-class open-source repository for every subsystem where one exists; custom code only for the glue and for parts nothing existing covers |
+| **CN-7** | Only the team lead merges; everyone else asks the lead to merge |
+| **CN-8** | Scope is frozen at the end of Week 3 |
+
+### 5.5 Dependencies
+
+| ID | Dependency | Used for | Fallback |
+|---|---|---|---|
+| **DP-1** | CICIDS2017 dataset | Training, testing and replay events | None needed |
+| **DP-2** | `Western-OC2-Lab/Intrusion-Detection-System-Using-Machine-Learning` | Offline CICIDS2017 detection model and evaluation numbers | Use CICIDS2017's existing labels directly for the evaluation |
+| **DP-3** | `mayank02raj/MITRE-ATTACK-based-Attack-Chain-Prediction` (permission granted) | Precog forecasting | Rule-based ATT&CK lookup table |
+| **DP-4** | Firebase Cloud Messaging | Push notifications | In-app alert feed only |
+| **DP-5** | `123dars/NIDS` (MIT licence) | The complete backend, used as-is and extended | None; this is the chosen backend |
+| **DP-6** | Free backend host (serves the backend and the built web app) | Phone demo | Show on localhost; recorded video |
+| **DP-7** | GitHub | Source control and merging | None |
+
+---
+
+## 6. User Journeys and Use Cases
+
+### 6.1 The Golden Path (Primary Journey)
+
+This is the rehearsed demo scenario. It must work every time.
+
+| Step | What happens | What the audience sees |
+|---|---|---|
+| 1 | The scripted attack sequence replays up to the point where "Node A" is confirmed compromised | Detection fires; the attack-path graph draws itself live on the 3D console |
+| 2 | The system produces a forecast | "Precog predicts Server B is the next target — 74% confidence" as a glowing forecast cone on the 3D graph, and pushed to the phone |
+| 3 | The analyst taps **Contain** on the phone | A confirmation is shown, then accepted |
+| 4 | The replay resumes | The scripted next event (a move toward Server B) is shown as blocked; the attack chain is shown ending early |
+| 5 | The accuracy counter updates | "Precog accuracy this session" ticks up |
+
+(The 74% figure is illustrative.)
+
+```mermaid
+sequenceDiagram
+    participant R as Replay feed
+    participant P as Pipeline
+    participant B as Backend
+    participant C as 3D Console
+    participant M as Phone App
+    participant A as Analyst
+    R->>P: Attack events
+    P->>B: Node A confirmed compromised
+    B->>C: Graph update
+    B->>M: Alert + graph summary
+    P->>B: Forecast (Top-3, confidence)
+    B->>C: Forecast cones
+    B->>M: Forecast + Contain button
+    A->>M: Tap Contain
+    M->>B: Contain request (confirmed)
+    B->>P: Simulated containment
+    R->>P: Next scripted event (toward Server B)
+    P->>B: Event blocked
+    B->>C: Attack chain ended early
+    B->>M: Accuracy counter updated
+```
+
+### 6.2 Use Cases
+
+| ID | Use case | Actor | Main flow | Alternative / error flow |
+|---|---|---|---|---|
+| **UC-1** | Watch the live threat level | Analyst | Open the app; see the home dashboard with the current threat level | If the connection drops, the last known state is shown clearly marked as stale |
+| **UC-2** | Review an alert | Analyst | Open the alert feed; open an alert; read the plain-English explanation and the simplified 2D attack view | If an alert has no ATT&CK match, the alert is still shown without technique context |
+| **UC-3** | Inspect the attack path in 3D | Analyst | Open the 3D console; see hosts, connections, compromised nodes and propagation animation | If no attack is active, the graph shows the network in a normal state |
+| **UC-4** | View the forecast | Analyst | See the Top-3 likely next targets with confidence on the console and in the phone app | If the forecast model cannot produce a result, the fallback lookup table is used and the source is stated |
+| **UC-5** | Contain a predicted target | Analyst | Tap Contain; confirm; see the node's status change and the action logged | If the analyst cancels at the confirmation step, nothing executes |
+| **UC-6** | Verify containment | Analyst | See the re-evaluation result showing whether the attack progressed | If the attack did progress, the console shows it and the closed loop continues |
+| **UC-7** | Receive a push notification | Analyst | A high-severity alert triggers a notification on the installed app | If push is unavailable, the alert still appears in the in-app feed |
+| **UC-8** | Review history and accuracy | Analyst | Open the history and reports view; see past alerts and forecast accuracy | If there is no history yet, an empty-state message is shown |
+| **UC-9** | Install the app on a phone | Analyst / evaluator | Open the hosted web address on the phone; add to the home screen; open as an app | If installation is not offered, the app still works in the phone browser |
+| **UC-10** | Run the demo | Team | Start the replay on localhost; run the golden path | If anything fails live, play the recorded backup video |
+| **UC-11** | Merge a teammate's work | LEAD-CORE | A member finishes and commits on their branch, then notifies LEAD-CORE; LEAD-CORE merges | Branch protection prevents anyone else from merging |
+
+---
+
+## 7. Functional Requirements
+
+**Priority key (MoSCoW):** **M** = Must have, **S** = Should have, **C** = Could have (only if time allows).
+
+### 7.1 Replay Feed, Sandbox and Ingestion (Owner: GRAPH)
+
+| ID | Requirement | Priority | Acceptance criterion |
+|---|---|---|---|
+| **FR-ING-1** | The system shall replay scripted traffic by writing packet rows into the NIDS database in the shape NIDS expects | M | A scripted scenario produces packet rows in NIDS's packet table, and NIDS's detector labels them |
+| **FR-ING-2** | The system shall replay scripted attack sequences shaped like Caldera and Atomic Red Team output | M | A scripted sequence file is accepted by the replay writer and produces packet records in the same NIDS table |
+| **FR-ING-3** | Ingestion shall write replayed events into the NIDS database in the shape NIDS expects | M | Events from both sources appear in the same table and in the same fields |
+| **FR-ING-4** | The reference network (sandbox) shall be represented as scripted playback, not live virtual machines | M | No virtual machine or attack tool is required to run any part of the product |
+| **FR-ING-5** | The replay shall contain at least one scripted multi-stage attack scenario (reconnaissance, credential attack, lateral movement, simulated exfiltration) that serves as the golden path | M | The golden path scenario plays from start to finish |
+| **FR-ING-6** | The replay shall include many varied scripted attack sequences across the demo network, to train the Precog model | M | Enough varied sequences exist to build the transition model (the count is set in the TRD) |
+| **FR-ING-7** | The demo network shall contain at least 4 hosts, identified through a host mapping table (the packet records identify hosts by IP address), so that a Top-3 list of next targets is meaningful | M | The graph shows at least 4 hosts |
+| **FR-ING-8** | The replay shall support start, pause and restart | S | Each control works during a session |
+| **FR-ING-9** | The replay shall pause at the forecast point and resume after the analyst's decision, to support the golden path | M | After Contain, the replay resumes and the next scripted event is shown as blocked |
+| **FR-ING-10** | NIDS's live packet sniffer shall not be used; the product never captures live traffic | M | The demo runs with the sniffer switched off |
+| **FR-ING-11** | The replay writer should be able to read a recorded PCAP file and insert its packets into the NIDS packet table (NIDS's own PCAP upload only analyses a file and does not store it) | C | A small PCAP file produces packet rows in the table |
+
+### 7.2 Flow Feature Preparation, Offline (Owner: DETECT)
+
+| ID | Requirement | Priority | Acceptance criterion |
+|---|---|---|---|
+| **FR-FEAT-1** | The system shall turn CICIDS2017 rows (pre-extracted features) into ML-ready feature vectors for the offline model; `nfstream` is used only if it is confirmed to run on the team's Windows laptops | M | A CICIDS2017 row produces a feature vector with the fields the offline model expects |
+| **FR-FEAT-2** | The same feature set shall be used for training and evaluation | M | The same row processed twice yields the same features |
+
+### 7.3 ML Detection (Owner: DETECT)
+
+| ID | Requirement | Priority | Acceptance criterion |
+|---|---|---|---|
+| **FR-DET-1** | NIDS's detector shall classify each replayed packet as normal or anomalous in the live pipeline | M | Each replayed packet receives a label |
+| **FR-DET-2** | Each flagged packet shall carry NIDS's severity (HIGH, MEDIUM, LOW or NORMAL) and its risk score from 0 to 100 | M | Each flagged packet carries both values |
+| **FR-DET-3** | A supervised model trained on CICIDS2017 shall be produced offline, with code from the chosen repository and the documented fallback of using CICIDS2017's own labels for the evaluation if that repository fails | M | Either path produces evaluation results |
+| **FR-DET-4** | The offline model shall be trained and tested with a proper split, ideally training on CICIDS2017 and testing on a held-out day or attack type | M | The split is documented and reproducible |
+| **FR-DET-5** | Class imbalance shall be handled explicitly (for example SMOTE or class weighting) and stated | M | The method used is documented |
+| **FR-DET-6** | Every experiment shall be logged from Week 2 onward (features, model, hyperparameters, precision, recall, F1, false-positive rate) | M | The experiment log has an entry for each run |
+| **FR-DET-7** | Replayed events shall reach the alert state fast enough for live updates; the live pipeline shall not wait for NIDS's 30-second batch loop (events are written already labelled, or the loop is shortened) | M | A replayed event appears as an alert within the latency target |
+
+### 7.4 Security Event Processing and Audit Logging (Owner: DETECT)
+
+| ID | Requirement | Priority | Acceptance criterion |
+|---|---|---|---|
+| **FR-EVT-1** | The system shall turn each detection into a security event with identity, timestamp and severity | M | Each event contains all three fields |
+| **FR-EVT-2** | The system shall produce a plain-English explanation for each alert | M | Each alert shown to the analyst has a readable explanation |
+| **FR-EVT-3** | The system shall keep an audit log of detections, forecasts, and containment actions | M | Every detection, forecast and containment action has a log entry with a timestamp |
+| **FR-EVT-4** | The audit log shall not contain secrets, credentials or real personal data | M | A review of the log finds none |
+
+### 7.5 Attack Graph (Owner: GRAPH)
+
+| ID | Requirement | Priority | Acceptance criterion |
+|---|---|---|---|
+| **FR-GRP-1** | The system shall build and update a live attack-path graph where nodes are hosts and edges are observed connections | M | New events update the graph without a restart |
+| **FR-GRP-2** | The graph shall mark which nodes are compromised | M | A confirmed compromise changes the node's state |
+| **FR-GRP-3** | The graph shall be built with `cwccie/attackgraph` and `networkx` | M | The graph is produced by these components |
+| **FR-GRP-4** | The graph shall be held in memory on the backend as the single source of truth | M | Both clients read the same graph state |
+| **FR-GRP-5** | The graph shall support a node in a contained state | M | After containment the node's state is shown as contained |
+
+### 7.6 ATT&CK Correlation (Owner: DETECT)
+
+| ID | Requirement | Priority | Acceptance criterion |
+|---|---|---|---|
+| **FR-ATK-1** | The system shall relate detected events to MITRE ATT&CK techniques using the official MITRE ATT&CK data (a curated subset of techniques) | M | An alert that matches a technique shows the technique name |
+| **FR-ATK-2** | The ATT&CK context shall be available to the Precog Engine | M | The forecast can use the observed techniques as input |
+| **FR-ATK-3** | Alerts without a match shall still be processed | M | An unmatched alert still appears, without technique context |
+
+### 7.7 Precog Engine (Owner: LEAD-CORE)
+
+| ID | Requirement | Priority | Acceptance criterion |
+|---|---|---|---|
+| **FR-PRE-1** | Given the currently compromised node and the observed techniques, the system shall estimate a probability distribution over the next likely compromised node | M | A forecast is produced for each confirmed compromise |
+| **FR-PRE-2** | The MVP model shall be a frequency-based Markov transition model trained on the varied scripted attack sequences | M | The model is trained and produces forecasts |
+| **FR-PRE-3** | The forecast shall be a ranked Top-3 list of likely next targets with confidence percentages | M | The forecast contains exactly three ranked targets (or fewer only if fewer hosts remain) |
+| **FR-PRE-4** | Forecasts shall update continuously as new evidence arrives | M | A new confirmed event produces an updated forecast |
+| **FR-PRE-5** | The technique-level hint shall come from the forecasting repository's Markov table, exported once to a JSON file in its own environment and read by the backend, with a rule-based ATT&CK lookup table as fallback | M | Either path produces a hint, and the source used is recorded |
+| **FR-PRE-6** | The system shall track its own forecast accuracy during a session and display it live | M | The accuracy value updates after each forecast is resolved |
+| **FR-PRE-7** | A forecast shall be marked resolved when the attacker's next move is known, as a hit or a miss | M | Each forecast ends up as hit or miss in the session record |
+| **FR-PRE-8** | The stretch model (a small GNN or LSTM using node type, open services and patch status) | C | Only built if the schedule allows; the MVP alone satisfies the Must requirements |
+
+### 7.8 Backend API and Live Updates (Owner: LEAD-CORE)
+
+| ID | Requirement | Priority | Acceptance criterion |
+|---|---|---|---|
+| **FR-API-1** | The backend shall be the NIDS Flask application, used as-is and extended through add-on files, serving both clients; it shall not be rewritten in another framework | M | Both the 3D console and the mobile web app use the same NIDS-based backend |
+| **FR-API-2** | The backend shall expose REST endpoints: NIDS's existing alerts, stats and packets endpoints, plus new endpoints for the graph, forecast, containment, session and replay | M | History, alerts, graph, forecasts and containment can be fetched |
+| **FR-API-3** | Live updates shall work by polling: both clients ask the backend for updates every 1 to 2 seconds | M | A new event appears on both clients within the latency target without a manual refresh |
+| **FR-API-4** | The backend shall hold the current state (active graph, threat scores, active forecasts) as the single source of truth | M | Both clients always show the same state |
+| **FR-API-5** | The complete endpoint list shall be kept in the project documents and in step with the code (NIDS has no automatic documentation page) | M | Every endpoint in the code appears in the list |
+| **FR-API-6** | The data formats exchanged between roles shall be defined first as JSON Schemas with sample JSON files in a shared `contracts/` folder, covering the new endpoints and the shapes the clients read from NIDS's existing endpoints | M | Each exchanged data format has a schema and a sample file |
+| **FR-API-7** | The backend shall serve sample (fake) data in the contract format, so clients can be built before the real pipeline is ready | M | A client can run against sample data alone |
+| **FR-API-8** | NIDS's login shall protect the APIs; the demo account's password and the secret key shall come from environment variables, not from code | M | No password or secret key is written in the code |
+| **FR-API-9** | The built web app shall be served by the same Flask app, so one deployment serves everything | M | Opening the backend's address shows the web app |
+| **FR-API-10** | The database shall be SQLite through NIDS's `DATABASE_URL` setting, with no Docker and no PostgreSQL; if that does not work, Docker Compose as NIDS ships it is the documented fallback | M | The backend runs on a laptop without Docker |
+
+### 7.9 3D SOC Console (Owner: VIZ)
+
+| ID | Requirement | Priority | Acceptance criterion |
+|---|---|---|---|
+| **FR-CON-1** | The console shall render the attack graph in 3D using `vasturiano/3d-force-graph` | M | Hosts and connections are displayed in 3D |
+| **FR-CON-2** | The console shall animate attack propagation as it happens | M | New compromised nodes and connections appear live |
+| **FR-CON-3** | The console shall render forecast cones from the compromised node toward each predicted target, with width and opacity scaled to confidence | M | Higher-confidence forecasts look visibly stronger |
+| **FR-CON-4** | The console shall show analyst-facing detail for a selected node or alert | M | Selecting a node shows its details |
+| **FR-CON-5** | The console shall show the live Precog accuracy counter | M | The counter is visible and updates |
+| **FR-CON-6** | The console shall show containment results (a contained node and an ended attack chain) | M | After Contain the console shows the change |
+| **FR-CON-7** | The console shall follow a dark, high-contrast, SOC-style design | S | Visual review by the team |
+| **FR-CON-8** | The console shall show a stale-data marker when the live connection is lost | S | Dropping the connection shows the marker |
+
+### 7.10 Mobile Web App / PWA (Owner: GRAPH, with LEAD-CORE assisting)
+
+| ID | Requirement | Priority | Acceptance criterion |
+|---|---|---|---|
+| **FR-MOB-1** | The app shall provide a login or onboarding step using a mocked demo account | M | The demo account lets the user in; no real credentials are used |
+| **FR-MOB-2** | The app shall provide a live threat-level home dashboard | M | The current threat level updates live |
+| **FR-MOB-3** | The app shall provide a chronological alert feed with plain-English explanations | M | Alerts appear newest first with explanations |
+| **FR-MOB-4** | The app shall provide a simplified 2D attack-detail view | M | An alert opens a 2D view of the attack |
+| **FR-MOB-5** | The app shall provide the Precog forecast view with a one-tap **Contain** button | M | The Top-3 forecast and the Contain button are shown |
+| **FR-MOB-6** | The app shall provide a history and reports view showing past forecast accuracy | M | Past sessions' accuracy is shown |
+| **FR-MOB-7** | The app shall be installable on a phone's home screen and behave like an app | M | After "Add to Home Screen" it opens as an app |
+| **FR-MOB-8** | The app shall tolerate loss of connectivity by showing the last known state clearly marked as stale | M | With the connection off, the app shows a marked stale state and does not crash |
+| **FR-MOB-9** | The app shall follow a dark, high-contrast, SOC-style design | S | Visual review by the team |
+| **FR-MOB-10** | The app shall be part of the same single web project as the 3D console | M | One project builds both |
+
+### 7.11 Charts (Owner: VIZ)
+
+| ID | Requirement | Priority | Acceptance criterion |
+|---|---|---|---|
+| **FR-CHT-1** | Charts shall be built with Chart.js | M | Charts are produced by this library |
+| **FR-CHT-2** | The app shall chart forecast accuracy over time | M | The chart updates as forecasts resolve |
+| **FR-CHT-3** | The app shall chart alert volume or severity over time | S | The chart is shown on the dashboard or reports view |
+| **FR-CHT-4** | Charts shall be usable on a phone-sized screen | M | Charts are readable at phone width |
+
+### 7.12 Push Notifications (Owner: VIZ)
+
+| ID | Requirement | Priority | Acceptance criterion |
+|---|---|---|---|
+| **FR-PSH-1** | The system shall send a push notification for each high-severity alert using Firebase Cloud Messaging (web push) | M | A high-severity alert produces a notification on the installed app |
+| **FR-PSH-2** | The definition of "high severity" shall come from the detection severity score | M | The threshold is documented and used consistently |
+| **FR-PSH-3** | If push is unavailable, alerts shall still appear in the in-app feed | M | With push disabled, the feed still shows the alert |
+
+### 7.13 Containment, Response and Re-evaluation (Owner: VIZ)
+
+| ID | Requirement | Priority | Acceptance criterion |
+|---|---|---|---|
+| **FR-RSP-1** | Containment shall be simulated as a status change plus a logged action, never as real network enforcement | M | No real network change occurs; the node status changes and a log entry exists |
+| **FR-RSP-2** | The Contain action shall be available from the phone app and from the console | M | Both clients can trigger it |
+| **FR-RSP-3** | Human confirmation shall be required before any containment executes | M | Nothing executes without the analyst's confirmed action |
+| **FR-RSP-4** | After containment, the system shall re-evaluate the situation by feeding the new state back into the pipeline | M | A re-evaluation result is produced and shown |
+| **FR-RSP-5** | The scripted next event toward the contained node shall be shown as blocked | M | The replay shows the attempted move as blocked |
+| **FR-RSP-6** | Each containment shall be recorded in the audit log | M | The log has an entry for each containment |
+| **FR-RSP-7** | The containment pattern shall follow the Wazuh Active Response approach, as a pattern reference only | S | The design notes the pattern; no real Wazuh deployment is required |
+
+### 7.14 Session Record and Reporting (Owner: LEAD-CORE)
+
+| ID | Requirement | Priority | Acceptance criterion |
+|---|---|---|---|
+| **FR-REP-1** | The system shall record, per session, each forecast with its confidence and outcome | M | The session record lists forecasts and outcomes |
+| **FR-REP-2** | The system shall compute forecast hit-rate for the session | M | The hit-rate matches the recorded outcomes |
+| **FR-REP-3** | The system shall support the Precog evaluation metrics in Section 10 (precision@k, calibration data, containment success rate) | M | The session record contains the data to compute them |
+
+### 7.15 Integration and Demo (Owner: LEAD-CORE)
+
+| ID | Requirement | Priority | Acceptance criterion |
+|---|---|---|---|
+| **FR-INT-1** | The full pipeline shall work end to end: replayed event, detection, attack graph, ATT&CK context, Precog forecast, 3D visualization, mobile alert, analyst containment, re-evaluation | M | The golden path runs from start to finish |
+| **FR-INT-2** | The system shall run entirely on a laptop on localhost | M | The golden path runs with no internet-hosted component |
+| **FR-DEMO-1** | A recorded video of a perfect golden-path run shall exist as a backup | M | The video file exists and shows the full golden path |
+| **FR-DEMO-2** | Anything not integration-tested by the end of Week 7 shall be cut from the demo | M | The final demo contains only tested features |
+
+---
+
+## 8. Non-Functional Requirements
+
+Values marked "Proposed" are suggestions awaiting team confirmation (Section 17).
+
+### 8.1 Performance
+
+| ID | Requirement | Target |
+|---|---|---|
+| **NFR-PERF-1** | Time from a replayed event entering the pipeline to the result appearing on both clients | Proposed: 3 seconds or less on a team laptop (includes the polling delay) |
+| **NFR-PERF-2** | Time from a confirmed compromise to the forecast appearing on both clients | Proposed: 3 seconds or less (the forecast itself is computed in under 1 second) |
+| **NFR-PERF-3** | Time from the analyst's Contain confirmation to the status change on both clients | Proposed: 3 seconds or less (includes the polling delay) |
+| **NFR-PERF-4** | The 3D console shall stay usable on a modest laptop for the demo-size network | Proposed: no visible stutter during the golden path |
+
+### 8.2 Reliability and Availability
+
+| ID | Requirement |
+|---|---|
+| **NFR-REL-1** | The golden path shall be deterministic: the same replay produces the same result each time |
+| **NFR-REL-2** | The demo shall not depend on live networks, venue Wi-Fi or any live attack; localhost is the primary demo |
+| **NFR-REL-3** | If a repository-based component fails, the documented fallback shall keep the pipeline working (detection fallback and Precog fallback) |
+| **NFR-REL-4** | Loss of client connectivity shall never crash a client |
+
+### 8.3 Usability
+
+| ID | Requirement |
+|---|---|
+| **NFR-USE-1** | A non-specialist shall be able to understand an alert from its plain-English explanation |
+| **NFR-USE-2** | The Contain action shall take one tap plus one confirmation |
+| **NFR-USE-3** | The forecast shall be understandable at a glance (confidence shown as a percentage and as cone strength) |
+| **NFR-USE-4** | The interface shall use a dark, high-contrast, SOC-style design on both clients |
+
+### 8.4 Compatibility
+
+| ID | Requirement | Target |
+|---|---|---|
+| **NFR-COMPAT-1** | Development and the localhost demo shall run on Windows laptops | Fixed |
+| **NFR-COMPAT-2** | The 3D console shall run in a current desktop browser | Proposed: latest Chrome or Edge |
+| **NFR-COMPAT-3** | The mobile web app shall install and run on the team's phones | Proposed: latest Chrome on Android (phone models to be confirmed) |
+| **NFR-COMPAT-4** | The mobile web app shall fit phone-sized screens | Fixed |
+
+### 8.5 Security, Privacy and Ethics
+
+| ID | Requirement |
+|---|---|
+| **NFR-SEC-1** | No scanning, exploitation or attack tool shall ever be run against a live network, a classmate's device, or any infrastructure the team does not fully own |
+| **NFR-SEC-2** | All attack behavior shall be represented only as pre-recorded dataset traffic or scripted event logs |
+| **NFR-SEC-3** | Containment shall be simulated only |
+| **NFR-SEC-4** | No secrets, credentials or real personal data shall be used anywhere; only CICIDS2017 and internally generated replay logs |
+| **NFR-SEC-5** | Secrets such as push-notification keys shall never be committed to the repository |
+| **NFR-SEC-6** | Human confirmation shall be required before any containment executes |
+| **NFR-SEC-7** | The paper's methodology shall state explicitly that no live attacks were run |
+
+### 8.6 Maintainability and Collaboration
+
+| ID | Requirement |
+|---|---|
+| **NFR-MNT-1** | The repository shall have one folder per role, a shared `contracts/` folder, one shared `web/` folder and a `docs/` folder |
+| **NFR-MNT-2** | Each person shall work on their own branch; nobody works directly on `main` |
+| **NFR-MNT-3** | Only LEAD-CORE merges; branch protection and a `CODEOWNERS` file shall enforce this |
+| **NFR-MNT-4** | In the shared web project, each person works only inside their own sub-folder |
+| **NFR-MNT-5** | Changes to `contracts/` shall go only through LEAD-CORE's merge |
+| **NFR-MNT-6** | Each role shall be buildable and testable alone against sample data, with the minimum of waiting on other roles |
+| **NFR-MNT-7** | Each reused repository's licence and, where needed, permission shall be recorded |
+
+### 8.7 Observability
+
+| ID | Requirement |
+|---|---|
+| **NFR-OBS-1** | The backend shall log pipeline stages so a failure can be located |
+| **NFR-OBS-2** | The audit log shall capture detections, forecasts and containment actions with timestamps |
+
+### 8.8 Accessibility
+
+| ID | Requirement |
+|---|---|
+| **NFR-ACC-1** | Text shall have enough contrast on the dark theme to be readable on a projector and on a phone |
+| **NFR-ACC-2** | Information shall not rely on colour alone (for example, also use labels or shapes for compromised and contained states) |
+
+### 8.9 Portability and Hosting
+
+| ID | Requirement |
+|---|---|
+| **NFR-HOST-1** | The built web app shall be served by the backend over HTTPS when hosted, which installation on a phone requires |
+| **NFR-HOST-2** | The backend, together with the web app, shall be deployable to one free backend host so the phone can reach it |
+| **NFR-HOST-3** | The same code shall run on localhost and when hosted |
+
+---
+
+## 9. Data Requirements
+
+### 9.1 Data Sources
+
+| Source | Use | Notes |
+|---|---|---|
+| CICIDS2017 | Training, testing and replay events | Public research dataset |
+| Scripted attack logs | Golden path and Precog training sequences | Internally generated; formatted to resemble Caldera and Atomic Red Team output |
+| MITRE ATT&CK data (`mitre-attack/attack-stix-data`) | Technique names and tactics for the techniques the project uses | Public framework data, used under MITRE's ATT&CK Terms of Use (copyright notice kept with the data) |
+
+### 9.2 Data Entities (Product Level)
+
+| Entity | Purpose | Key fields (product level) |
+|---|---|---|
+| **Packet record** | One replayed network packet stored by NIDS | Source host (IP address), destination host (IP address), timestamp, protocol, ports, size, flags |
+| **Feature vector (offline)** | Input to the offline CICIDS2017 model | Features taken from CICIDS2017 |
+| **Detection** | Result of NIDS's detector | Packet reference, anomaly flag, risk score (0 to 100), severity (HIGH, MEDIUM, LOW or NORMAL) |
+| **Security event** | Normalized detection | Identity, timestamp, severity, explanation, ATT&CK technique if matched |
+| **Host (node)** | One machine on the graph | Identifier, name, state (normal, compromised, contained) |
+| **Connection (edge)** | Observed link between hosts | Source host, destination host, time observed |
+| **Attack graph snapshot** | Current graph state | Hosts, connections, states |
+| **Forecast** | Precog output | Current compromised node, Top-3 targets, confidence per target, source of the forecast, timestamp, outcome (pending, hit, miss) |
+| **Containment action** | Simulated response | Target node, requesting client, confirmation, timestamp, result |
+| **Audit log entry** | Record of what happened | Timestamp, type (detection, forecast, containment), reference |
+| **Session record** | Per-session summary | Forecasts and outcomes, hit-rate, containment results |
+| **Demo user** | Mocked login | Demo account only |
+
+The exact field names and types are fixed in the TRD and in the schemas in `contracts/`.
+
+### 9.3 Data Quality and Governance
+
+| ID | Requirement |
+|---|---|
+| **DR-1** | Training and replay data shall be traceable to CICIDS2017 or to the scripted logs |
+| **DR-2** | Feature extraction shall be identical for training and replay |
+| **DR-3** | Class imbalance shall be handled and documented |
+| **DR-4** | No real personal data shall appear in any dataset, log or screen |
+| **DR-5** | Session and audit data are held for the demo only; no long-term retention is required |
+
+### 9.4 Data Contracts Between Roles
+
+| ID | Requirement |
+|---|---|
+| **DC-1** | Every data format passed between roles shall have a formal JSON Schema and sample JSON in `contracts/` |
+| **DC-2** | Each role shall build and test against the sample JSON first, then swap in real data without changing its own code |
+| **DC-3** | A change to a contract shall be made only through LEAD-CORE, and all roles shall be told |
+
+Contracts needed, at minimum: packet record, detection, security event, attack graph snapshot, forecast, containment action, replay status, and session record.
+
+---
+
+## 10. Evaluation and Metrics Requirements
+
+Security ML work is judged on evaluation rigor, so the evaluation is fixed upfront.
+
+### 10.1 Detection Evaluation (Owner: DETECT)
+
+| ID | Requirement |
+|---|---|
+| **EV-1** | A proper train and test split, ideally training on CICIDS2017 and testing on a held-out day or attack type, to show generalization |
+| **EV-2** | Report precision, recall, F1 and false-positive rate |
+| **EV-3** | Handle class imbalance explicitly and state the method |
+| **EV-4** | Log every experiment from Week 2 in a simple spreadsheet or tracker |
+| **EV-5** | Set numeric thresholds only after the Week 2 baseline exists |
+
+### 10.2 Precog Evaluation (Owner: LEAD-CORE)
+
+| ID | Requirement |
+|---|---|
+| **EV-6** | Report forecast precision@1 and precision@3 |
+| **EV-7** | Report a calibration curve (stated confidence against actual outcome) |
+| **EV-8** | Report containment success rate under simulated replay |
+| **EV-9** | Show the live session accuracy counter in the product |
+| **EV-10** | Compare against the fallback rule-based lookup, where possible, to show what the model adds |
+
+### 10.3 Paper Framing
+
+The paper is scoped around the Precog Engine's forecasting contribution: *"Probabilistic Attack Trajectory Forecasting for Pre-Emptive Network Containment: A Closed-Loop Detect-Forecast-Act Framework."* Before the paper's novelty claim is finalized, a literature search (Google Scholar, IEEE Xplore) shall be run specifically for this mechanism, so the paper can honestly say "to the best of our knowledge".
+
+---
+
+## 11. Platform, Demo and Delivery Requirements
+
+### 11.1 Fixed Technology Decisions
+
+| Area | Decision |
+|---|---|
+| Operating system | Windows on all four laptops |
+| AI coding tool | Antigravity for everyone, plus other AI tools |
+| Backend | Flask, taken completely from `123dars/NIDS` and extended only through add-on files; no rewrite |
+| Database | SQLite through NIDS's `DATABASE_URL` setting; no Docker, no PostgreSQL (to be verified) |
+| Live updates | Polling every 1 to 2 seconds (NIDS has no WebSocket) |
+| Frontend | One single web project (3D console + mobile web app), React with Vite, built into static files served by the NIDS Flask app |
+| Charts | Chart.js |
+| Push notifications | Firebase Cloud Messaging (web push) |
+| Version control | Git, with a new GitHub repository |
+
+### 11.2 Build Order
+
+The product is built **web first**. A native mobile build is considered too difficult, so the web version is completed and verified first, and anything mobile-native follows only afterwards and only if required.
+
+### 11.3 Where It Runs
+
+| Situation | How |
+|---|---|
+| **Primary demo** | The whole project runs on localhost on a laptop and is shown from there |
+| **Phone demo** | The whole app (backend plus the built web app) is hosted on one free backend host, opened on the phone over HTTPS and installed as an app |
+| **If a teacher requires an app file** | The finished web app is wrapped into an APK (not a hand-coded native app), sent to phones and installed |
+| **If a guide or teacher asks to see it in Android Studio** | Run it in Android Studio on request |
+| **If anything fails live** | Play the recorded backup video |
+
+### 11.4 Reused Repositories and Tools
+
+| Subsystem | Repository or tool | Reuse type |
+|---|---|---|
+| Sandbox reference | VirtualBox, Metasploitable2, Kali Linux | Reference only (replayed, not live) |
+| Attack technique reference | `apache/caldera` | Output-format reference (replayed) |
+| Attack technique reference | `redcanaryco/atomic-red-team` | Output-format reference (replayed) |
+| Data ingestion | NIDS's packet table and detector plus a small scripted replay writer; NIDS's PCAP upload only analyses a file (does not store it); `bqmxnh/ids-agent` dropped (Linux and live-capture only) | Clone and connect + small script |
+| Flow feature preparation (offline) | CICIDS2017 pre-extracted features; `nfstream/nfstream` only if it runs on Windows | Clone and connect |
+| ML detection | NIDS's Isolation Forest detector (live) and `Western-OC2-Lab/Intrusion-Detection-System-Using-Machine-Learning` (offline CICIDS2017 model) | Clone and connect (fallback: CICIDS2017 labels) |
+| Dataset | CICIDS2017 | Dataset |
+| Backend (complete) | `123dars/NIDS` (Flask, MIT licence), used as-is and extended through add-on files | Clone and connect |
+| Attack graph | `cwccie/attackgraph` and `networkx` | Clone and connect |
+| Precog forecasting | `mayank02raj/MITRE-ATTACK-based-Attack-Chain-Prediction` (author's permission confirmed by email); only its Markov table is exported once to JSON | Clone and connect (fallback: rule-based lookup) |
+| ATT&CK data | `mitre-attack/attack-stix-data` (official ATT&CK data); a 26-technique subset is stored in one JSON file. `attack-flow` holds no technique data | Data file built from the official data |
+| 3D visualization | `vasturiano/3d-force-graph` | Clone and connect |
+| Containment pattern | `wazuh/wazuh` Active Response | Pattern reference (execution simulated) |
+| Charts | `chartjs/Chart.js` | Clone and connect |
+| Push notifications | Firebase Cloud Messaging | SDK integration |
+| Mobile web app | None (no safe base repository found) | Write code |
+
+**Standing rule:** reusing an existing repository is required wherever one exists; writing code from scratch for something an existing repository already provides is treated as a failure. Every reused repository must be best-in-class and must not lack anything a mature, fully licensed repository would have.
+
+### 11.5 Delivery Workflow Requirements
+
+| ID | Requirement |
+|---|---|
+| **DW-1** | One GitHub repository, created from scratch |
+| **DW-2** | One branch per person; only LEAD-CORE merges into `main` through a Pull Request |
+| **DW-3** | When finished, a member commits to their own branch and notifies LEAD-CORE to merge |
+| **DW-4** | Branch protection on `main` and a `CODEOWNERS` file make the merge rule real |
+| **DW-5** | Each role has its own build guide written at an extremely basic level, with every step spelled out |
+| **DW-6** | Each build guide follows one linear workflow: Git commands, then code (a finished code file plus an AI prompt to compare against the AI-generated version), then commit, then testing and external work, then loop |
+
+---
+
+## 12. Release Plan, MVP and Milestones
+
+### 12.1 MVP Definition
+
+The MVP is the smallest version that satisfies every **Must** requirement in Section 7: the replay feed, detection with either the repository model or the label fallback, event processing, the attack graph, ATT&CK context, the Markov-based Precog forecast, the backend, the 3D console, the mobile web app, simulated containment with confirmation, and the golden path with a recorded backup.
+
+### 12.2 Stretch (Only If Time Allows)
+
+| Item | Requirement |
+|---|---|
+| GNN or LSTM replacement for the Markov model | FR-PRE-8 |
+| Additional charts | FR-CHT-3 |
+| APK from the web app | Only if a teacher requires it |
+| Android Studio run | Only if asked |
+
+### 12.3 8-Week Timeline
+
+| Week | Focus | Owner(s) |
+|---|---|---|
+| 1 | Dataset acquisition and cleaning (CICIDS2017); build the scripted replay feed pipeline | DETECT, GRAPH |
+| 2 | Baseline ML detection model, even if crude | DETECT |
+| 3 | Feature engineering and model tuning; start attack graph reconstruction | DETECT, GRAPH |
+| **Milestone 1** | **Scope freeze: no new features after this point** | All |
+| 4 | NIDS backend setup, add-on routes and polling-based live updates (historically the most underestimated step) | LEAD-CORE |
+| 5 | Installable mobile web app wired to the backend | GRAPH (LEAD-CORE assisting) |
+| 6 | 3D visualization: graph and propagation animation | VIZ |
+| **Milestone 2** | **Core pipeline working end to end** | All |
+| 7 | Precog Engine: Markov model and forecast cones | LEAD-CORE |
+| 8 | Integration testing, demo rehearsal, paper writing, buffer | All |
+| Demo day | Demo and paper submission | All |
+
+**Not yet placed on the timeline:** charts, push notifications, containment and re-evaluation (VIZ), and ATT&CK correlation (DETECT). Their exact weeks are fixed in the build guides, within Phases 2 and 3.
+
+**Rule:** Week 8 is a buffer and is not optional. Anything not integration-tested by the end of Week 7 is cut from the demo.
+
+### 12.4 Release Criteria
+
+The product is ready to demo when all Section 15 criteria are met.
+
+---
+
+## 13. Ownership (RACI)
+
+**R** = Responsible (builds it), **A** = Accountable (final say; here, the merger), **C** = Consulted, **I** = Informed. LEAD-CORE is Accountable for every merge.
+
+| Module | LEAD-CORE | DETECT | GRAPH | VIZ |
+|---|---|---|---|---|
+| Replay feed, sandbox, attack simulation (7.1) | A, C | I | **R** | I |
+| Data ingestion (7.1) | A, C | I | **R** | I |
+| Flow feature preparation, offline (7.2) | A | **R** | I | I |
+| ML detection (7.3) | A | **R** | I | I |
+| Security event processing and audit (7.4) | A, C | **R** | I | I |
+| Attack graph (7.5) | A, C | I | **R** | C |
+| ATT&CK correlation (7.6) | A | **R** | C | I |
+| Precog Engine (7.7) | **R, A** | C | C | C |
+| Backend (NIDS add-ons), API and contracts (7.8) | **R, A** | C | C | C |
+| 3D SOC console (7.9) | A | I | I | **R** |
+| Mobile web app (7.10) | R (assisting), A | I | **R** | C |
+| Charts (7.11) | A | I | C | **R** |
+| Push notifications (7.12) | A | I | C | **R** |
+| Containment and re-evaluation (7.13) | A, C | I | I | **R** |
+| Session record and reporting (7.14) | **R, A** | C | I | I |
+| Integration and golden path (7.15) | **R, A** | C | C | C |
+| Merging into `main` | **R, A** | I | I | I |
+
+**Difficulty totals (from the master document):** DETECT 21, GRAPH 19, VIZ 20, LEAD-CORE 17. Roles can be swapped between any two members at any point with no loss of fairness; the split exists to divide the work area, not to reflect a skill ranking.
+
+---
+
+## 14. Risks and Mitigations
+
+| ID | Risk | Likelihood / impact | Mitigation |
+|---|---|---|---|
+| **RK-1** | A chosen repository is poorly maintained, undocumented or breaks | Medium / High | Documented fallbacks for the two highest-risk repositories (detection and Precog) |
+| **RK-2** | The backend and real-time pipeline are underestimated | High / High | Owned by LEAD-CORE, with Week 4 reserved for it alone |
+| **RK-3** | Scope creep | High / Medium | Scope frozen after Week 3; new ideas written as future work |
+| **RK-4** | The live demo fails on the day | Medium / High | Replay Mode removes live-network dependence; localhost demo; recorded backup video |
+| **RK-5** | The guide cannot validate technical correctness | Medium / Medium | The team validates correctness through evaluation metrics and threat-model realism |
+| **RK-6** | The novel feature turns out to be less novel than assumed | Medium / High | Literature search specific to the Precog mechanism before the paper's claim is finalized |
+| **RK-7** | Merge conflicts or a broken `main` | Medium / Medium | Folder per role, branch per person, only LEAD-CORE merges, branch protection |
+| **RK-8** | The phone can only install the web app from a hosted HTTPS address, and the backend must be reachable | Medium / Medium | The NIDS Flask app serves the built web app itself, so one free backend host over HTTPS covers both; localhost remains the primary demo |
+| **RK-9** | Evaluators expect a native Android app for the Mobile Application Development subject | Medium / Medium | Web first; an APK wrapper and an Android Studio run are available on request |
+| **RK-10** | The team has no networking, Linux or cybersecurity background | High / Medium | Replay Mode, reuse of existing repositories, extremely basic build guides |
+| **RK-11** | Free tiers or modest laptops are too slow for the 3D console | Medium / Medium | Keep the demo network small; test on the weakest laptop early |
+| **RK-12** | Free hosting limits (sleeping services, usage caps) hurt the phone demo | Medium / Medium | Wake and test the hosted services before the demo; fall back to localhost and video |
+| **RK-13** | A teammate is blocked waiting for another | Medium / Medium | Contract-first sample data so every role builds alone |
+| **RK-14** | NIDS ships with a default admin login, a hardcoded secret key and hardcoded database passwords | High / Medium | Move them to environment variables; never commit real values |
+| **RK-15** | NIDS runs its detector in a 30-second batch loop, too slow for live updates | High / Medium | Replay writes events already labelled, or the loop is shortened (FR-DET-7) |
+| **RK-16** | NIDS pins older libraries and expects PostgreSQL; the SQLite switch or the pinned libraries may not work | Medium / High | Verify both in Week 1; separate Python environments where versions clash; Docker Compose as the documented fallback |
+| **RK-17** | NIDS has no graph, forecast, containment or live push, so add-on code is still needed | High / Medium | Add-ons live in separate files that register routes in the same app; build guides give finished code and prompts |
+
+---
+
+## 15. Acceptance Criteria and Definition of Done
+
+### 15.1 Product-Level Acceptance
+
+The product is accepted when all of the following are true:
+
+| # | Criterion |
+|---|---|
+| **AC-1** | The golden path runs from start to finish on localhost: replayed event, detection, attack graph, ATT&CK context, Precog forecast, 3D visualization, mobile alert, analyst containment, re-evaluation |
+| **AC-2** | Detection performance is measured on a held-out portion of CICIDS2017 and reported with precision, recall, F1 and false-positive rate |
+| **AC-3** | The Precog Engine produces Top-3 forecasts with confidence, and reports precision@k, a calibration curve and containment success rate |
+| **AC-4** | The live accuracy counter is visible and updates correctly |
+| **AC-5** | The mobile web app installs on a phone and shows live alerts and executes a containment action |
+| **AC-6** | No containment executes without human confirmation |
+| **AC-7** | No live attack or real enforcement was ever run |
+| **AC-8** | The golden path ran without failure in 5 consecutive rehearsals (Proposed, see SM-5) |
+| **AC-9** | A recorded backup video of a perfect run exists |
+| **AC-10** | The IEEE paper is scoped to the Precog contribution, with a literature-search-backed novelty claim |
+| **AC-11** | Every Must requirement in Section 7 passes its acceptance criterion |
+
+### 15.2 Definition of Done (Per Requirement)
+
+A requirement is done only when:
+
+1. The code or file exists in the owner's folder and runs without errors.
+2. It has been tested against its acceptance criterion, with the result noted.
+3. It was committed to the owner's branch and LEAD-CORE was asked to merge.
+4. LEAD-CORE merged it and confirmed that `main` still runs.
+5. Any contract it uses matches the files in `contracts/`.
+
+### 15.3 Test Approach
+
+| Level | What is tested | By whom |
+|---|---|---|
+| Unit | Each module alone against sample data | Each role owner |
+| Component | Model quality (detection and Precog) with the evaluation in Section 10 | DETECT, LEAD-CORE |
+| Integration | Modules connected through the backend | LEAD-CORE |
+| End-to-end | The full golden path | LEAD-CORE, with all roles |
+| Device | The installed app on real phones | GRAPH, with LEAD-CORE |
+| Rehearsal | Repeated full demo runs | All |
+
+---
+
+## 16. Traceability Matrix
+
+| Gap | Goal | Requirements that address it |
+|---|---|---|
+| **G1** Detection alone isn't understanding | GL-1, GL-2 | FR-DET, FR-EVT, FR-GRP, FR-ATK, FR-CON |
+| **G2** Reconstruction alone is reactive | GL-3 | FR-PRE, FR-CON-3, FR-MOB-5 |
+| **G3** No accessible tool closes the loop | GL-4, GL-5, GL-6 | FR-RSP, FR-API, FR-INT, FR-MOB, FR-CON |
+| Research contribution | GL-7 | FR-PRE-6, FR-REP, Section 10 |
+| Subject integration | GL-8 | ML: FR-DET; Computer Graphics: FR-CON; Mobile Application Development: FR-MOB, FR-PSH; Research Methodology: Section 10 |
+
+| User story | Requirements |
+|---|---|
+| US-1 | FR-EVT-2, FR-MOB-3 |
+| US-2 | FR-GRP, FR-CON-1, FR-CON-2 |
+| US-3 | FR-PRE-3, FR-CON-3, FR-MOB-5 |
+| US-4 | FR-RSP-2, FR-MOB-5 |
+| US-5 | FR-RSP-3, NFR-SEC-6 |
+| US-6 | FR-RSP-4, FR-RSP-5 |
+| US-7 | FR-PSH |
+| US-8 | FR-PRE-6, FR-CHT-2, FR-MOB-6 |
+| US-9 | FR-INT, FR-DEMO |
+| US-10 | FR-MOB-7, NFR-COMPAT-3 |
+| US-11 | FR-API-6, FR-API-7, DC-1, DC-2 |
+
+---
+
+## 17. Items for Team Confirmation
+
+Nothing below is assumed. Each is a proposal that stays "Proposed" until the team confirms or changes it.
+
+| # | Item | Proposed value | Where used |
+|---|---|---|---|
+| 1 | End-to-end latency target (polling every 1 to 2 seconds) | 3 seconds or less | NFR-PERF-1 |
+| 2 | Forecast latency target | 3 seconds or less | NFR-PERF-2 |
+| 3 | Containment latency target | 3 seconds or less | NFR-PERF-3 |
+| 4 | Number of consecutive successful rehearsals before demo day | 5 | SM-5, AC-8 |
+| 5 | Desktop browser for the 3D console | Latest Chrome or Edge | NFR-COMPAT-2 |
+| 6 | Phone type and browser for the installed app | Latest Chrome on Android; the team's phone models are not yet known | NFR-COMPAT-3 |
+| 7 | The week each of these is built: charts, push notifications, containment and re-evaluation, ATT&CK correlation | To be fixed in the build guides | Section 12.3 |
+| 8 | Which free backend host (serves the backend and the web app) | To be picked in the build guide | DP-6 |
+| 9 | Number of hosts in the demo network | At least 4 (logical minimum for a Top-3 forecast); exact number set in the TRD | FR-ING-7 |
+| 10 | Replay controls (start, pause, restart) | Should-have | FR-ING-8 |
+| 11 | Numeric detection thresholds | Set after the Week 2 baseline | EV-5 |
+| 12 | SQLite through `DATABASE_URL` instead of PostgreSQL | To be verified in Week 1 | FR-API-10 |
+| 13 | Polling interval | 1 to 2 seconds | FR-API-3 |
+| 14 | Whether NIDS's pinned libraries run on the chosen Python version | To be verified in Week 1 | RK-16 |
+
+---
+
+## 18. Appendices
+
+### 18.1 Requirement ID Index
+
+| Prefix | Meaning |
+|---|---|
+| GL | Product goal |
+| NG | Non-goal |
+| SM | Success metric |
+| US | User story |
+| UC | Use case |
+| AS | Assumption |
+| CN | Constraint |
+| DP | Dependency |
+| FR | Functional requirement (ING, FEAT, DET, EVT, GRP, ATK, PRE, API, CON, MOB, CHT, PSH, RSP, REP, INT, DEMO) |
+| NFR | Non-functional requirement (PERF, REL, USE, COMPAT, SEC, MNT, OBS, ACC, HOST) |
+| DR | Data-quality requirement |
+| DC | Data contract requirement |
+| EV | Evaluation requirement |
+| DW | Delivery workflow requirement |
+| RK | Risk |
+| AC | Acceptance criterion |
+
+### 18.2 Document Relationships
+
+| Document | Answers |
+|---|---|
+| Master Project Document | What the whole project is and why |
+| **PRD (this document)** | What must be built and when it is done |
+| TRD | How it is built technically |
+| Build Guides (4) | The exact steps each role follows to build and merge their part |
+
+### 18.3 Change Log
+
+| Version | Date | Change |
+|---|---|---|
+| 1.0 | 3 October 2026 | First full draft |
+| 1.1 | 3 October 2026 | Backend changed to the NIDS repository (Flask, SQLite, polling, one deployment); ingestion changed (ids-agent dropped); detection split into live NIDS detector and offline CICIDS2017 model; ATT&CK correlation moved to DETECT; difficulty totals updated |
+| 1.2 | 3 October 2026 | FR-ING-1 corrected and FR-ING-11 added: NIDS's PCAP upload analyses a file but does not store its packets (found by testing) |

@@ -1,0 +1,487 @@
+# AI Cyber Threat Detection, Attack-Path Reconstruction, Precog Forecasting, Visualization, Mobile SOC & Automated Containment Platform
+
+**5th Semester Project-Based Learning (PBL) — Department of Computer Science and Engineering**
+
+---
+
+## Cover Details
+
+| Field | Detail |
+|---|---|
+| **Department** | Department of Computer Science and Engineering |
+| **Academic Year / Semester** | 2026–27, 5th Semester |
+| **Subjects Integrated** | Machine Learning (ML), Computer Graphics (CG), Mobile Application Development (MAD), Research Methodology (IEEE Paper) |
+| **Guide** | Dr. Nandini C — Vice Principal and Head of Department, Department of Computer Science and Engineering |
+| **Last Revised** | 3 October 2026 — backend changed to the NIDS repository (Flask, no Docker, no edits to NIDS files), polling instead of WebSocket, one deployment serving the web app, work re-rated and rebalanced, ingestion corrected (NIDS's PCAP upload does not store packets), Neha's USN corrected |
+
+### Team Members (in order of USN)
+
+| USN | Name | Official Role (for department filing) |
+|---|---|---|
+| 1DT24CS174 | Neha | ML Detection & Security Systems Developer |
+| 1DT24CS185 | Pallavi Bammanni | Security Simulation, Data Ingestion & Mobile Web App Developer |
+| 1DT24CS195 | Preethi S Pujari | Visualization & Containment Systems Developer |
+| 1DT24CS232 | Sagar R | Team Lead & Backend/AI Integration Developer |
+
+### Naming Convention (Aliases)
+
+**This master document uses real names throughout.** Every other project document (build guides and so on) uses the role-based aliases below instead of real names, and states this table at its beginning.
+
+| Alias | Real Name | USN | Role |
+|---|---|---|---|
+| **LEAD-CORE** | Sagar R | 1DT24CS232 | Team lead — backend, Precog Engine, integration; the only person who merges code |
+| **DETECT** | Neha | 1DT24CS174 | Flow feature preparation, ML detection, security event processing, ATT&CK correlation |
+| **GRAPH** | Pallavi Bammanni | 1DT24CS185 | Data ingestion, simulation, attack graph, mobile web app (PWA) |
+| **VIZ** | Preethi S Pujari | 1DT24CS195 | 3D visualization, charts, push notifications, containment |
+
+---
+
+## Table of Contents
+
+1. [Executive Summary](#1-executive-summary)
+2. [Problem Statement](#2-problem-statement)
+3. [Existing Systems & Gap Analysis](#3-existing-systems--gap-analysis)
+4. [Proposed Solution & Novelty — The Precog Engine](#4-proposed-solution--novelty--the-precog-engine)
+5. [System Architecture](#5-system-architecture)
+6. [Technology Stack & Reused Open-Source Repositories](#6-technology-stack--reused-open-source-repositories)
+   - 6.1 Fixed Technology Decisions
+   - 6.2 Repository & Merge Workflow
+   - 6.3 Contract-First Integration
+   - 6.4 Details Settled in the Build Guides
+7. [Demo Plan (Replay Mode)](#7-demo-plan-replay-mode)
+8. [Team Structure & Role Distribution](#8-team-structure--role-distribution)
+9. [8-Week Development Timeline](#9-8-week-development-timeline)
+10. [Evaluation Methodology](#10-evaluation-methodology)
+11. [Mobile Application](#11-mobile-application)
+12. [Legal, Ethical & Safety Boundaries](#12-legal-ethical--safety-boundaries)
+13. [Expected Outcomes & Success Criteria](#13-expected-outcomes--success-criteria)
+14. [Risks & Mitigations](#14-risks--mitigations)
+15. [Conclusion](#15-conclusion)
+
+---
+
+## 1. Executive Summary
+
+This project detects cyber intrusions, reconstructs how they spread through a network, and — through its novel **Precog Engine** — forecasts where an attacker is most likely to go next and lets an analyst pre-emptively stop them, before the next step happens. It combines four subjects into one working product: an ML detection pipeline, a live 3D computer-graphics visualization of the attack, a mobile app for on-the-go alerting and one-tap containment, and a closed feedback loop that re-evaluates the situation after every response.
+
+The system operates in **Replay Mode**: rather than running live attacks against real virtual machines, it replays realistic, pre-recorded attack event sequences (built from the CICIDS2017 dataset and scripted to resemble real attack-tool output) through the exact same live pipeline a real attack would trigger. This was a deliberate decision (Section 7) to keep the project achievable for a team with no prior networking, Linux, or cybersecurity background, while preserving the full "live, reactive dashboard" demo experience.
+
+---
+
+## 2. Problem Statement
+
+**One-line problem statement:** Security teams — especially in small organizations without a full Security Operations Center (SOC) — struggle to understand *how* an intrusion is spreading through their network in real time, and by the time an attack path is understood, damage is often already done. This project detects intrusions, reconstructs how they spread, and — via the novel feature — predicts and pre-empts where they're going next.
+
+Three distinct capability gaps make up this problem:
+
+1. **Detection alone isn't understanding.** A flood of individual alerts doesn't tell an analyst how those alerts relate to one another as a single unfolding attack.
+2. **Reconstruction alone is reactive.** Even a well-built attack-path graph only shows *what already happened* — by the time it's drawn, the attacker has usually already moved on.
+3. **There is no accessible tool that closes the loop.** Nothing widely available combines detection, path reconstruction, forward-looking prediction, and one-tap response into a single continuously re-evaluating system — particularly not one a small team or student project can realistically build and demonstrate.
+
+---
+
+## 3. Existing Systems & Gap Analysis
+
+| Existing System | Category | What It Does | Limitation |
+|---|---|---|---|
+| **Bitdefender GravityZone** | Endpoint Detection & Response | Detects and reports malicious activity on endpoints | Purely descriptive/reactive — reports what happened, does not forecast what happens next |
+| **CrowdStrike Falcon** | Endpoint Detection & Response | Real-time endpoint monitoring and incident response | Same limitation — strong at detection and response, not at predicting the attacker's next move |
+| **Sekoia.io** | Attack-Path Visualization | Visualizes attack paths and relationships between security events | Visualization is after-the-fact; shows the graph once compromise is already detected, not before |
+
+**The gap:** every tool in this category answers *"what happened?"* None of them attempt live, node-level, confidence-scored forecasting of the attacker's next move combined with an actionable pre-emptive containment step that closes back into the same live system. That closed loop — **detect → forecast → act → re-evaluate** — is the specific gap this project targets, not a prettier version of an already-solved graph-visualization problem.
+
+---
+
+## 4. Proposed Solution & Novelty — The Precog Engine
+
+### 4.1 Why "Detection + Graph" Alone Isn't the Contribution
+
+Detection-plus-graph reconstruction is a solved, published, and commercially shipped problem — building it demonstrates engineering competence, but it is not, by itself, a novel research contribution. The actual publishable and demonstrable novelty lives entirely in the Precog Engine described below. The system section of this project describes a working pipeline; the contribution section is scoped entirely to Precog's forecasting method and its evaluation.
+
+### 4.2 Core Idea
+
+Instead of only showing where an attack *has been* — which is what every existing tool in Section 3 does — the Precog Engine predicts, in real time and with a confidence score, where the attacker is most likely to go **next**, before they get there, and gives the analyst a one-tap way to block that predicted path pre-emptively.
+
+### 4.3 The Closed Loop
+
+```mermaid
+flowchart LR
+    A[Detect] --> B[Forecast]
+    B --> C[Act — Pre-emptive Containment]
+    C --> D[Re-evaluate]
+    D --> A
+```
+
+This closed loop — not a prettier graph — is the actual novel mechanism.
+
+### 4.4 How It Works, Mechanically
+
+1. **Trajectory model.** A probabilistic transition model over the network graph estimates, given the attacker's currently compromised node and the technique(s) observed, a probability distribution over the "next likely compromised node."
+   - **MVP version (this semester's target):** a frequency-based **Markov transition model**, trained by running many varied scripted attack sequences across the sandbox topology and recording the sequences of compromised nodes. This requires no exotic ML and is fully achievable in the timeline.
+   - **Stretch version (only if time allows):** replace the Markov model with a small **Graph Neural Network (GNN)** or **LSTM sequence model** that also factors in node type, open services, and patch status. This is a genuine "if time allows" upgrade, not a requirement — the MVP alone is enough to make the feature work and be demoable.
+
+2. **Live inference.** As soon as the detection engine confirms a node is compromised, the Precog Engine queries the trajectory model with the current graph state and returns a ranked Top-3 list of likely next targets with confidence percentages, updating continuously as new evidence arrives.
+
+3. **Visualization.** On the 3D console, this renders as glowing directional "forecast cones" projecting outward from the compromised node toward the predicted targets, with width/opacity scaled to confidence — immediately legible even to a non-specialist.
+
+4. **Pre-emptive containment loop.** The mobile app surfaces the top prediction with a single **Contain** action. In the demo, this means simulating isolation of that node/segment (a status change and a logged action, per Section 7's Replay Mode design).
+
+5. **Self-scoring transparency.** The system tracks its own forecast accuracy over the course of a session ("Precog accuracy this session: 81%") and displays it live — a genuinely unusual thing to show, and a clean, honest metric for the IEEE paper (forecast hit-rate, calibration curve, confidence vs. actual-outcome analysis) instead of only reporting detection accuracy like most papers in this space.
+
+### 4.5 Research Paper Framing (The Actual Contribution)
+
+> *"Probabilistic Attack Trajectory Forecasting for Pre-Emptive Network Containment: A Closed-Loop Detect-Forecast-Act Framework."*
+
+This is a specific, scoped, testable claim, distinct from prior attack-path visualization literature, with a clean evaluation story: forecast precision@k, calibration, and containment success rate under simulated replay.
+
+**Originality check (to be done before finalizing the paper):** a proper literature search (Google Scholar, IEEE Xplore) will be run specifically for this feature's exact mechanism — not just "attack path visualization" generally — so the paper can honestly state "to the best of our knowledge, no existing work does this in this way."
+
+---
+
+## 5. System Architecture
+
+```mermaid
+flowchart TB
+    A["Replayed / Simulated Attack Event Feed<br/>(scripted attack-technique sequences written as packet rows)"] --> B["Ingestion — NIDS database<br/>(Pallavi)"]
+    B --> C["NIDS Detector — Isolation Forest (live)<br/>(Neha)"]
+    C --> E["Security Event Processing + ATT&CK Correlation + Audit/Logging<br/>(Neha)"]
+    D["CICIDS2017 model — trained offline, gives the evaluation numbers<br/>(Neha)"] -.->|offline evaluation| E
+    E --> F["Attack Graph Engine — NetworkX<br/>(Pallavi)"]
+    F --> G["Precog Engine — Novel Feature<br/>(Sagar)"]
+    E --> H["Backend API — NIDS Flask app, extended<br/>(Sagar)"]
+    F --> H
+    G --> H
+    H --> I["3D CG SOC Console<br/>(Preethi)"]
+    H --> J["Mobile Web App (PWA)<br/>(Pallavi, with Sagar assisting)"]
+    I --> K[Analyst Decision]
+    J --> K
+    K --> L["Containment / Response<br/>(Preethi — simulated action)"]
+    L --> M["Re-evaluation Loop<br/>(Preethi)"]
+    M -.new telemetry.-> B
+```
+
+### Layer Responsibilities
+
+| Layer | Responsibility |
+|---|---|
+| Replayed event feed | Supplies realistic attack activity without needing a live network |
+| Ingestion Layer | Writes replayed traffic and scripted event sequences into the NIDS database |
+| Flow Feature Preparation | Offline: turns CICIDS2017 rows into ML-ready features for the evaluation model |
+| ML Detection Engine | The NIDS detector flags and scores packets live; a CICIDS2017 model trained offline supplies the evaluation numbers |
+| Security Event Processing | Normalizes detections into events with identity, timestamps, severity; handles audit/logging |
+| Attack Graph Engine | Builds/updates the live attack-path graph (nodes = hosts, edges = observed connections) |
+| Precog Engine | Forecasts probable next targets from current graph state (Section 4) |
+| Backend API + Live Updates | Single source of truth: the NIDS Flask backend, extended with add-on routes, serves state to both clients over REST; the clients poll every 1 to 2 seconds |
+| 3D CG SOC Console | Full graph, forecast cones, analyst-facing detail |
+| Mobile Web App (PWA) | Installable web app: alerts, summarized graph, one-tap containment action |
+| Containment / Response | Executes the (simulated) response action |
+| Re-evaluation Loop | Feeds the post-action state back into the pipeline to confirm the attack was actually stopped |
+
+---
+
+## 6. Technology Stack & Reused Open-Source Repositories
+
+**Standing rule for this project:** reuse an existing, best-in-class open-source repository for every subsystem wherever one exists. Writing code from scratch for something an existing repository already provides is treated as a failure. Custom code is written only for the glue between integrated pieces, or for the parts nothing existing covers.
+
+| Subsystem | Repository / Tool | Reuse Type |
+|---|---|---|
+| Sandbox / Lab (simulated) | VirtualBox + Metasploitable2 + Kali Linux (reference topology, replayed not live) | Tool reference |
+| Attack technique reference | `apache/caldera` | Output-format reference (replayed) |
+| Attack technique reference | `redcanaryco/atomic-red-team` | Output-format reference (replayed) |
+| Data Ingestion | NIDS's packet table and detector plus a small scripted replay writer (NIDS's PCAP upload only analyses a file and does not store it; `bqmxnh/ids-agent` dropped: Linux and live-capture only) | Clone & Connect + small script |
+| Flow Feature Preparation (offline) | CICIDS2017 pre-extracted features; `nfstream/nfstream` only if it runs on Windows | Clone & Connect |
+| ML Detection | NIDS's Isolation Forest detector (live demo) + `Western-OC2-Lab/Intrusion-Detection-System-Using-Machine-Learning` trained on CICIDS2017 offline for the evaluation numbers | Clone & Connect (fallback: CICIDS2017's existing labels used directly) |
+| Dataset | CICIDS2017 (UNB) | Dataset |
+| Backend (complete) | `123dars/NIDS` (Flask, MIT licence), taken as-is and extended only through add-on files | Clone & Connect |
+| Attack Graph Engine | `cwccie/attackgraph` + `networkx` | Clone & Connect |
+| Precog Forecasting | `mayank02raj/MITRE-ATTACK-based-Attack-Chain-Prediction` *(author's usage permission confirmed by email)* | Clone & Connect (fallback: rule-based ATT&CK lookup table) |
+| ATT&CK Data | Official MITRE ATT&CK data (`mitre-attack/attack-stix-data`), a curated 26-technique subset kept in a small JSON file; `attack-flow` was checked and holds no technique data, so it is only an optional format reference | Clone & Connect (data file) |
+| 3D Visualization | `vasturiano/3d-force-graph` | Clone & Connect |
+| Containment Pattern | `wazuh/wazuh` Active Response (pattern reference; execution is simulated) | Pattern reference |
+| Mobile Web App (PWA) | Installable web app inside the single web project (3D console + mobile app) | Write Code (no safe base repo found) |
+| Charts | `chartjs/Chart.js` (replaces the Android-only MPAndroidChart) | Clone & Connect |
+| Push Notifications | Firebase Cloud Messaging (web push) | SDK Integration |
+
+**Backend stack:** the backend is taken completely from `123dars/NIDS` (Flask, SQLAlchemy, Flask-Login). It is **not** rewritten in another framework. The parts NIDS lacks (live attack graph, Precog forecast, containment, scripted replay, polling-friendly endpoints) are added as separate add-on files that register extra routes in the same Flask app. NIDS's Docker, PostgreSQL and live packet sniffer are **not used**: the database is switched to SQLite through NIDS's own `DATABASE_URL` setting (to be verified in the build guide) and the sniffer is replaced by replay. NIDS has no WebSocket, so both clients poll its REST endpoints every 1 to 2 seconds. The built web app is served by the NIDS Flask app itself, so one deployment serves everything. NIDS pins older libraries (Python 3.9 and pinned `scikit-learn`, `pandas`, `numpy`); the Precog repository needs Python 3.11, so its Markov table is exported once to a JSON file in its own environment and the backend only reads that file.
+
+### 6.1 Fixed Technology Decisions
+
+| Area | Decision |
+|---|---|
+| Operating system | Windows, on all four team members' laptops |
+| AI coding tool | Antigravity for everyone, plus other AI tools (vibe coding) |
+| Backend | Flask, taken completely from `123dars/NIDS` and extended only through add-on files; no FastAPI rewrite |
+| Database | SQLite through NIDS's `DATABASE_URL` setting (no Docker, no PostgreSQL); to be verified in the build guide |
+| Live updates | Both clients poll the backend every 1 to 2 seconds (NIDS has no WebSocket) |
+| Detection | NIDS's Isolation Forest detector runs the live demo; DETECT trains a CICIDS2017 model offline to produce the evaluation numbers |
+| Ingestion | NIDS's packet table and detector plus a small scripted replay writer; the live sniffer is not used |
+| Frontend | **One single web project** containing both the 3D SOC console and the mobile web app (PWA), built with **React + Vite** and built into static files that the NIDS Flask app serves |
+| Charts | **Chart.js** |
+| Build order | **Web first.** A native mobile build is considered too difficult, so the web version is completed and verified first; only then does anything mobile-native follow |
+| Primary demo | The project runs on **localhost** and is shown from there |
+| Phone demo | The whole app (backend plus the built web app) is hosted on one free backend host, opened on the phone over HTTPS and installed as an app (Add to Home Screen) |
+| APK | Only if the teacher requires an app file: the finished web app is wrapped into an APK (no hand-coded native Android app), sent to phones and installed |
+| Android Studio | Used if and only if the guide or the teacher asks for the project to be run in it |
+| Version control | Git, with a new GitHub repository created from scratch (none exists yet) |
+
+### 6.2 Repository & Merge Workflow
+
+The aim is that four people can build in parallel with the fewest possible merge conflicts and no one blocked waiting for another.
+
+- **One GitHub repository**, with **one folder per role**, a shared `contracts/` folder, one shared `web/` folder and a `docs/` folder, so each person normally edits only their own folder.
+- **One branch per person.** Nobody works directly on `main`.
+- **Only the team lead merges.** When a member finishes a piece of work and commits it to their own branch, they notify the lead and ask for a merge. The lead merges into `main` through a Pull Request.
+- **Enforced by GitHub, not by trust:** branch protection on `main` plus a `CODEOWNERS` file make the rule real — nobody except the lead can merge, even by accident.
+
+```text
+repository-root/
+├── contracts/   shared: data-format schemas and sample JSON (changed only through the lead)
+├── lead-core/   LEAD-CORE's NIDS-based backend, add-on routes, Precog and integration work
+├── detect/      DETECT's work
+├── graph/       GRAPH's non-web work (ingestion, simulation, attack graph)
+├── viz/         VIZ's non-web work (containment and re-evaluation)
+├── web/         the ONE shared web project, divided into one sub-folder per area:
+│                  mobile app (GRAPH), 3D console, charts and push (VIZ),
+│                  project setup files (LEAD-CORE)
+└── docs/        project documents
+```
+
+Because the web project is a single project that three people contribute to, each person works only inside their own sub-folder of `web/`. The exact folder layout, and how the shared pieces connect without anyone waiting, are defined step by step in each role's build guide.
+
+### 6.3 Contract-First Integration
+
+To avoid interlinked waiting, the data passed between roles is agreed **first**, in writing, before anyone builds:
+
+- The `contracts/` folder holds a formal **JSON Schema** for each data format passed between roles, plus **sample JSON files** that follow it.
+- The contracts cover the **new** endpoints (graph, forecast, containment, replay) and the shapes the web apps read from NIDS's existing endpoints. NIDS has no automatic API documentation page, so the endpoint list is kept in the project documents, and sample JSON lets the mobile web app and 3D-console builders see exactly what the backend will send without waiting for it.
+- Each role builds and tests against the sample data, and later swaps in the real data without changing their own code.
+
+### 6.4 Details Settled in the Build Guides
+
+These are deliberately left open here and are settled inside the build guides at the relevant step. Nothing below is to be assumed in the meantime.
+
+| # | Detail | Status |
+|---|---|---|
+| 1 | Which free backend host to use (it serves the backend and the built web app) | Any free backend host is acceptable; the specific service is picked in the build guide |
+| 2 | Whether SQLite replaces PostgreSQL through `DATABASE_URL` without code changes; whether NIDS's pinned libraries run on the chosen Python version | To be tested in the build guide |
+| 3 | Method of wrapping the web app into an APK | Needed only if a teacher requires an app file |
+
+---
+
+## 7. Demo Plan (Replay Mode)
+
+**This is the single most important scoping decision in this document, and it overrides any earlier plan.**
+
+The original project concept assumed a **live sandbox**: real virtual machines, a real scripted attack chain (Nmap scan → Hydra brute force → lateral movement → simulated exfiltration) executed live against infrastructure the team controls. That plan was reconsidered and **replaced with Replay Mode**, because the team is building this entirely through AI-assisted development ("vibecoding") with no prior background in networking, Linux administration, or offensive-security tooling, and no access to strong dedicated hardware.
+
+### 7.1 What Replay Mode Actually Is
+
+Instead of live VMs and live attack execution, the system replays a **pre-recorded, scripted sequence of attack events** — built from the CICIDS2017 dataset and/or JSON logs formatted to resemble real Caldera/Atomic Red Team output — through the exact same live pipeline described in Section 5. Detection, graph construction, forecasting, alerting, and containment all happen live and in real time, reacting to this replayed feed exactly as they would to genuine live traffic.
+
+**To an evaluator watching the demo, the experience is identical:** they see detection fire, the attack-path graph draw itself live, forecast cones appear, and a containment action visibly stop the simulated attack from progressing further — in real time, on stage.
+
+### 7.2 Why This Is the Right Call, Not a Weaker One
+
+The original spec itself flags that a flaky live-hacking demo in front of a panel is worse than a rehearsed, reliable run — and recommends always having a recorded backup ready regardless. Replay Mode simply builds that reliability in from the start, rather than treating it as a fallback. It removes:
+
+- The risk of live-network failure on demo day (Wi-Fi, laptop updates, venue firewall restrictions)
+- The need for the team to learn real offensive-security tooling under time pressure
+- Almost all legal/ethical risk, since no scanning or exploitation tool is ever run against any live network, classmate's device, or infrastructure the team doesn't fully control
+
+### 7.3 The Demo Script (The "Wow" Moment — Unchanged)
+
+1. Play the scripted/replayed attack sequence up to the point where Node A is confirmed compromised.
+2. The system immediately shows: **"Precog predicts Server B is the next target — 74% confidence,"** rendered as a glowing forecast cone on the 3D graph and pushed to the mobile app.
+3. The analyst taps **Contain** on the mobile app.
+4. The replay resumes — the scripted next event (an attempted move to Server B) is shown as blocked, and the dashboard displays the attack chain terminated early, with the Precog accuracy counter ticking up.
+5. This is the moment that separates this project from "yet another intrusion detection dashboard": the system acts on a prediction, live, and the audience watches an attack get stopped before it happens rather than after.
+
+A recorded video of a perfect run will also be prepared as a backup, per standard practice for any live demo.
+
+### 7.4 Where the Demo Runs
+
+- **On the laptop:** the whole project runs on localhost and is shown from there.
+- **On a phone:** the whole app is hosted on one free backend host, opened on the phone over HTTPS and installed as an app.
+- **If a teacher asks for an app file:** the finished web app is wrapped into an APK and installed on the phones. If a teacher asks to see it in Android Studio, it is run there on request.
+
+---
+
+## 8. Team Structure & Role Distribution
+
+> ⚠️ **Note on Role Assignment:** The distribution below is based on grouping technically related work together and keeping per-person build effort roughly balanced (total difficulty is shown for each member in Section 8.1) — it is **not** based on any assumption that one member has more prior knowledge than another. All four members are starting this project with no prior background in the specific technologies involved (ML, network security, 3D graphics, or web and mobile development), and all are building with AI-assisted ("vibecoding") tools on free tiers. **Roles can be swapped between any two members at any point in the project with no loss of fairness** — the split exists purely to divide the total work area cleanly, not to reflect a skill hierarchy.
+
+### 8.1 Subsystem Ownership & Difficulty (1–10 scale)
+
+Tables below are ordered by USN. Difficulty scores were re-rated again when the backend changed to NIDS (backend core 7 → 5, flow features 6 → 4, event processing 8 → 6, data ingestion 4 → 3); the ingestion repository `ids-agent` was dropped; and ATT&CK Correlation moved from Pallavi to Neha, where it sits with security event processing.
+
+#### Neha — 1DT24CS174
+
+| # | Subsystem | Repo / Approach | Difficulty |
+|---|---|---|---|
+| 1 | Flow Feature Preparation (for the offline CICIDS2017 model) | CICIDS2017 pre-extracted features; `nfstream` only if it runs on Windows | 4 |
+| 2 | ML Detection | NIDS's Isolation Forest detector (live) + `Western-OC2-Lab/...` trained on CICIDS2017 offline (fallback: CICIDS2017 labels) | 6 |
+| 3 | Security Event Processing + Audit/Logging | — (write code; builds on NIDS's alerts) | 6 |
+| 4 | ATT&CK Correlation | Official MITRE ATT&CK data subset (`mitre-attack/attack-stix-data`) | 5 |
+| **Total** | | | **21** |
+
+#### Pallavi Bammanni — 1DT24CS185
+
+| # | Subsystem | Repo / Approach | Difficulty |
+|---|---|---|---|
+| 1 | Sandbox / Lab (simulated) | Scripted log playback | 2 |
+| 2 | Attack Simulation | Replayed Caldera/Atomic Red Team-style scripted sequences | 3 |
+| 3 | Data Ingestion | NIDS's packet table plus a small scripted replay writer | 3 |
+| 4 | Attack Graph | `cwccie/attackgraph` + networkx | 6 |
+| 5 | Mobile Web App (installable PWA) | — (write code; Sagar assisting) | 5 |
+| **Total** | | | **19** |
+
+#### Preethi S Pujari — 1DT24CS195
+
+| # | Subsystem | Repo / Approach | Difficulty |
+|---|---|---|---|
+| 1 | 3D Visualization + SOC Console | `vasturiano/...` | 6 |
+| 2 | Charts | `chartjs/Chart.js` | 4 |
+| 3 | Push Notifications | Firebase Cloud Messaging (web push) | 6 |
+| 4 | Containment/Response + Re-evaluation | Wazuh pattern (simulated) | 4 |
+| **Total** | | | **20** |
+
+#### Sagar R — 1DT24CS232
+
+| # | Subsystem | Repo / Approach | Difficulty |
+|---|---|---|---|
+| 1 | Backend core | `123dars/NIDS` used as-is and extended with add-on files | 5 |
+| 2 | Precog Forecasting | `mayank02raj/...` (fallback: rule-based lookup) | 6 |
+| 3 | Cross-team Integration & Golden Path | — (integration only) | 6 |
+| **Total** | | | **17** |
+
+### 8.2 Why the Split Is This Way (Honest Reasoning)
+
+- **Grouped by technical adjacency, not by perceived skill.** Each person's items sit in the same general domain (Sagar: backend add-ons, forecasting and integration; Neha: detection, event processing and ATT&CK correlation; Pallavi: replay feed — sandbox, attack simulation, ingestion — plus the attack graph and the mobile web app; Preethi: visualization-and-response) so that the knowledge gained on one item transfers to the next, rather than forcing constant context-switching between unrelated domains.
+- **ATT&CK Correlation sits with Neha** because it enriches the security events she already processes with technique names.
+- **Total difficulty after re-rating:** Sagar 17, Neha 21, Pallavi 19, Preethi 20. Sagar's total is the lowest because he also merges everyone's work, assists with the mobile web app, and carries integration, which is coordination rather than a subsystem to build.
+- **The items with no existing repository to lean on** are Neha's event processing/audit and Pallavi's mobile web app — this is the genuinely hardest category of work on the whole project, and it isn't concentrated on one person.
+- **Sagar's third item is integration, not another subsystem to build** — reconciling four people's independently built pieces into one working pipeline is real, substantial work, and is the natural responsibility of whoever is coordinating the team, rather than an arbitrary assignment.
+- **The one acknowledged mismatch** is Pallavi's mobile web app item sitting alongside her otherwise simulation/graph-flavored work — this was accepted deliberately, with Sagar committed to helping build it alongside her.
+
+---
+
+## 9. 8-Week Development Timeline
+
+```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {
+    'cScale0': '#1e3a5f', 'cScaleLabel0': '#e2e8f0',
+    'cScale1': '#134e3a', 'cScaleLabel1': '#e2e8f0',
+    'cScale2': '#3b2a4d', 'cScaleLabel2': '#e2e8f0',
+    'fontSize': '13px'
+}}}%%
+timeline
+    section Phase 1 — Foundation
+        Week 1 : Dataset acquisition and cleaning (CICIDS2017) : Replay pipeline setup : Owner - Neha, Pallavi
+        Week 2 : Baseline ML detection model : Owner - Neha
+        Week 3 : Feature engineering and model tuning : Attack-graph reconstruction begins : Owner - Neha, Pallavi
+        Milestone 1 : Scope Freeze - no new features added past this point
+    section Phase 2 — Core Build
+        Week 4 : NIDS backend setup, add-on routes and polling-based live updates : Owner - Sagar : Note - historically the most underestimated step
+        Week 5 : Installable mobile web app (PWA) - auth, dashboard, alert feed : Owner - Pallavi, Sagar
+        Week 6 : 3D CG visualization - graph and propagation animation : Owner - Preethi
+        Milestone 2 : Core pipeline working end-to-end
+    section Phase 3 — Novel Feature and Wrap-Up
+        Week 7 : Precog Engine build - Markov trajectory model and forecast cones : Owner - Sagar
+        Week 8 : Integration testing, demo rehearsal, paper writing, buffer : Owner - All 4 members : Note - anything not tested here is cut from the demo
+        Demo Day : Demo Day and Paper Submission
+```
+
+**Legend:** Each colored band is one project phase; each stop along it is one week (or a milestone) with its owner and deliverable listed beneath. Milestones mark the two checkpoints where scope is frozen and the core pipeline is confirmed working end-to-end.
+
+| Week | Focus | Primary Owner(s) |
+|---|---|---|
+| 1 | Dataset acquisition + cleaning (CICIDS2017); build the scripted/replay event-feed pipeline | Neha, Pallavi |
+| 2 | Baseline ML detection model — get something end-to-end working, even if crude | Neha |
+| 3 | Feature engineering + model tuning; start attack-path graph reconstruction logic | Neha, Pallavi |
+| 4 | NIDS backend setup, add-on routes and polling-based live updates (this always takes longer than planned) | Sagar |
+| 5 | Installable mobile web app (PWA): auth, dashboard layout, alert feed, wired to backend | Pallavi (Sagar assisting) |
+| 6 | 3D CG visualization (network graph, propagation animation) | Preethi |
+| 7 | Novel feature build — the Precog Engine | Sagar |
+| 8 | Integration testing, demo rehearsal, paper writing, buffer for slippage | All |
+
+**Week 8 buffer is not optional.** Anything not integration-tested by the end of Week 7 should be considered cut for the demo, even if code exists for it.
+
+---
+
+## 10. Evaluation Methodology
+
+Security ML work is judged harshly on evaluation rigor, so this is decided upfront rather than retrofitted later:
+
+- **Train/test split:** proper train/test split, ideally training on CICIDS2017 and testing on a held-out day or attack-type to demonstrate generalization.
+- **Standard metrics reported:** precision, recall, F1, and — critically — **false-positive rate** (a security system that cries wolf constantly is considered a failure in this domain).
+- **Class imbalance handled explicitly:** attack classes are a small minority of the dataset; this will be addressed with an approach such as SMOTE or class weighting, and stated explicitly in the paper.
+- **Precog-specific metrics:** forecast precision@k, a calibration curve (confidence vs. actual outcome), and containment success rate under simulated replay — reported in addition to detection accuracy, which most papers in this space stop at.
+- **Experiment logging from Week 2 onward:** every experiment (features used, model, hyperparameters, resulting precision/recall/F1/false-positive rate) logged in a simple spreadsheet or tracker from day one, to avoid a painful, error-prone retrofit before the paper deadline.
+
+---
+
+## 11. Mobile Application
+
+The mobile app is an installable web app (PWA) and is the primary Mobile Application Development (MAD) deliverable. It covers: login/onboarding (a mocked demo account is sufficient — evaluators care about the security concept, not enterprise SSO), a live threat-level home dashboard, a chronological alert feed with plain-English explanations, a simplified 2D attack-detail view, the Precog forecast view with a one-tap **Contain** button, and a history/reports view showing past forecast accuracy. Design language is dark, high-contrast, and SOC-style throughout.
+
+### 11.1 Delivery Approaches
+
+The plan is **web first**: creating a native mobile app is considered difficult, so a complete, working web version is built first, and only after it works fully does anything mobile-native follow.
+
+| Approach | Description | When to Use |
+|---|---|---|
+| **Primary — Installable web app (PWA)** | One web project that contains both the 3D console and the mobile app, built into static files served by the NIDS Flask app, polling the backend every 1 to 2 seconds, with Firebase push notifications for high-severity alerts. Shown on localhost on a laptop; for a phone, the whole app is hosted on one free backend host, opened on the phone over HTTPS and installed via "Add to Home Screen" | Default for everything, including the phone demo |
+| **If required — APK** | The finished web app is wrapped into an APK (not a hand-coded native Android app), sent to the phones and installed | Only if a teacher requires an app file, and only after the web version works fully |
+| **If asked — Android Studio** | The project is run in Android Studio | Only if the guide or a teacher asks for it |
+
+The app is offline-tolerant: if connectivity drops, it shows the last-known state clearly marked as stale rather than crashing or showing nothing.
+
+---
+
+## 12. Legal, Ethical & Safety Boundaries
+
+Because this project uses **Replay Mode** rather than a live attack lab, its legal and ethical footprint is minimal by design: no scanning, exploitation, or attack tool is ever run against a live network, a classmate's device, or any infrastructure the team does not fully own. All attack behavior in this project is represented as pre-recorded dataset traffic or scripted event logs — never as a live action against real infrastructure. This will be stated explicitly in the paper's methodology section.
+
+Additional safeguards carried through the design:
+
+- Containment actions are simulated (a status change plus a logged action), never real network enforcement against a live system.
+- No secrets, credentials, or real personal data are used anywhere in the pipeline — only CICIDS2017 (a licensed public research dataset) and internally generated replay logs.
+- Human confirmation is required before any containment action executes; nothing acts autonomously without an analyst's tap.
+
+---
+
+## 13. Expected Outcomes & Success Criteria
+
+By the end of the semester, the project should be able to demonstrate:
+
+- A working end-to-end pipeline: replayed event → detection → attack-path graph → ATT&CK context → Precog forecast → 3D visualization → mobile alert → analyst containment → re-evaluation.
+- Measured (not assumed) detection performance on a held-out portion of CICIDS2017, reported with precision, recall, F1, and false-positive rate.
+- A working Precog Engine with its own reported forecast accuracy for the demo session.
+- A functioning installable mobile web app (PWA per Section 11; APK only if required) receiving live alerts and executing a containment action.
+- A rehearsed, reliable golden-path demo, with a recorded backup video.
+- An IEEE-formatted paper scoped specifically around the Precog Engine's forecasting contribution, with an honest literature-search-backed novelty claim.
+
+---
+
+## 14. Risks & Mitigations
+
+| Risk | Mitigation |
+|---|---|
+| A chosen repository is poorly maintained, undocumented, or breaks | Documented fallback for the two highest-risk repos (Neha's ML model → CICIDS2017 labels; Sagar's Precog repo → rule-based lookup table) |
+| Backend/real-time pipeline underestimated (historically the most common failure point) | Owned by the team lead (Sagar); scoped as its own dedicated week (Week 4) |
+| Scope creep ("wouldn't it be cool if...") | Scope frozen after Week 3; anything new past that point is written as "future work" in the paper, not built |
+| Live demo failure on the day (Wi-Fi, laptop issues, venue restrictions) | Replay Mode removes live-network dependency entirely; a recorded backup run is also prepared |
+| Guide may not have a security background to validate technical correctness | Team stays self-directed on correctness (evaluation metrics, threat-model realism) rather than relying on guide feedback for technical validation |
+| Novel feature turns out not to be as novel as assumed | Literature search (Google Scholar, IEEE Xplore) specifically for the Precog mechanism before finalizing the paper's novelty claim |
+| Merge conflicts or a broken `main` branch | Folder-per-role layout, branch per person, only the lead merges, GitHub branch protection (Section 6.2) |
+| The phone can only install the web app from a hosted HTTPS address, and the backend must be reachable from the phone | The NIDS Flask app serves the built web app itself, so one free backend host over HTTPS covers both; localhost remains the primary demo |
+| NIDS ships with a default admin login, a hardcoded secret key and hardcoded database passwords | Move them to environment variables and never commit real values |
+| NIDS runs its detector in a 30-second batch loop, which is too slow for live updates | Replay writes events already labelled, or the loop is shortened (decided in the build guide) |
+| NIDS pins older libraries and expects PostgreSQL | Verify SQLite through `DATABASE_URL` and the pinned libraries early (Week 1); separate Python environments where versions clash |
+| Evaluators may expect a native Android app for the MAD subject | Web-first; APK wrapper and Android Studio run are available on request (Section 11) |
+
+---
+
+## 15. Conclusion
+
+This project takes a well-understood problem category (intrusion detection and attack-path visualization) and adds a genuinely closed-loop, forward-looking capability — the Precog Engine — that existing commercial and open-source tools do not attempt. By reusing best-in-class open-source repositories for every subsystem that already has one, adopting Replay Mode to keep the build achievable for a team with no prior background in the domain, and dividing the remaining work into four evenly balanced, technically coherent role groups, the project is scoped to be fully demoable, fully evaluable, and fully extensible into future semesters — while remaining honest, at every stage, about what it does and does not claim to do.

@@ -1,0 +1,9 @@
+# LEAD-CORE backend environment.
+# First line pulls in NIDS's own pinned libraries; the rest are our additions.
+-r nids/requirements.txt
+-r ../../graph/requirements.txt
+-r ../../viz/requirements.txt
+jsonschema==4.23.0
+waitress==3.0.2
+pytest==8.3.4
+gunicorn==23.0.0; sys_platform != "win32"
