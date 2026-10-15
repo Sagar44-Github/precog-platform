@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/replay_status.schema.json",
+  "title": "Replay status",
+  "description": "Where the scripted replay is.",
+  "type": "object",
+  "properties": {
+    "state": {
+      "type": "string",
+      "enum": [
+        "idle",
+        "running",
+        "paused",
+        "waiting_for_decision",
+        "finished"
+      ]
+    },
+    "scenario_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "speed": {
+      "type": "number",
+      "exclusiveMinimum": 0
+    },
+    "position": {
+      "type": "integer",
+      "minimum": 0
+    }
+  },
+  "required": [
+    "state",
+    "scenario_id",
+    "speed",
+    "position"
+  ],
+  "additionalProperties": false
+}

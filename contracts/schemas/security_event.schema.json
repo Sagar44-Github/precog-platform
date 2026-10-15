@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/security_event.schema.json",
+  "title": "Security event",
+  "description": "One detection turned into an event the analyst can read.",
+  "type": "object",
+  "properties": {
+    "event_id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "ts": {
+      "type": "string",
+      "minLength": 1,
+      "description": "ISO 8601 UTC time, for example 2026-10-03T10:00:03Z"
+    },
+    "host": {
+      "type": "string",
+      "minLength": 1
+    },
+    "packet_id": {
+      "type": [
+        "integer",
+        "null"
+      ]
+    },
+    "anomaly": {
+      "type": "boolean"
+    },
+    "risk_score": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "HIGH",
+        "MEDIUM",
+        "LOW",
+        "NORMAL"
+      ]
+    },
+    "explanation": {
+      "type": "string",
+      "minLength": 1
+    },
+    "technique_id": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "technique_name": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "nids_detector",
+        "scripted"
+      ]
+    }
+  },
+  "required": [
+    "event_id",
+    "ts",
+    "host",
+    "packet_id",
+    "anomaly",
+    "risk_score",
+    "severity",
+    "explanation",
+    "technique_id",
+    "technique_name",
+    "source"
+  ],
+  "additionalProperties": false
+}

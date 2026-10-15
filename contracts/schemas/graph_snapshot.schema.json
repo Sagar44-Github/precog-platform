@@ -1,0 +1,88 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/graph_snapshot.schema.json",
+  "title": "Attack graph snapshot",
+  "description": "The live attack graph at one moment.",
+  "type": "object",
+  "properties": {
+    "hosts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "host_id",
+          "name",
+          "zone",
+          "state"
+        ],
+        "properties": {
+          "host_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "zone": {
+            "type": "string",
+            "enum": [
+              "user",
+              "dmz",
+              "internal"
+            ]
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "normal",
+              "compromised",
+              "contained"
+            ]
+          }
+        }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "from_host",
+          "to_host",
+          "first_seen"
+        ],
+        "properties": {
+          "from_host": {
+            "type": "string",
+            "minLength": 1
+          },
+          "to_host": {
+            "type": "string",
+            "minLength": 1
+          },
+          "first_seen": {
+            "type": "string",
+            "minLength": 1,
+            "description": "ISO 8601 UTC time, for example 2026-10-03T10:00:03Z"
+          }
+        }
+      }
+    },
+    "compromised_path": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    }
+  },
+  "required": [
+    "hosts",
+    "edges",
+    "compromised_path"
+  ],
+  "additionalProperties": false
+}

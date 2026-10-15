@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/session_metrics.schema.json",
+  "title": "Session metrics",
+  "description": "The live accuracy numbers.",
+  "type": "object",
+  "properties": {
+    "forecasts_resolved": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "hits": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "hit_rate": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1
+    },
+    "precision_at_1": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1
+    },
+    "precision_at_3": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1
+    },
+    "calibration_bins": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "bin_low",
+          "bin_high",
+          "mean_confidence",
+          "observed_rate",
+          "count"
+        ],
+        "properties": {
+          "bin_low": {
+            "type": "number"
+          },
+          "bin_high": {
+            "type": "number"
+          },
+          "mean_confidence": {
+            "type": "number"
+          },
+          "observed_rate": {
+            "type": "number"
+          },
+          "count": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "containment_success_rate": {
+      "type": [
+        "number",
+        "null"
+      ],
+      "minimum": 0,
+      "maximum": 1
+    }
+  },
+  "required": [
+    "forecasts_resolved",
+    "hits",
+    "hit_rate",
+    "precision_at_1",
+    "precision_at_3",
+    "calibration_bins",
+    "containment_success_rate"
+  ],
+  "additionalProperties": false
+}

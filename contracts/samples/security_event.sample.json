@@ -1,0 +1,13 @@
+{
+  "event_id": "evt-000001",
+  "ts": "2026-10-03T10:00:01Z",
+  "host": "host-a",
+  "packet_id": 2,
+  "anomaly": false,
+  "risk_score": 88.0,
+  "severity": "HIGH",
+  "explanation": "Workstation A sent a large packet to port 22 (remote login) on Workstation B, which is a common first step in a credential attack.",
+  "technique_id": "T1110",
+  "technique_name": "Brute Force",
+  "source": "nids_detector"
+}

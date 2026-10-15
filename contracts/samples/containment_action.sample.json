@@ -1,0 +1,10 @@
+{
+  "action_id": "act-000001",
+  "target_host": "server-b",
+  "forecast_id": "fc-000001",
+  "requested_by": "mobile",
+  "status": "pending_confirmation",
+  "proposed_at": "2026-10-03T10:00:05Z",
+  "confirmed_at": null,
+  "result": null
+}

@@ -1,0 +1,50 @@
+{
+  "session_id": "ses-000001",
+  "scenario_id": "golden-path",
+  "started_at": "2026-10-03T10:00:00Z",
+  "ended_at": null,
+  "forecasts": [
+    {
+      "forecast_id": "fc-000001",
+      "ts": "2026-10-03T10:00:03Z",
+      "from_host": "host-a",
+      "targets": [
+        {
+          "rank": 1,
+          "host_id": "server-b",
+          "confidence": 0.74
+        },
+        {
+          "rank": 2,
+          "host_id": "host-b",
+          "confidence": 0.15
+        },
+        {
+          "rank": 3,
+          "host_id": "file-server",
+          "confidence": 0.07
+        }
+      ],
+      "technique_hint": {
+        "technique_id": "T1021",
+        "technique_name": "Remote Services",
+        "probability": 0.41
+      },
+      "source": "repo",
+      "status": "pending",
+      "outcome": null
+    }
+  ],
+  "actions": [
+    {
+      "action_id": "act-000001",
+      "target_host": "server-b",
+      "forecast_id": "fc-000001",
+      "requested_by": "mobile",
+      "status": "pending_confirmation",
+      "proposed_at": "2026-10-03T10:00:05Z",
+      "confirmed_at": null,
+      "result": null
+    }
+  ]
+}

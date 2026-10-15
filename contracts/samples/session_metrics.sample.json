@@ -1,0 +1,9 @@
+{
+  "forecasts_resolved": 0,
+  "hits": 0,
+  "hit_rate": null,
+  "precision_at_1": null,
+  "precision_at_3": null,
+  "calibration_bins": [],
+  "containment_success_rate": null
+}

@@ -1,0 +1,13 @@
+{
+  "network": "demo-network",
+  "subnet": "192.168.1.0/24",
+  "note": "The single list of demo hosts. Every role reads this file; only LEAD-CORE changes it. Names match contracts/samples.",
+  "hosts": [
+    { "host_id": "host-a",            "name": "Workstation A",      "zone": "user",     "address": "192.168.1.11", "role": "User workstation (entry point)" },
+    { "host_id": "host-b",            "name": "Workstation B",      "zone": "user",     "address": "192.168.1.12", "role": "User workstation" },
+    { "host_id": "server-b",          "name": "Web Server B",       "zone": "dmz",      "address": "192.168.1.20", "role": "Web server" },
+    { "host_id": "file-server",       "name": "File Server",        "zone": "internal", "address": "192.168.1.30", "role": "File server" },
+    { "host_id": "db-server",         "name": "Database Server",    "zone": "internal", "address": "192.168.1.40", "role": "Database server" },
+    { "host_id": "domain-controller", "name": "Domain Controller",  "zone": "internal", "address": "192.168.1.50", "role": "Domain controller" }
+  ]
+}
