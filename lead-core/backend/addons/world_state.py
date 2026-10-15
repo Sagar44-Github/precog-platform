@@ -8,6 +8,7 @@ import copy
 import threading
 
 MAX_ALERTS = 200
+
 MAX_SESSIONS = 20
 
 
@@ -20,6 +21,7 @@ def _empty_replay():
 
 
 def _empty_metrics():
+
     return {
         "forecasts_resolved": 0, "hits": 0, "hit_rate": None, "precision_at_1": None,
         "precision_at_3": None, "calibration_bins": [], "containment_success_rate": None,
@@ -29,11 +31,15 @@ def _empty_metrics():
 class WorldState:
     def __init__(self, contracts=None):
         """contracts: an addons.contracts.Contracts object, or None to skip checking."""
+
         self._lock = threading.RLock()
         self._contracts = contracts
+
         self.version = 0
         self._reset_locked()
+
         self._sessions = []
+
         self._push_tokens = []
         self._detection_report = None
 
@@ -50,18 +56,23 @@ class WorldState:
     def _reset_locked(self):
         self._graph = _empty_graph()
         self._alerts = []
+
         self._forecasts = []
         self._actions = []
+
         self._replay = _empty_replay()
         self._metrics = _empty_metrics()
+
         self._session = None
 
     # ---------- reading ----------
     def snapshot(self, since=None):
         """What /api/x/state returns. since = the version the client already has."""
+
         with self._lock:
             if since is not None and since == self.version:
                 return {"version": self.version, "changed": False}
+
             return copy.deepcopy({
                 "version": self.version, "changed": True, "graph": self._graph,
                 "alerts": self._alerts, "forecast": self._current_forecast_locked(),
@@ -69,40 +80,49 @@ class WorldState:
             })
 
     def _current_forecast_locked(self):
+
         for forecast in reversed(self._forecasts):
             if forecast["status"] == "pending":
                 return forecast
         return None
 
     def graph(self):
+
         with self._lock:
             return copy.deepcopy(self._graph)
 
     def alerts(self, limit=50):
+
         with self._lock:
             return copy.deepcopy(self._alerts[: max(0, limit)])
 
     def get_alert(self, event_id):
+
         with self._lock:
             for alert in self._alerts:
                 if alert["event_id"] == event_id:
                     return copy.deepcopy(alert)
         return None
 
+
     def forecasts(self, status=None):
         with self._lock:
+
             items = [f for f in self._forecasts if status is None or f["status"] == status]
             return copy.deepcopy(items)
 
     def current_forecast(self):
+
         with self._lock:
             return copy.deepcopy(self._current_forecast_locked())
 
     def actions(self):
+
         with self._lock:
             return copy.deepcopy(self._actions)
 
     def get_action(self, action_id):
+
         with self._lock:
             for action in self._actions:
                 if action["action_id"] == action_id:
@@ -110,6 +130,7 @@ class WorldState:
         return None
 
     def replay(self):
+
         with self._lock:
             return copy.deepcopy(self._replay)
 
