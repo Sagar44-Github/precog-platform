@@ -1,0 +1,207 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/graph/scenario.schema.json",
+  "title": "Replay scenario",
+  "description": "A scripted attack: an ordered list of events with time offsets. Owned by GRAPH.",
+  "type": "object",
+  "required": [
+    "scenario_id",
+    "description",
+    "events"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "scenario_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*$"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
+    "events": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "oneOf": [
+          {
+            "$ref": "#/$defs/technique"
+          },
+          {
+            "$ref": "#/$defs/traffic"
+          },
+          {
+            "$ref": "#/$defs/attempt"
+          }
+        ]
+      }
+    }
+  },
+  "$defs": {
+    "technique": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "seq",
+        "offset_ms",
+        "kind",
+        "host",
+        "technique_id"
+      ],
+      "properties": {
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "offset_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pause_for_decision": {
+          "type": "boolean"
+        },
+        "kind": {
+          "const": "technique"
+        },
+        "host": {
+          "type": "string",
+          "minLength": 1
+        },
+        "technique_id": {
+          "type": "string",
+          "pattern": "^T[0-9]{4}(\\.[0-9]{3})?$"
+        },
+        "note": {
+          "type": "string"
+        },
+        "compromise": {
+          "type": "boolean"
+        }
+      }
+    },
+    "traffic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "seq",
+        "offset_ms",
+        "kind",
+        "packets"
+      ],
+      "properties": {
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "offset_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pause_for_decision": {
+          "type": "boolean"
+        },
+        "kind": {
+          "const": "traffic"
+        },
+        "packets": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "src_host",
+              "dst_host",
+              "protocol",
+              "dst_port",
+              "size"
+            ],
+            "properties": {
+              "src_host": {
+                "type": "string",
+                "minLength": 1
+              },
+              "dst_host": {
+                "type": "string",
+                "minLength": 1
+              },
+              "protocol": {
+                "enum": [
+                  "TCP",
+                  "UDP",
+                  "ICMP"
+                ]
+              },
+              "src_port": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 65535
+              },
+              "dst_port": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 65535
+              },
+              "size": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 65535
+              },
+              "flags": {
+                "type": "string"
+              },
+              "repeat": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 50
+              }
+            }
+          }
+        }
+      }
+    },
+    "attempt": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "seq",
+        "offset_ms",
+        "kind",
+        "from_host",
+        "to_host",
+        "technique_id"
+      ],
+      "properties": {
+        "seq": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "offset_ms": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "pause_for_decision": {
+          "type": "boolean"
+        },
+        "kind": {
+          "const": "attempt"
+        },
+        "from_host": {
+          "type": "string",
+          "minLength": 1
+        },
+        "to_host": {
+          "type": "string",
+          "minLength": 1
+        },
+        "technique_id": {
+          "type": "string",
+          "pattern": "^T[0-9]{4}(\\.[0-9]{3})?$"
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

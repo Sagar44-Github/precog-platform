@@ -1,0 +1,12 @@
+{
+  "scenario_id": "lateral-spread",
+  "description": "An attacker who starts at Workstation A and tries to spread to the file server and then the database.",
+  "events": [
+    { "seq": 1, "offset_ms": 0,    "kind": "technique", "host": "host-a", "technique_id": "T1110", "compromise": true, "note": "Credentials guessed" },
+    { "seq": 2, "offset_ms": 2000, "kind": "attempt", "from_host": "host-a", "to_host": "file-server", "technique_id": "T1021.002", "pause_for_decision": true, "note": "The attacker tries the file server" },
+    { "seq": 3, "offset_ms": 4000, "kind": "traffic", "packets": [
+        { "src_host": "file-server", "dst_host": "db-server", "protocol": "TCP", "dst_port": 4444, "size": 1200, "flags": "S" } ] },
+    { "seq": 4, "offset_ms": 5000, "kind": "attempt", "from_host": "file-server", "to_host": "db-server", "technique_id": "T1021", "note": "The attacker tries the database" },
+    { "seq": 5, "offset_ms": 6500, "kind": "technique", "host": "db-server", "technique_id": "T1005", "note": "Data is copied from the database" }
+  ]
+}

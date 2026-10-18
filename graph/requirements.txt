@@ -1,2 +1,4 @@
-# GRAPH's libraries for the backend environment (GRAPH replaces this file with the real list).
-# It is read by lead-core/backend/requirements.txt, so it must exist.
+# GRAPH's libraries for the backend environment (installed together with the backend's own list).
+networkx==3.6.1
+# attackgraph is NOT on PyPI (its README says it is). Install it from GitHub at the exact version tested.
+attackgraph @ git+https://github.com/cwccie/attackgraph.git@cfeb580801e1ad19625a57e038612365248b4548

@@ -1,0 +1,9 @@
+{
+  "scenario_id": "direct-hit",
+  "description": "The attacker gets into the web server first (a public-facing flaw) and heads for the database and then the domain controller.",
+  "events": [
+    { "seq": 1, "offset_ms": 0,    "kind": "technique", "host": "server-b", "technique_id": "T1190", "compromise": true, "note": "A flaw in the public web application is used" },
+    { "seq": 2, "offset_ms": 2000, "kind": "attempt", "from_host": "server-b", "to_host": "db-server", "technique_id": "T1021", "pause_for_decision": true, "note": "The attacker tries the database server" },
+    { "seq": 3, "offset_ms": 4000, "kind": "attempt", "from_host": "db-server", "to_host": "domain-controller", "technique_id": "T1021", "note": "The attacker tries the domain controller" }
+  ]
+}
