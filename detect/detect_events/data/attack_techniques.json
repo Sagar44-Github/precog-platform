@@ -1,0 +1,236 @@
+{
+  "meta": {
+    "source": "MITRE ATT&CK Enterprise, version 20.0",
+    "source_data": "https://github.com/mitre-attack/attack-stix-data (enterprise-attack/enterprise-attack.json)",
+    "notice": "(c) The MITRE Corporation. ATT&CK(R) is a registered trademark of The MITRE Corporation. Technique names and tactics are reproduced from https://attack.mitre.org under the ATT&CK Terms of Use: https://attack.mitre.org/resources/legal-and-branding/terms-of-use/",
+    "curated": "A small hand-picked subset (26 techniques) used by this project. Rebuild with detect/tools/build_attack_table.py.",
+    "port_hints_note": "Service-based hints only. A port number alone does not prove a technique. null means no defensible mapping, so no technique is shown."
+  },
+  "port_hints": {
+    "22": "T1021.004",
+    "23": "T1021",
+    "3389": "T1021.001",
+    "445": "T1021.002",
+    "135": "T1021.003",
+    "137": null,
+    "138": null,
+    "139": "T1021.002",
+    "4444": "T1571",
+    "6666": "T1571",
+    "31337": "T1571"
+  },
+  "techniques": [
+    {
+      "id": "T1046",
+      "name": "Network Service Discovery",
+      "tactics": [
+        "discovery"
+      ],
+      "url": "https://attack.mitre.org/techniques/T1046/"
+    },
+    {
+      "id": "T1110",
+      "name": "Brute Force",
+      "tactics": [
+        "credential-access"
+      ],
+      "url": "https://attack.mitre.org/techniques/T1110/"
+    },
+    {
+      "id": "T1110.001",
+      "name": "Password Guessing",
+      "tactics": [
+        "credential-access"
+      ],
+      "url": "https://attack.mitre.org/techniques/T1110/001/"
+    },
+    {
+      "id": "T1110.003",
+      "name": "Password Spraying",
+      "tactics": [
+        "credential-access"
+      ],
+      "url": "https://attack.mitre.org/techniques/T1110/003/"
+    },
+    {
+      "id": "T1078",
+      "name": "Valid Accounts",
+      "tactics": [
+        "stealth",
+        "persistence",
+        "privilege-escalation",
+        "initial-access"
+      ],
+      "url": "https://attack.mitre.org/techniques/T1078/"
+    },
+    {
+      "id": "T1021",
+      "name": "Remote Services",
+      "tactics": [
+        "lateral-movement"
+      ],
+      "url": "https://attack.mitre.org/techniques/T1021/"
+    },
+    {
+      "id": "T1021.001",
+      "name": "Remote Desktop Protocol",
+      "tactics": [
+        "lateral-movement"
+      ],
+      "url": "https://attack.mitre.org/techniques/T1021/001/"
+    },
+    {
+      "id": "T1021.002",
+      "name": "SMB/Windows Admin Shares",
+      "tactics": [
+        "lateral-movement"
+      ],
+      "url": "https://attack.mitre.org/techniques/T1021/002/"
+    },
+    {
+      "id": "T1021.003",
+      "name": "Distributed Component Object Model",
+      "tactics": [
+        "lateral-movement"
+      ],
+      "url": "https://attack.mitre.org/techniques/T1021/003/"
+    },
+    {
+      "id": "T1021.004",
+      "name": "SSH",
+      "tactics": [
+        "lateral-movement"
+      ],
+      "url": "https://attack.mitre.org/techniques/T1021/004/"
+    },
+    {
+      "id": "T1571",
+      "name": "Non-Standard Port",
+      "tactics": [
+        "command-and-control"
+      ],
+      "url": "https://attack.mitre.org/techniques/T1571/"
+    },
+    {
+      "id": "T1048",
+      "name": "Exfiltration Over Alternative Protocol",
+      "tactics": [
+        "exfiltration"
+      ],
+      "url": "https://attack.mitre.org/techniques/T1048/"
+    },
+    {
+      "id": "T1041",
+      "name": "Exfiltration Over C2 Channel",
+      "tactics": [
+        "exfiltration"
+      ],
+      "url": "https://attack.mitre.org/techniques/T1041/"
+    },
+    {
+      "id": "T1059",
+      "name": "Command and Scripting Interpreter",
+      "tactics": [
+        "execution"
+      ],
+      "url": "https://attack.mitre.org/techniques/T1059/"
+    },
+    {
+      "id": "T1087",
+      "name": "Account Discovery",
+      "tactics": [
+        "discovery"
+      ],
+      "url": "https://attack.mitre.org/techniques/T1087/"
+    },
+    {
+      "id": "T1018",
+      "name": "Remote System Discovery",
+      "tactics": [
+        "discovery"
+      ],
+      "url": "https://attack.mitre.org/techniques/T1018/"
+    },
+    {
+      "id": "T1083",
+      "name": "File and Directory Discovery",
+      "tactics": [
+        "discovery"
+      ],
+      "url": "https://attack.mitre.org/techniques/T1083/"
+    },
+    {
+      "id": "T1005",
+      "name": "Data from Local System",
+      "tactics": [
+        "collection"
+      ],
+      "url": "https://attack.mitre.org/techniques/T1005/"
+    },
+    {
+      "id": "T1560",
+      "name": "Archive Collected Data",
+      "tactics": [
+        "collection"
+      ],
+      "url": "https://attack.mitre.org/techniques/T1560/"
+    },
+    {
+      "id": "T1003",
+      "name": "OS Credential Dumping",
+      "tactics": [
+        "credential-access"
+      ],
+      "url": "https://attack.mitre.org/techniques/T1003/"
+    },
+    {
+      "id": "T1570",
+      "name": "Lateral Tool Transfer",
+      "tactics": [
+        "lateral-movement"
+      ],
+      "url": "https://attack.mitre.org/techniques/T1570/"
+    },
+    {
+      "id": "T1105",
+      "name": "Ingress Tool Transfer",
+      "tactics": [
+        "command-and-control"
+      ],
+      "url": "https://attack.mitre.org/techniques/T1105/"
+    },
+    {
+      "id": "T1190",
+      "name": "Exploit Public-Facing Application",
+      "tactics": [
+        "initial-access"
+      ],
+      "url": "https://attack.mitre.org/techniques/T1190/"
+    },
+    {
+      "id": "T1135",
+      "name": "Network Share Discovery",
+      "tactics": [
+        "discovery"
+      ],
+      "url": "https://attack.mitre.org/techniques/T1135/"
+    },
+    {
+      "id": "T1133",
+      "name": "External Remote Services",
+      "tactics": [
+        "persistence",
+        "initial-access"
+      ],
+      "url": "https://attack.mitre.org/techniques/T1133/"
+    },
+    {
+      "id": "T1068",
+      "name": "Exploitation for Privilege Escalation",
+      "tactics": [
+        "privilege-escalation"
+      ],
+      "url": "https://attack.mitre.org/techniques/T1068/"
+    }
+  ]
+}
