@@ -7,7 +7,7 @@ import { join, relative } from 'node:path'
 import { fileURLToPath } from "node:url";
 import path from "node:path";
 
-const root = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')
+const root = fileURLToPath(new URL('..', import.meta.url))
 const src = join(root, 'src')
 const out = join(root, '.test-build')
 
