@@ -4,6 +4,8 @@ import { build } from 'esbuild'
 import { spawnSync } from 'node:child_process'
 import { mkdirSync, readdirSync, rmSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
+import { fileURLToPath } from "node:url";
+import path from "node:path";
 
 const root = new URL('..', import.meta.url).pathname.replace(/^\/([A-Za-z]:)/, '$1')
 const src = join(root, 'src')
@@ -25,8 +27,10 @@ const toRun = []
 for (const file of files) {
   if (file.endsWith('.jsx')) {
     const target = join(out, relative(src, file).replace(/[\\/]/g, '__').replace(/\.jsx$/, '.mjs'))
-    await build({ entryPoints: [file], outfile: target, bundle: true, platform: 'node', format: 'esm', jsx: 'automatic', loader: { '.js': 'jsx' }, logLevel: 'error',
-                  banner: { js: "import { createRequire as __cr } from 'node:module'; const require = __cr(import.meta.url);" } })
+    await build({
+      entryPoints: [file], outfile: target, bundle: true, platform: 'node', format: 'esm', jsx: 'automatic', loader: { '.js': 'jsx' }, logLevel: 'error',
+      banner: { js: "import { createRequire as __cr } from 'node:module'; const require = __cr(import.meta.url);" }
+    })
     toRun.push(target)
   } else {
     toRun.push(file)
