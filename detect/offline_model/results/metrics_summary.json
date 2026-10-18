@@ -1,0 +1,419 @@
+{
+  "created_utc": "2026-10-18T09:08:51Z",
+  "seed": 0,
+  "smote": true,
+  "catboost_iterations": 1000,
+  "classes": [
+    "BENIGN",
+    "Bot",
+    "BruteForce",
+    "DoS",
+    "Infiltration",
+    "PortScan",
+    "WebAttack"
+  ],
+  "stratified": {
+    "train_rows_after_smote": 30037,
+    "test_rows": 8809,
+    "smote": {
+      "target_per_class": 1000,
+      "oversampled_classes": {
+        "1": 1000,
+        "4": 1000,
+        "5": 1000
+      },
+      "skipped_too_small": {}
+    },
+    "models": {
+      "LightGBM": {
+        "tp": 4453,
+        "fp": 6,
+        "tn": 4332,
+        "fn": 18,
+        "precision": 0.9986544068176721,
+        "recall": 0.995974055021248,
+        "f1": 0.9973124300111983,
+        "false_positive_rate": 0.0013831258644536654,
+        "macro_f1": 0.9787628673493619
+      },
+      "XGBoost": {
+        "tp": 4460,
+        "fp": 10,
+        "tn": 4328,
+        "fn": 11,
+        "precision": 0.9977628635346756,
+        "recall": 0.9975397002907627,
+        "f1": 0.9976512694329492,
+        "false_positive_rate": 0.002305209774089442,
+        "macro_f1": 0.9909328284386305
+      },
+      "CatBoost": {
+        "tp": 4458,
+        "fp": 9,
+        "tn": 4329,
+        "fn": 13,
+        "precision": 0.9979852249832102,
+        "recall": 0.9970923730709014,
+        "f1": 0.9975385992392034,
+        "false_positive_rate": 0.002074688796680498,
+        "macro_f1": 0.9934112308897731
+      },
+      "LCCDE": {
+        "tp": 4458,
+        "fp": 10,
+        "tn": 4328,
+        "fn": 13,
+        "precision": 0.9977618621307073,
+        "recall": 0.9970923730709014,
+        "f1": 0.9974270052578589,
+        "false_positive_rate": 0.002305209774089442,
+        "macro_f1": 0.9908999350220122
+      }
+    },
+    "lccde_per_class_f1": {
+      "BENIGN": 0.997349925106579,
+      "Bot": 0.9879101899827288,
+      "BruteForce": 0.9974747474747475,
+      "DoS": 0.9987827145465612,
+      "Infiltration": 1.0,
+      "PortScan": 0.9606299212598425,
+      "WebAttack": 0.9941520467836257
+    },
+    "leaders": {
+      "BENIGN": "XGBoost",
+      "Bot": "CatBoost",
+      "BruteForce": "XGBoost",
+      "DoS": "LightGBM",
+      "Infiltration": "XGBoost",
+      "PortScan": "CatBoost",
+      "WebAttack": "XGBoost"
+    },
+    "seconds": 48.8
+  },
+  "holdout": {
+    "Bot": {
+      "hidden_rows": 1437,
+      "models": {
+        "LightGBM": {
+          "tp": 4175,
+          "fp": 2,
+          "tn": 4336,
+          "fn": 1446,
+          "precision": 0.9995211874551113,
+          "recall": 0.7427504002846469,
+          "f1": 0.8522147377015717,
+          "false_positive_rate": 0.0004610419548178884,
+          "macro_f1": 0.807132329587848,
+          "unseen_detection_rate": 0.0
+        },
+        "XGBoost": {
+          "tp": 4168,
+          "fp": 5,
+          "tn": 4333,
+          "fn": 1453,
+          "precision": 0.9988018212317278,
+          "recall": 0.7415050702721936,
+          "f1": 0.8511333469471106,
+          "false_positive_rate": 0.001152604887044721,
+          "macro_f1": 0.8048293341289516,
+          "unseen_detection_rate": 0.0
+        },
+        "CatBoost": {
+          "tp": 4170,
+          "fp": 3,
+          "tn": 4335,
+          "fn": 1451,
+          "precision": 0.9992810927390366,
+          "recall": 0.7418608788471802,
+          "f1": 0.8515417602613845,
+          "false_positive_rate": 0.0006915629322268327,
+          "macro_f1": 0.8053664890271459,
+          "unseen_detection_rate": 0.0
+        },
+        "LCCDE": {
+          "tp": 4171,
+          "fp": 3,
+          "tn": 4335,
+          "fn": 1450,
+          "precision": 0.9992812649736463,
+          "recall": 0.7420387831346735,
+          "f1": 0.8516590096988258,
+          "false_positive_rate": 0.0006915629322268327,
+          "macro_f1": 0.8055605521719255,
+          "unseen_detection_rate": 0.0
+        }
+      },
+      "seconds": 51.3
+    },
+    "BruteForce": {
+      "hidden_rows": 1987,
+      "models": {
+        "LightGBM": {
+          "tp": 4161,
+          "fp": 8,
+          "tn": 4330,
+          "fn": 1900,
+          "precision": 0.998081074598225,
+          "recall": 0.6865203761755486,
+          "f1": 0.8134897360703813,
+          "false_positive_rate": 0.0018441678192715537,
+          "macro_f1": 0.7977640171469099,
+          "unseen_detection_rate": 0.04831404126824358
+        },
+        "XGBoost": {
+          "tp": 4134,
+          "fp": 8,
+          "tn": 4330,
+          "fn": 1927,
+          "precision": 0.9980685659101883,
+          "recall": 0.6820656657317274,
+          "f1": 0.8103498970890914,
+          "false_positive_rate": 0.0018441678192715537,
+          "macro_f1": 0.7969797527994932,
+          "unseen_detection_rate": 0.03673880221439356
+        },
+        "CatBoost": {
+          "tp": 4129,
+          "fp": 11,
+          "tn": 4327,
+          "fn": 1932,
+          "precision": 0.9973429951690821,
+          "recall": 0.681240719353242,
+          "f1": 0.8095284776002353,
+          "false_positive_rate": 0.0025357307514983865,
+          "macro_f1": 0.7889328177310224,
+          "unseen_detection_rate": 0.035228988424760944
+        },
+        "LCCDE": {
+          "tp": 4184,
+          "fp": 11,
+          "tn": 4327,
+          "fn": 1877,
+          "precision": 0.9973778307508939,
+          "recall": 0.6903151295165815,
+          "f1": 0.8159126365054602,
+          "false_positive_rate": 0.0025357307514983865,
+          "macro_f1": 0.7827579220929021,
+          "unseen_detection_rate": 0.06089582284851535
+        }
+      },
+      "seconds": 54.6
+    },
+    "DoS": {
+      "hidden_rows": 16429,
+      "models": {
+        "LightGBM": {
+          "tp": 1626,
+          "fp": 5,
+          "tn": 4333,
+          "fn": 15988,
+          "precision": 0.996934396076027,
+          "recall": 0.09231293289428863,
+          "f1": 0.1689789555728761,
+          "false_positive_rate": 0.001152604887044721,
+          "macro_f1": 0.6025067675028772,
+          "unseen_detection_rate": 0.027694929697486152
+        },
+        "XGBoost": {
+          "tp": 1469,
+          "fp": 8,
+          "tn": 4330,
+          "fn": 16145,
+          "precision": 0.994583615436696,
+          "recall": 0.0833995685250369,
+          "f1": 0.15389450526426066,
+          "false_positive_rate": 0.0018441678192715537,
+          "macro_f1": 0.5840414773826333,
+          "unseen_detection_rate": 0.01783431736563394
+        },
+        "CatBoost": {
+          "tp": 1640,
+          "fp": 7,
+          "tn": 4331,
+          "fn": 15974,
+          "precision": 0.9957498482088646,
+          "recall": 0.09310775519473147,
+          "f1": 0.17029230050360836,
+          "false_positive_rate": 0.0016136468418626094,
+          "macro_f1": 0.616780462703849,
+          "unseen_detection_rate": 0.028547081380485728
+        },
+        "LCCDE": {
+          "tp": 1621,
+          "fp": 5,
+          "tn": 4333,
+          "fn": 15993,
+          "precision": 0.9969249692496925,
+          "recall": 0.09202906778698762,
+          "f1": 0.1685031185031185,
+          "false_positive_rate": 0.001152604887044721,
+          "macro_f1": 0.6029021573877316,
+          "unseen_detection_rate": 0.02739058981070059
+        }
+      },
+      "seconds": 48.6
+    },
+    "Infiltration": {
+      "hidden_rows": 36,
+      "models": {
+        "LightGBM": {
+          "tp": 4444,
+          "fp": 7,
+          "tn": 4331,
+          "fn": 56,
+          "precision": 0.9984273197034375,
+          "recall": 0.9875555555555555,
+          "f1": 0.992961680259189,
+          "false_positive_rate": 0.0016136468418626094,
+          "macro_f1": 0.843604435830534,
+          "unseen_detection_rate": 0.0
+        },
+        "XGBoost": {
+          "tp": 4451,
+          "fp": 11,
+          "tn": 4327,
+          "fn": 49,
+          "precision": 0.9975347377857463,
+          "recall": 0.9891111111111112,
+          "f1": 0.9933050658335194,
+          "false_positive_rate": 0.0025357307514983865,
+          "macro_f1": 0.8454973836563228,
+          "unseen_detection_rate": 0.0
+        },
+        "CatBoost": {
+          "tp": 4446,
+          "fp": 7,
+          "tn": 4331,
+          "fn": 54,
+          "precision": 0.998428026049854,
+          "recall": 0.988,
+          "f1": 0.9931866413492685,
+          "false_positive_rate": 0.0016136468418626094,
+          "macro_f1": 0.8480055308704006,
+          "unseen_detection_rate": 0.0
+        },
+        "LCCDE": {
+          "tp": 4445,
+          "fp": 7,
+          "tn": 4331,
+          "fn": 55,
+          "precision": 0.9984276729559748,
+          "recall": 0.9877777777777778,
+          "f1": 0.9930741733690795,
+          "false_positive_rate": 0.0016136468418626094,
+          "macro_f1": 0.8448372826414178,
+          "unseen_detection_rate": 0.0
+        }
+      },
+      "seconds": 49.0
+    },
+    "PortScan": {
+      "hidden_rows": 324,
+      "models": {
+        "LightGBM": {
+          "tp": 4400,
+          "fp": 4,
+          "tn": 4334,
+          "fn": 330,
+          "precision": 0.9990917347865577,
+          "recall": 0.9302325581395349,
+          "f1": 0.963433326034596,
+          "false_positive_rate": 0.0009220839096357768,
+          "macro_f1": 0.8472812107341016,
+          "unseen_detection_rate": 0.040123456790123455
+        },
+        "XGBoost": {
+          "tp": 4405,
+          "fp": 9,
+          "tn": 4329,
+          "fn": 325,
+          "precision": 0.9979610330765746,
+          "recall": 0.9312896405919662,
+          "f1": 0.9634733158355205,
+          "false_positive_rate": 0.002074688796680498,
+          "macro_f1": 0.8460096031307928,
+          "unseen_detection_rate": 0.05555555555555555
+        },
+        "CatBoost": {
+          "tp": 4403,
+          "fp": 8,
+          "tn": 4330,
+          "fn": 327,
+          "precision": 0.9981863523010656,
+          "recall": 0.9308668076109936,
+          "f1": 0.963351930860956,
+          "false_positive_rate": 0.0018441678192715537,
+          "macro_f1": 0.846570343998788,
+          "unseen_detection_rate": 0.04938271604938271
+        },
+        "LCCDE": {
+          "tp": 4402,
+          "fp": 2,
+          "tn": 4336,
+          "fn": 328,
+          "precision": 0.9995458673932789,
+          "recall": 0.9306553911205074,
+          "f1": 0.9638712502737028,
+          "false_positive_rate": 0.0004610419548178884,
+          "macro_f1": 0.8483419462331411,
+          "unseen_detection_rate": 0.040123456790123455
+        }
+      },
+      "seconds": 51.3
+    },
+    "WebAttack": {
+      "hidden_rows": 2143,
+      "models": {
+        "LightGBM": {
+          "tp": 4060,
+          "fp": 6,
+          "tn": 4331,
+          "fn": 2126,
+          "precision": 0.9985243482538121,
+          "recall": 0.6563207242159715,
+          "f1": 0.7920405774483028,
+          "false_positive_rate": 0.001383444777495965,
+          "macro_f1": 0.7909995586653787,
+          "unseen_detection_rate": 0.013532431171255249
+        },
+        "XGBoost": {
+          "tp": 4056,
+          "fp": 8,
+          "tn": 4329,
+          "fn": 2130,
+          "precision": 0.9980314960629921,
+          "recall": 0.6556741028128031,
+          "f1": 0.7914146341463416,
+          "false_positive_rate": 0.0018445930366612867,
+          "macro_f1": 0.8093142639060081,
+          "unseen_detection_rate": 0.012599160055996267
+        },
+        "CatBoost": {
+          "tp": 4055,
+          "fp": 7,
+          "tn": 4330,
+          "fn": 2131,
+          "precision": 0.9982767109798129,
+          "recall": 0.655512447462011,
+          "f1": 0.7913739266198282,
+          "false_positive_rate": 0.0016140189070786258,
+          "macro_f1": 0.8171176512280104,
+          "unseen_detection_rate": 0.011199253383107793
+        },
+        "LCCDE": {
+          "tp": 4059,
+          "fp": 6,
+          "tn": 4331,
+          "fn": 2127,
+          "precision": 0.9985239852398524,
+          "recall": 0.6561590688651794,
+          "f1": 0.7919227392449517,
+          "false_positive_rate": 0.001383444777495965,
+          "macro_f1": 0.7906254811247798,
+          "unseen_detection_rate": 0.013065795613625758
+        }
+      },
+      "seconds": 52.3
+    }
+  }
+}
