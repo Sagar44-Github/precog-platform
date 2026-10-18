@@ -1,0 +1,11 @@
+{
+  "scenario_id": "quiet-scan",
+  "description": "Only reconnaissance: a scan and some probing, and nobody is compromised, so Precog stays quiet.",
+  "events": [
+    { "seq": 1, "offset_ms": 0,    "kind": "technique", "host": "host-b", "technique_id": "T1046", "note": "Scan of the network" },
+    { "seq": 2, "offset_ms": 1500, "kind": "traffic", "packets": [
+        { "src_host": "host-b", "dst_host": "host-a", "protocol": "TCP", "dst_port": 22, "size": 400, "flags": "S", "repeat": 2 },
+        { "src_host": "host-b", "dst_host": "file-server", "protocol": "TCP", "dst_port": 80, "size": 300, "flags": "S" } ] },
+    { "seq": 3, "offset_ms": 3000, "kind": "technique", "host": "host-b", "technique_id": "T1018", "note": "The attacker lists other machines" }
+  ]
+}

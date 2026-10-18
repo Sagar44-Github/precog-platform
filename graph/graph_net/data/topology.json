@@ -1,0 +1,19 @@
+{
+  "note": "The demo network's feasible connections and its SIMULATED weaknesses. Names, zones and addresses come from contracts/data/hosts.json. The weakness ids start with DEMO- on purpose: they are invented for the simulation and are not real CVEs.",
+  "feasible_connections": {
+    "host-a": ["host-b", "server-b", "file-server"],
+    "host-b": ["host-a", "server-b", "file-server"],
+    "server-b": ["file-server", "db-server"],
+    "file-server": ["db-server", "domain-controller"],
+    "db-server": ["domain-controller"],
+    "domain-controller": []
+  },
+  "assets": {
+    "host-a":            { "services": ["ssh/22", "smb/445"],  "criticality": 0.3, "vulns": [ { "id": "DEMO-0001", "cvss": 6.5, "service": "ssh/22",   "description": "Simulated weak remote-login password policy" } ] },
+    "host-b":            { "services": ["ssh/22", "smb/445"],  "criticality": 0.3, "vulns": [ { "id": "DEMO-0002", "cvss": 6.5, "service": "ssh/22",   "description": "Simulated weak remote-login password policy" } ] },
+    "server-b":          { "services": ["http/80", "ssh/22"],  "criticality": 0.7, "vulns": [ { "id": "DEMO-0003", "cvss": 9.8, "service": "http/80",  "description": "Simulated flaw in a public web application" } ] },
+    "file-server":       { "services": ["smb/445"],            "criticality": 0.6, "vulns": [ { "id": "DEMO-0004", "cvss": 8.1, "service": "smb/445",  "description": "Simulated file-sharing weakness" } ] },
+    "db-server":         { "services": ["mysql/3306"],         "criticality": 1.0, "vulns": [ { "id": "DEMO-0005", "cvss": 9.1, "service": "mysql/3306", "description": "Simulated database login weakness" } ] },
+    "domain-controller": { "services": ["ldap/389", "smb/445"], "criticality": 1.0, "vulns": [ { "id": "DEMO-0006", "cvss": 7.5, "service": "ldap/389", "description": "Simulated directory service weakness" } ] }
+  }
+}
