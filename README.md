@@ -135,7 +135,9 @@ flowchart LR
 
 **The model, in one line** (with smoothing constant α, starting at 0.1 and tuned on the training split):
 
-$$P(j \mid i) = \frac{\operatorname{count}(i \to j) + \alpha}{\sum_{k \in C(i)} \operatorname{count}(i \to k) + \alpha\,\lvert C(i) \rvert}$$
+$$
+P(j \mid i) = \frac{\operatorname{count}(i \to j) + \alpha}{\sum_{k \in C(i)} \operatorname{count}(i \to k) + \alpha \cdot |C(i)|}
+$$
 
 Here *i* is the compromised host, and *C(i)* is the set of hosts reachable from it according to the feasible attack paths, excluding hosts already compromised or contained.
 
