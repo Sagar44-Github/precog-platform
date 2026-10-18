@@ -34,7 +34,6 @@
 
 </div>
 
-<img src="docs/assets/divider.png" alt="" width="100%">
 
 ## 🧭 Overview
 
@@ -103,7 +102,6 @@ It is a working product built by four people for the **5th-semester Project-Base
 
 </details>
 
-<img src="docs/assets/divider.png" alt="" width="100%">
 
 ## 🔮 The Precog Engine
 
@@ -184,7 +182,6 @@ stateDiagram-v2
 
 **Working paper title:** *"Probabilistic Attack Trajectory Forecasting for Pre-Emptive Network Containment: A Closed-Loop Detect-Forecast-Act Framework."* Due the first week of December 2026, IEEE format.
 
-<img src="docs/assets/divider.png" alt="" width="100%">
 
 ## 🎬 The Demo in 60 Seconds
 
@@ -235,7 +232,6 @@ sequenceDiagram
 
 > The 74% figure is illustrative. A recorded video of a perfect run is kept as a backup, and the golden path must pass five consecutive rehearsals before demo day.
 
-<img src="docs/assets/divider.png" alt="" width="100%">
 
 ## 🎨 Visual Tour
 
@@ -265,7 +261,6 @@ Triage first: *what is happening, how bad is it, what can I do?* The phone app i
 > [!NOTE]
 > There is deliberately **no green anywhere**. Green would suggest "safe", and a simulated environment is never safe to claim. Contrast ratios follow WCAG 2.2 AA, motion respects `prefers-reduced-motion`, and the app stays usable at 200% text zoom.
 
-<img src="docs/assets/divider.png" alt="" width="100%">
 
 ## 📐 System Architecture
 
@@ -547,7 +542,6 @@ The full contract set: `packet_record`, `security_event`, `graph_snapshot`, `for
 
 </details>
 
-<img src="docs/assets/divider.png" alt="" width="100%">
 
 ## 🧰 Tech Stack
 
@@ -588,7 +582,6 @@ The full contract set: `packet_record`, `security_event`, `graph_snapshot`, `for
 | GNN / LSTM forecaster | Node-type, service and patch-aware replacement for the Markov model | Could |
 | APK wrapper | The web app wrapped as an APK, only if a teacher requires an app file | Could |
 
-<img src="docs/assets/divider.png" alt="" width="100%">
 
 ## 🚀 Getting Started
 
@@ -831,7 +824,6 @@ See the DETECT and LEAD-CORE build guides in `docs/` for the exact steps and Pyt
 
 </details>
 
-<img src="docs/assets/divider.png" alt="" width="100%">
 
 ## 🔌 API Reference
 
@@ -897,7 +889,6 @@ A scenario is a small JSON file of timed events (`traffic`, `technique`, `attemp
 
 </details>
 
-<img src="docs/assets/divider.png" alt="" width="100%">
 
 ## 📊 Evaluation
 
@@ -984,10 +975,9 @@ precog-platform/
 │           └── push/                       Firebase + notifications  VIZ
 │
 └── docs/                                   Master Project Document, PRD, TRD, UI/UX Brief, build guides
-    └── assets/                             hero, divider, network-3d, mobile-app, screenshots
+    └── assets/                             hero, network-3d, mobile-app, screenshots
 ```
 
-<img src="docs/assets/divider.png" alt="" width="100%">
 
 ## 👥 Team and Workflow
 
@@ -1077,7 +1067,6 @@ Week 8 is a buffer and is **not optional**. Anything not integration-tested by t
 
 </details>
 
-<img src="docs/assets/divider.png" alt="" width="100%">
 
 ## 🔒 Safety and Ethics
 
@@ -1132,7 +1121,6 @@ The original code written for Precog SOC is covered by the terms in [LICENSE](LI
 
 <div align="center">
 
-<img src="docs/assets/divider.png" alt="" width="100%">
 
 **Precog SOC** · 5th Semester PBL · Department of Computer Science and Engineering · 2026–27
 
