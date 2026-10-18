@@ -1,442 +1,612 @@
-<a id="top"></a>
-
 <div align="center">
 
-<img src="docs/assets/hero.png" alt="Precog SOC — Detect, Forecast, Act, Re-evaluate. An isometric 3D network where one host is compromised and violet forecast cones point to the predicted next targets." width="100%">
-
-# Precog SOC
-
-**AI Cyber Threat Detection · Attack-Path Reconstruction · Precog Forecasting · 3D Visualization · Mobile SOC · Automated Containment**
-
-[![Python](https://img.shields.io/badge/Python-3.11-3776AB?style=flat-square&logo=python&logoColor=white)](#-tech-stack)
-[![Flask](https://img.shields.io/badge/Flask-3.0-000000?style=flat-square&logo=flask&logoColor=white)](#-tech-stack)
-[![React](https://img.shields.io/badge/React-Vite-61DAFB?style=flat-square&logo=react&logoColor=black)](#-tech-stack)
-[![Three.js](https://img.shields.io/badge/3D-Three.js-000000?style=flat-square&logo=threedotjs&logoColor=white)](#-tech-stack)
-[![PWA](https://img.shields.io/badge/Mobile-Installable%20PWA-5A0FC8?style=flat-square&logo=pwa&logoColor=white)](#-tech-stack)
-[![Mode](https://img.shields.io/badge/Mode-Replay%20only-a855f7?style=flat-square)](#-safety-and-ethics)
-[![Containment](https://img.shields.io/badge/Containment-Simulated-14b8a6?style=flat-square)](#-safety-and-ethics)
-[![Status](https://img.shields.io/badge/Status-Educational%20prototype-64748b?style=flat-square)](#-known-limitations)
-
-[Overview](#-overview) · [Precog Engine](#-the-precog-engine) · [Demo](#-the-demo-in-60-seconds) · [Visual Tour](#-visual-tour) · [Architecture](#-system-architecture) · [Quick Start](#-getting-started) · [API](#-api-reference) · [Evaluation](#-evaluation) · [Limitations](#-known-limitations) · [Team](#-team-and-workflow)
+<img src="docs/assets/hero.svg" alt="Precog SOC: an isometric network where one host is compromised and violet forecast cones point to the predicted next target, Web Server B at 74 percent, with a Contain button" width="100%">
 
 <br>
 
-<table>
-<tr>
-<td align="center" width="16%"><h2>6</h2><sub>demo hosts<br>in 3 network zones</sub></td>
-<td align="center" width="16%"><h2>Top-3</h2><sub>ranked next targets<br>with confidence</sub></td>
-<td align="center" width="16%"><h2>1–2 s</h2><sub>polling interval<br>for live updates</sub></td>
-<td align="center" width="16%"><h2>2 steps</h2><sub>propose, then confirm<br>every containment</sub></td>
-<td align="center" width="16%"><h2>26</h2><sub>MITRE ATT&CK<br>techniques curated</sub></td>
-<td align="center" width="16%"><h2>0</h2><sub>live attacks<br>ever run</sub></td>
-</tr>
-</table>
+# AI Cyber Threat Detection, Attack-Path Reconstruction, Precog Forecasting, Visualization, Mobile SOC & Automated Containment Platform
+
+**Detect. Forecast. Act. Re-evaluate.**<br>
+A closed-loop security console that predicts where an attacker will move next and lets an analyst stop them before they get there.
+
+<br>
+
+![Python](https://img.shields.io/badge/Python-3.11-38bdf8?style=flat-square&logo=python&logoColor=white&labelColor=0b0f14)
+![Flask](https://img.shields.io/badge/Flask-3.0-e6edf3?style=flat-square&logo=flask&logoColor=white&labelColor=0b0f14)
+![React](https://img.shields.io/badge/React-Vite-38bdf8?style=flat-square&logo=react&logoColor=white&labelColor=0b0f14)
+![Three.js](https://img.shields.io/badge/3D-3d--force--graph-e6edf3?style=flat-square&logo=threedotjs&logoColor=white&labelColor=0b0f14)
+![SQLite](https://img.shields.io/badge/SQLite-no%20Docker-64748b?style=flat-square&logo=sqlite&logoColor=white&labelColor=0b0f14)
+![PWA](https://img.shields.io/badge/Mobile-installable%20PWA-14b8a6?style=flat-square&logo=pwa&logoColor=white&labelColor=0b0f14)
+![Precog](https://img.shields.io/badge/Precog-Markov%20Top--3-a855f7?style=flat-square&labelColor=0b0f14)
+![ATT&CK](https://img.shields.io/badge/MITRE-ATT%26CK%20mapped-ef4444?style=flat-square&labelColor=0b0f14)
+![Mode](https://img.shields.io/badge/Replay%20Mode-simulation%20only-a855f7?style=flat-square&labelColor=0b0f14)
+
+<br>
+
+[**Overview**](#overview) &nbsp;|&nbsp; [**See it**](#see-it) &nbsp;|&nbsp; [**Precog Engine**](#precog-engine) &nbsp;|&nbsp; [**Architecture**](#architecture) &nbsp;|&nbsp; [**Run it**](#quick-start) &nbsp;|&nbsp; [**API**](#api-reference) &nbsp;|&nbsp; [**Team**](#team)
 
 </div>
 
+<br>
+
+> [!IMPORTANT]
+> **This is a simulation.** The platform runs in **Replay Mode**: pre-recorded and scripted attack events are replayed through the same live pipeline that real traffic would use. No scan, exploit or attack tool is ever run against a real network, device or infrastructure, and **Contain** only changes an in-memory status and writes a log line.
+
+<a id="choose-your-path"></a>
+
+### Choose your path
+
+| If you are... | Start here |
+|---|---|
+| **An evaluator or faculty member** | [See it](#see-it), then [The golden-path demo](#golden-path-demo) |
+| **Someone who wants to run it** | [Quick start](#quick-start) |
+| **A developer on the team** | [Architecture](#architecture), [Repository layout](#repository-layout), [API reference](#api-reference) |
+| **A reader of the research** | [Precog Engine](#precog-engine), [Evaluation](#evaluation) |
+
+<details>
+<summary><b>Full contents</b> (click to expand)</summary>
+
+<br>
+
+| # | Section | # | Section |
+|---|---|---|---|
+| 1 | [Overview](#overview) | 10 | [Using the app](#using-the-app) |
+| 2 | [See it](#see-it) | 11 | [API reference](#api-reference) |
+| 3 | [The golden-path demo](#golden-path-demo) | 12 | [Data contracts](#data-contracts) |
+| 4 | [Precog Engine](#precog-engine) | 13 | [Repository layout](#repository-layout) |
+| 5 | [Architecture](#architecture) | 14 | [Evaluation](#evaluation) |
+| 6 | [Tech stack and reused repositories](#tech-stack) | 15 | [Safety and ethics](#safety-and-ethics) |
+| 7 | [Demo network and host states](#demo-network) | 16 | [Plan and risks](#plan-and-risks) |
+| 8 | [Quick start](#quick-start) | 17 | [Team](#team) |
+| 9 | [Run modes and configuration](#run-modes-and-configuration) | 18 | [Documentation and credits](#documentation-and-credits) |
+
+</details>
+
+---
+
+<a id="overview"></a>
 
 ## 🧭 Overview
 
-**Precog SOC** detects intrusions in network traffic, reconstructs how they spread from host to host, and then does what existing tools do not: it **forecasts where the attacker will go next** and lets an analyst pre-emptively contain that predicted path — with one confirmed action — before the next step happens.
-
-It is a working product built by four people for the **5th-semester Project-Based Learning (PBL)** of the Department of Computer Science and Engineering. It joins four subjects into one system: an ML detection pipeline, a live 3D computer-graphics console, an installable mobile app, and an IEEE paper on the forecasting method.
-
-> **Everything runs in Replay Mode.** Scripted attack events flow through the same live pipeline that real traffic would use, so the demo is deterministic, safe, and needs no lab, no virtual machines and no network access.
-
-<details>
-<summary><b>👋 Not sure where to start? Pick your path.</b></summary>
-<br>
-
-| I am… | Start here |
-|---|---|
-| An evaluator or faculty member | [The demo in 60 seconds](#-the-demo-in-60-seconds), then the [Visual tour](#-visual-tour). Safety is covered in [Safety and ethics](#-safety-and-ethics). |
-| A developer joining the team | [Getting started](#-getting-started), [Repository structure](#-repository-structure), then [Team and workflow](#-team-and-workflow). |
-| A researcher or reviewer | [The Precog Engine](#-the-precog-engine), then [Evaluation](#-evaluation) and [Known limitations](#-known-limitations). The honesty notes are in [Safety and ethics](#-safety-and-ethics). |
-| Just curious how it fits together | [System architecture](#-system-architecture). Each diagram has expandable sections below it with more detail. |
-
-</details>
-
-### The problem, in three gaps
-
-| Gap | | How Precog SOC answers it |
-|---|---|---|
-| **G1** | Detection alone isn't understanding. A flood of alerts doesn't show how they relate to one unfolding attack. | A live attack graph, plain-English alert explanations and MITRE ATT&CK context tie alerts into one story. |
-| **G2** | Reconstruction alone is reactive. By the time the path is drawn, the attacker has moved on. | The Precog Engine forecasts the **Top-3 likely next hosts**, with a confidence percentage, *before* they are reached. |
-| **G3** | Few tools close the loop. It is rare to find detection, reconstruction, forecasting and a fast, human-confirmed response in one accessible tool. | A two-step, human-confirmed (simulated) containment, followed by automatic re-evaluation of whether the attack really stopped. |
-
-<details>
-<summary><b>How do existing tools compare?</b></summary>
-<br>
-
-| Existing system | Category | What it does well | Where it stops |
-|---|---|---|---|
-| Bitdefender GravityZone | Endpoint detection and response | Detects and reports malicious activity | Descriptive: reports what happened, no next-host forecast |
-| CrowdStrike Falcon | Endpoint detection and response | Real-time monitoring and incident response | Built around detect-and-respond, not next-host forecasting |
-| Sekoia.io | Attack-path visualization | Shows paths between security events | Visualization comes after compromise is already detected |
-| **Precog SOC** | **Closed-loop forecasting and containment** | **Detect → forecast → act → re-evaluate, live** | **Educational prototype: replay data only, simulated enforcement** |
-
-<sub>This comparison reflects each vendor's public documentation at the time of writing. Commercial products evolve, and this table is a positioning aid, not a benchmark.</sub>
-
-</details>
-
-<details>
-<summary><b>📖 Glossary (SOC, ATT&CK, PWA, Replay Mode and friends)</b></summary>
-<br>
-
-| Term | Meaning |
-|---|---|
-| **SOC** | Security Operations Center: the team or room that watches for and responds to cyber attacks |
-| **Node / host** | One machine in the monitored network, shown as a point on the graph |
-| **Compromised node** | A host the detector has confirmed as successfully attacked |
-| **Replay Mode** | Running the pipeline from pre-recorded and scripted attack events instead of live attacks |
-| **Golden path** | The single rehearsed demo scenario that must work every time |
-| **Forecast cone** | The glowing violet shape on the 3D graph pointing from the compromised host to a predicted target |
-| **Containment** | Simulated isolation of a host: a status change plus a logged action. Nothing real changes |
-| **Re-evaluation** | Feeding the post-containment state back into the pipeline to confirm the attack stopped |
-| **MITRE ATT&CK** | A public catalogue of attacker techniques (for example T1021 Remote Services) |
-| **Markov transition model** | A model that estimates, from observed sequences, the probability of moving from one state (host) to the next |
-| **precision@k** | The share of forecasts whose Top-k list contained the host the attacker actually tried next |
-| **Calibration** | Whether a stated confidence (say 74%) matches how often such forecasts are right |
-| **PWA** | Progressive Web App: a website that installs on a phone's home screen and behaves like an app |
-| **Polling** | A screen asking the server for updates every second or two instead of the server pushing them |
-
-</details>
-
-
-## 🔮 The Precog Engine
-
-Detection plus a graph is a solved problem. The contribution here is **the closed loop around a forward-looking forecast**.
+Precog SOC detects intrusions in network traffic, reconstructs how they spread from host to host, and, through its novel **Precog Engine**, forecasts where the attacker will most likely go **next**, with a confidence score. The analyst sees that forecast as glowing cones on a **3D console** and as an alert on an **installable phone app**, and can contain the predicted target with one confirmed tap. After every response the system re-evaluates, so the loop closes.
 
 ```mermaid
 flowchart LR
-    D["<b>Detect</b><br/>NIDS flags the traffic,<br/>a host is confirmed compromised"]:::happened
-    F["<b>Forecast</b><br/>Precog ranks the Top-3<br/>likely next hosts"]:::predicted
-    A["<b>Act</b><br/>Analyst confirms Contain<br/>(simulated)"]:::did
-    R["<b>Re-evaluate</b><br/>Did the attack<br/>actually stop?"]:::neutral
+    A["Detect<br/>NIDS detector + ATT&CK"] --> B["Forecast<br/>Precog Top-3"]
+    B --> C["Act<br/>confirmed containment"]
+    C --> D["Re-evaluate<br/>blocked? chain ended?"]
+    D --> A
 
-    D --> F --> A --> R
-    R -->|"new evidence"| D
-
-    classDef happened fill:#3b1219,stroke:#ef4444,stroke-width:2px,color:#fecaca
-    classDef predicted fill:#2e1a47,stroke:#a855f7,stroke-width:2px,color:#e9d5ff
-    classDef did fill:#0f3a36,stroke:#14b8a6,stroke-width:2px,color:#ccfbf1
-    classDef neutral fill:#10283a,stroke:#38bdf8,stroke-width:2px,color:#e0f2fe
+    classDef happened fill:#3b1218,stroke:#ef4444,color:#e6edf3
+    classDef predict fill:#2a1640,stroke:#a855f7,color:#e6edf3
+    classDef did fill:#0d2f2c,stroke:#14b8a6,color:#e6edf3
+    classDef check fill:#0f2a3d,stroke:#38bdf8,color:#e6edf3
+    class A happened
+    class B predict
+    class C did
+    class D check
 ```
 
-### How a forecast is made
+### At a glance
 
-| Step | What happens | Detail |
-|---|---|---|
-| **1. Trajectory model** | A frequency-based Markov model over hosts estimates where the attacker goes next, given the host they are on now | Trained on many varied, seeded, scripted attack sequences over the demo network |
-| **2. Live inference** | The moment a host is confirmed compromised, Precog returns a ranked Top-3 with confidence percentages | A counting-table lookup, well under a second. It updates as new evidence arrives |
-| **3. Visualization** | Violet forecast cones grow from the compromised host toward each predicted target | Cone width and opacity scale with confidence, so it reads at a glance |
-| **4. Pre-emptive containment** | The phone and the console offer *Contain* on the top prediction | Two deliberate steps: propose, then slide to confirm. Simulated |
-| **5. Self-scoring** | Precog tracks its own hit-rate for the session and shows it live | An honest metric, labelled as a session counter (for example "1 / 1") |
+<table align="center">
+  <tr>
+    <td align="center"><b>6</b><br>demo hosts in 3 zones</td>
+    <td align="center"><b>Top-3</b><br>forecast, with confidence</td>
+    <td align="center"><b>2 steps</b><br>propose, then confirm</td>
+    <td align="center"><b>25</b><br>add-on API routes</td>
+  </tr>
+  <tr>
+    <td align="center"><b>26</b><br>ATT&amp;CK techniques mapped</td>
+    <td align="center"><b>~1.5 s</b><br>polling interval</td>
+    <td align="center"><b>0</b><br>NIDS files edited</td>
+    <td align="center"><b>1</b><br>process serves everything</td>
+  </tr>
+</table>
 
-**The model, in one line** (with smoothing constant α, starting at 0.1 and tuned on the training split):
+### The problem
 
-$$
-P(j \mid i) = \frac{\text{count}(i \to j) + \alpha}{\sum_{k \in C(i)} \text{count}(i \to k) + \alpha \cdot |C(i)|}
-$$
+Security teams without a full Security Operations Center struggle to see *how* an intrusion is spreading while it happens. By the time the path is understood, the damage is usually done.
 
-Here *i* is the compromised host, and *C(i)* is the set of hosts reachable from it according to the feasible attack paths, excluding hosts already compromised or contained.
-
-<details>
-<summary><b>Two layers: which <i>host</i>, and which <i>technique</i></b></summary>
-<br>
-
-| Layer | Question answered | Source | Output |
-|---|---|---|---|
-| **Node-level** | Which host will the attacker try next? | The product's own Markov model over hosts | Top-3 hosts with confidence |
-| **Technique-level** | Which ATT&CK technique is likely next? | The reused [mayank02raj/MITRE-ATTACK-based-Attack-Chain-Prediction](https://github.com/mayank02raj/MITRE-ATTACK-based-Attack-Chain-Prediction) Markov table, exported once to a JSON file | A "likely next technique" hint |
-
-The backend only ever reads that JSON file. It never imports the reused repository, which needs PyTorch and a different Python version. If the export fails, a rule-based ATT&CK lookup table takes over (`FORECAST_SOURCE=lookup`), and each forecast records which source produced it.
-
-**Stretch goal** (only if time allows): replace the Markov model with a small GNN or LSTM that also uses node type, open services and patch status. The MVP is complete without it.
-
-</details>
-
-<details>
-<summary><b>Forecast lifecycle: how a forecast ends as a hit or a miss</b></summary>
-<br>
-
-```mermaid
-stateDiagram-v2
-    [*] --> pending: a host becomes compromised
-    pending --> superseded: new evidence replaces it
-    pending --> hit: next attempt is in the Top-3
-    pending --> miss: next attempt is not in the Top-3
-    hit --> [*]
-    miss --> [*]
-    superseded --> [*]
-```
-
-| Outcome | Rule |
+| Gap | What is missing |
 |---|---|
-| **Hit** at rank *r* | The attempted target is the forecast's *r*-th host (1 to 3) |
-| **Miss** | The attempted target is not in the Top-3. Shown as plainly as a hit, never celebrated |
-| **Blocked hit** | The attempted target was predicted *and* contained: the prediction was right and the attack was stopped before it succeeded |
+| **G1** | **Detection alone isn't understanding.** A flood of alerts does not show how they form one unfolding attack |
+| **G2** | **Reconstruction alone is reactive.** An attack-path graph only shows what already happened |
+| **G3** | **Nothing accessible closes the loop.** No widely available tool combines detection, path reconstruction, forecasting and one-tap response in one system that keeps re-evaluating |
+
+| Existing system | Category | Limitation |
+|---|---|---|
+| Bitdefender GravityZone | Endpoint detection and response | Describes what happened; does not forecast what happens next |
+| CrowdStrike Falcon | Endpoint detection and response | Strong at detection and response; does not predict the attacker's next move |
+| Sekoia.io | Attack-path visualization | Shows the path after compromise is detected, not before |
+
+Every tool in this category answers **"what happened?"** Precog SOC targets the gap none of them address: live, node-level, confidence-scored forecasting of the next move, combined with a pre-emptive containment step that feeds back into the same running system.
+
+### What you get
+
+| | Capability | What it does |
+|:---:|---|---|
+| 🔎 | **Detection** | NIDS's Isolation Forest labels replayed packets live; a CICIDS2017 model trained offline supplies the evaluation numbers |
+| 🧾 | **Security events** | Every detection becomes a plain-English event with severity, a 0 to 100 risk score, an ATT&CK technique where known, and an audit-log line |
+| 🕸️ | **Live attack graph** | A `networkx` graph of hosts and observed connections; hosts are `normal`, `compromised` or `contained` |
+| 🔮 | **Precog forecast** | Top-3 likely next hosts with confidence, a likely-next-technique hint, and self-scoring (hit, miss or blocked hit) |
+| 🧊 | **3D SOC console** | Three.js scene with shape-coded hosts, forecast cones, replay controls, an alert timeline and a live accuracy counter |
+| 📱 | **Mobile app (PWA)** | Installable on a phone: Home, Alerts, Forecast and History tabs; keeps the last state and marks it stale if the connection drops |
+| 🛡️ | **Contain, safely** | Two-step propose and confirm, a 60-second expiry, a clear **SIMULATION** label and a re-evaluation of the outcome |
+| 🔔 | **Push alerts** | Firebase web push for `HIGH` severity; the in-app feed still shows every alert if push is unavailable |
+| 📊 | **Charts** | Chart.js calibration chart (stated confidence vs observed hit rate) and alert volume by severity |
+| ▶️ | **Replay controls** | Start, pause, resume, restart and 1x, 2x, 4x speed; the same file and speed always give the same result |
+
+---
+
+<a id="see-it"></a>
+
+## 👀 See it
+
+> [!NOTE]
+> The images below are **design previews** drawn from the project's [UI/UX Brief](docs/), using the brief's real colours, layout and wording with illustrative numbers. Replace them with real screenshots once the screens are merged.
+
+### The 3D console (desktop)
+
+<img src="docs/assets/ui-console.svg" alt="Desktop 3D console: top bar with threat level and replay controls, a 3D network with a compromised host and violet forecast cones, a right panel with the Top-3 forecast and a Contain button, and an alert timeline" width="100%">
+
+### The mobile app (installable PWA)
+
+<img src="docs/assets/ui-phone.svg" alt="Three phone screens: Home with Under attack and the Top-3 forecast, a slide-to-confirm Contain sheet, and an outcome card saying Precog was right and the move was blocked" width="100%">
+
+### One colour, one meaning
+
+The interface uses three colours that never change meaning, and every colour is paired with a shape and a word so it also works in greyscale.
+
+<img src="docs/assets/host-states.svg" alt="Four host states: normal slate sphere, compromised red octahedron, contained teal cube with ring, and predicted next target with a dashed violet ring and confidence" width="100%">
+
+<details>
+<summary><b>Design system</b> (palette, type, accessibility)</summary>
+
+<br>
+
+| Role | Colour | Hex | Used for |
+|---|:---:|---|---|
+| What **happened** | ![red](https://img.shields.io/badge/%20%20%20%20%20%20-ef4444?style=flat-square) | `#ef4444` | Compromised hosts, critical alerts |
+| What Precog **predicts** | ![violet](https://img.shields.io/badge/%20%20%20%20%20%20-a855f7?style=flat-square) | `#a855f7` | Forecast cones, bars, anything predicted |
+| What **you did** | ![teal](https://img.shields.io/badge/%20%20%20%20%20%20-14b8a6?style=flat-square) | `#14b8a6` | Contained hosts, containment success |
+| Normal | ![slate](https://img.shields.io/badge/%20%20%20%20%20%20-64748b?style=flat-square) | `#64748b` | Quiet hosts |
+| Accent | ![sky](https://img.shields.io/badge/%20%20%20%20%20%20-38bdf8?style=flat-square) | `#38bdf8` | Buttons, links, focus ring |
+| Background / surface | ![bg](https://img.shields.io/badge/%20%20%20%20%20%20-0b0f14?style=flat-square) ![surface](https://img.shields.io/badge/%20%20%20%20%20%20-121821?style=flat-square) | `#0b0f14` / `#121821` | Page and cards |
+
+| Topic | Rule |
+|---|---|
+| Fonts | Inter for text and JetBrains Mono for numbers and ids, both with system fallbacks so it works offline |
+| Contrast | WCAG 2.2 AA: 4.5:1 for text, 3:1 for icons and controls |
+| Touch | 44 x 44 px minimum targets on the phone |
+| Motion | Only three things animate: a newly compromised host, the forecast and a containment. Everything stops under *reduce motion* |
+| Honesty | Forecasts say "predicts", never "will". Old data is marked stale. A miss is shown as plainly as a hit |
+| No green | Deliberately: nothing in a simulation is ever safe to claim |
+| Single source | All colours live in `web/src/shared/theme.css`; screens never contain a colour code |
 
 </details>
 
-> [!IMPORTANT]
-> **Integrity note.** The golden path is a scripted demonstration whose forecast is arranged to be correct. Every metric reported as a result comes only from held-out generated sequences, which include wrong forecasts. The live counter in the demo is labelled *"Session counter, not the model's overall accuracy"*. Technique-level chain forecasting already exists in the literature, so the contribution is claimed narrowly: **node-level next-host forecasting** combined with **confirmed, closed-loop, pre-emptive containment** under replay.
+---
 
-**Working paper title:** *"Probabilistic Attack Trajectory Forecasting for Pre-Emptive Network Containment: A Closed-Loop Detect-Forecast-Act Framework."* Due the first week of December 2026, IEEE format.
+<a id="golden-path-demo"></a>
 
+## 🎬 The golden-path demo
 
-## 🎬 The Demo in 60 Seconds
+This is the **golden path**, the one rehearsed scenario that must work every time.
 
-The rehearsed **golden path**. It runs on localhost, needs no internet, and plays the same way every time.
+| # | What happens | What the audience sees |
+|:---:|---|---|
+| 1 | The scripted attack replays until Workstation A is confirmed compromised | A host turns **red** and pulses on the 3D console |
+| 2 | Precog produces a forecast | **Violet cones** grow toward the likely targets; the panel lists the Top-3 and the phone gets the same forecast |
+| 3 | The replay pauses: *Waiting for your decision* | The forecast and **Contain** are the focus |
+| 4 | The analyst taps **Contain** on the phone and slides to confirm | A two-step confirmation that states it is a simulation |
+| 5 | The replay resumes with the attacker's next move toward Web Server B | The cone fades, the host becomes a **teal cube**, and the move is shown stopping short |
+| 6 | The forecast resolves as a *blocked hit* | The accuracy counter ticks up: *"Precog accuracy this session"* |
 
 ```mermaid
 sequenceDiagram
     autonumber
-    participant R as Replay controller
-    participant N as NIDS + detector
-    participant P as Events · Graph · Precog
-    participant W as World state
-    participant C as 3D console
-    participant M as Phone app
-    actor A as Analyst
+    participant RC as Replay controller
+    participant DB as NIDS database
+    participant DT as NIDS detector
+    participant EV as Event processing
+    participant GP as Graph + Precog
+    participant WS as World state
+    participant CL as Clients (polling)
+    participant CT as Containment
 
-    R->>N: write scripted packets, call detector now
-    N-->>P: labelled packets (severity, risk score)
-    R->>P: technique event: Workstation A compromised
-    P->>W: security event + graph update
-    P->>W: forecast Top-3 (Web Server B 74%)
-    Note over R: replay pauses before the next attempt
-    C->>W: poll since version N
-    W-->>C: graph + forecast cones
-    M->>W: poll since version N
-    W-->>M: alert + forecast + Contain button
-    A->>M: tap Contain
-    M->>W: POST containment/propose
-    W-->>M: pending_confirmation (60 s)
-    A->>M: slide to confirm
-    M->>W: POST containment/confirm
-    W->>W: Web Server B becomes contained
-    R->>P: resume: Workstation A tries Web Server B
-    P->>W: blocked · forecast resolved as hit · re-evaluation
-    C->>W: poll
-    W-->>C: teal cube, blocked attempt, counter 1 / 1
+    RC->>DB: write scripted packets (unlabelled)
+    RC->>DT: call detector now
+    DT->>DB: label packets (severity, risk score)
+    RC->>EV: new packets and technique events
+    EV->>WS: security events (+ ATT&CK)
+    EV->>GP: host compromised
+    GP->>WS: graph update + forecast (Top-3)
+    CL->>WS: poll (since version N)
+    WS-->>CL: changes: alert, graph, forecast
+    RC-->>RC: pause at decision point
+    CL->>CT: POST propose (target)
+    CT-->>CL: action pending confirmation
+    CL->>CT: POST confirm (action id)
+    CT->>WS: node contained, version bump
+    RC->>DB: resume: attempted move packets
+    GP->>WS: attempt blocked, forecast resolved (hit)
+    CL->>WS: poll
+    WS-->>CL: containment, re-evaluation, metrics
 ```
 
-| # | What the audience sees | Where |
-|---|---|---|
-| 1 | A host turns red and pulses once | 3D console |
-| 2 | Violet cones grow toward the likely targets and the Top-3 is listed: *"Precog predicts Web Server B, 74%"* | 3D console + phone |
-| 3 | The phone buzzes with the same forecast | Phone (push) |
-| 4 | The analyst taps **Contain** and slides to confirm | Phone |
-| 5 | The cone toward the contained host fades and the host becomes a teal cube | 3D console |
-| 6 | The attacker's next move is shown stopping short | 3D console |
-| 7 | The session hit counter ticks up | Both |
+<details>
+<summary><b>Why Replay Mode, and not a live attack lab?</b></summary>
 
-> The 74% figure is illustrative. A recorded video of a perfect run is kept as a backup, and the golden path must pass five consecutive rehearsals before demo day.
+<br>
 
+The original concept used real virtual machines and a live scripted attack chain. It was replaced deliberately.
 
-## 🎨 Visual Tour
+| Replay Mode removes... | Because... |
+|---|---|
+| **Demo-day failure risk** | No dependence on Wi-Fi, venue firewalls or laptop updates; a recorded backup run also exists |
+| **Offensive-tooling risk** | The team never has to run real attack tools under time pressure |
+| **Legal and ethical risk** | Nothing is ever scanned or exploited; all attack behaviour is dataset traffic or scripted event logs |
 
-### The 3D SOC console
+To an evaluator the experience is identical: detection fires, the graph draws itself, cones appear and a containment visibly stops the attack, all in real time.
 
-Hosts are 3D shapes whose form changes with state, so nothing relies on colour alone. The left scene is the moment of forecast; the right scene is after the analyst confirms Contain.
+</details>
 
-<img src="docs/assets/network_3d.png" alt="Two isometric 3D scenes of a six-host network in three zones. Left: Workstation A is a red octahedron, and violet cones point to Web Server B at 74 percent, Workstation B at 15 percent and File Server at 7 percent. Right: Web Server B is a teal cube, and the attacker's move toward it is blocked." width="100%">
+<details>
+<summary><b>Scenario file format</b> (how an attack is scripted)</summary>
 
-### The mobile app (installable PWA)
+<br>
 
-Triage first: *what is happening, how bad is it, what can I do?* The phone app is dark, high-contrast, thumb-friendly, and says **SIMULATION** on every screen.
+A scenario is a JSON file of ordered events. Three kinds exist:
 
-<img src="docs/assets/mobile_app.png" alt="Three phone screens. One: home with Under Attack, a 74 percent Precog forecast and a Contain button. Two: a bottom sheet asking to slide to confirm containing Web Server B, stating it is a simulation. Three: Precog was right, the move toward Web Server B was blocked, accuracy 1 of 1." width="100%">
+| Kind | What it does | Passes through | Result |
+|---|---|---|---|
+| `traffic` | Writes packets into the NIDS table, unlabelled | NIDS detector (called immediately), then event processing | Event labelled by the real detector |
+| `technique` | Injects a scripted ATT&CK technique for a host | Event processing only | Event with a technique, source `scripted` |
+| `attempt` | An attempted move from one host to another | Graph and containment check | Becomes `success` or `blocked` |
 
-<sub><i>Concept renders drawn from the <a href="docs/">UI/UX Brief</a>. They show the designed look and the exact wording. Swap in real screenshots as the screens land.</i></sub>
+```json
+{
+  "scenario_id": "golden-path",
+  "description": "Recon, credential attack, lateral movement, simulated exfiltration",
+  "events": [
+    { "seq": 1, "offset_ms": 0,    "kind": "technique", "host": "host-a", "technique_id": "T1046", "note": "network scan" },
+    { "seq": 2, "offset_ms": 1500, "kind": "traffic",   "packets": [ { "src_host": "host-a", "dst_host": "host-b", "protocol": "TCP", "dst_port": 22, "size": 800, "flags": "S" } ] },
+    { "seq": 3, "offset_ms": 3000, "kind": "technique", "host": "host-a", "technique_id": "T1110", "compromise": true },
+    { "seq": 4, "offset_ms": 4500, "kind": "attempt",   "from_host": "host-a", "to_host": "server-b", "pause_for_decision": true }
+  ]
+}
+```
 
-### Design language: colour means one thing everywhere
+*Values are illustrative.* `pause_for_decision` stops the replay **before** that event until the analyst decides; `compromise: true` marks where a host falls and triggers a forecast. Scripted attack packets use destination ports that NIDS already treats as suspicious, so the real detector flags them.
 
-| Meaning | Colour | Shape (never colour alone) | In 3D | Used for |
-|---|---|---|---|---|
-| **What happened** | ![red](https://img.shields.io/badge/%23ef4444-ef4444?style=flat-square) red | Octagon with **!** | Red octahedron, pulses once | Compromised hosts, critical alerts |
-| **What Precog predicts** | ![violet](https://img.shields.io/badge/%23a855f7-a855f7?style=flat-square) violet | Dashed ring | Violet cone + dashed ring + percentage | Forecasts only |
-| **What you did** | ![teal](https://img.shields.io/badge/%2314b8a6-14b8a6?style=flat-square) teal | Shield with a check | Teal cube with a ring | Contained hosts, successful containment |
-| **Normal** | ![slate](https://img.shields.io/badge/%2364748b-64748b?style=flat-square) slate | Hollow circle | Small slate sphere | Quiet, nothing to see |
+</details>
+
+---
+
+<a id="precog-engine"></a>
+
+## 🔮 Precog Engine
+
+Detection plus a graph is a solved problem. The contribution here is what happens **next**: a probabilistic model that says where the attacker is likely to go, scores itself honestly, and is wired into a containment loop.
+
+### How it works
+
+| Step | What happens |
+|:---:|---|
+| 1 | **Trajectory model.** A frequency-based **Markov transition model** over the host graph estimates, from the currently compromised host, a probability for each reachable candidate |
+| 2 | **Live inference.** When a host is confirmed compromised, Precog returns a ranked **Top-3** with confidence, and recomputes as new evidence arrives |
+| 3 | **Visualization.** Violet cones leave the compromised host; their width and opacity grow with confidence |
+| 4 | **Pre-emptive containment.** The phone shows the top prediction with a single **Contain** action (propose, then confirm) |
+| 5 | **Self-scoring.** Every forecast is resolved against the attacker's next attempted move, and the running hit-rate is shown live |
+
+```text
+P(j | i) = ( count(i -> j) + alpha ) / ( sum over candidates k of count(i -> k) + alpha * number_of_candidates )
+```
+
+`i` is the compromised host, `j` a candidate, and `alpha` a small smoothing constant (starting at 0.1 and tuned on the training split). Candidates are the hosts **reachable from `i`** along feasible paths, excluding hosts already compromised or contained.
+
+<details>
+<summary><b>Two layers: which host, and which technique</b></summary>
+
+<br>
+
+| Layer | Question | Source | Output |
+|---|---|---|---|
+| **Node-level** | Which host will the attacker try next? | This project's own Markov model over hosts | Top-3 hosts with confidence |
+| **Technique-level** | Which ATT&CK technique is likely next? | Markov table exported **once** from [`mayank02raj/MITRE-ATTACK-based-Attack-Chain-Prediction`](https://github.com/mayank02raj/MITRE-ATTACK-based-Attack-Chain-Prediction) into a JSON file | A "likely next technique" hint |
+
+The backend only ever **reads** the exported JSON; it never imports that repository (it needs Python 3.11 and PyTorch). If the export fails, `FORECAST_SOURCE=lookup` switches to a rule-based ATT&CK lookup table and the forecast records which source produced it.
+
+</details>
+
+<details>
+<summary><b>When a forecast is produced and how it resolves</b></summary>
+
+<br>
+
+| Trigger | Action |
+|---|---|
+| A host becomes compromised | Compute and publish a forecast |
+| New evidence arrives | Recompute and replace the pending forecast (the old one becomes `superseded`) |
+| The replay restarts | Clear pending forecasts |
+
+A forecast resolves when the attacker's **next attempted move** is observed:
+
+| Outcome | Rule |
+|---|---|
+| **Hit at rank r** | The attempted target is the forecast's r-th host (1 to 3) |
+| **Miss** | The attempted target is not in the Top-3 |
+| **Blocked hit** | The target was predicted **and** contained: right prediction, attack stopped before it succeeded |
+
+Training data comes from a seeded scenario generator: **300 generated sequences** across several attacker strategy profiles, split **80% train and 20% held out**. The seed is stored with the model so any run is reproducible.
+
+</details>
+
+> [!IMPORTANT]
+> **Honest numbers.** The golden path is a *scripted demonstration* whose forecast is arranged to be right. Every reported metric (precision@k, calibration, containment success) comes only from the **held-out generated sequences**, which include wrong forecasts. The live counter in the app is labelled *"Session counter, not the model's overall accuracy."*
 
 > [!NOTE]
-> There is deliberately **no green anywhere**. Green would suggest "safe", and a simulated environment is never safe to claim. Contrast ratios follow WCAG 2.2 AA, motion respects `prefers-reduced-motion`, and the app stays usable at 200% text zoom.
+> **What is and isn't novel.** Technique-level attack-chain forecasting already exists in the literature (see [credits](#documentation-and-credits)). The contribution claimed here is narrower: **node-level next-host forecasting combined with confirmed, closed-loop, pre-emptive containment under replay.** A literature search backs the novelty wording in the paper.
 
+**Research framing:** *"Probabilistic Attack Trajectory Forecasting for Pre-Emptive Network Containment: A Closed-Loop Detect-Forecast-Act Framework."* An IEEE-format paper scoped to this contribution is due in the first week of December 2026.
 
-## 📐 System Architecture
+---
 
-The backend is the open-source NIDS Flask app, used as-is with no edited files, extended through add-on modules that run in the same process. **One process** serves the API, the 3D console and the phone app.
+<a id="architecture"></a>
+
+## 🏗️ Architecture
+
+The backend is **`123dars/NIDS` taken as it is**, extended through add-on files that register extra routes in the *same* Flask process. Replay, events, graph, Precog and containment run inside that process; the web project is built into static files and served by the same app at `/app/`.
 
 ```mermaid
+%%{init: {'themeVariables': {'lineColor': '#8b9bb0'}}}%%
 flowchart TB
-    subgraph INPUT["Replay inputs · no live traffic, ever"]
-        SC["Scenario files<br/>traffic · technique · attempt"]
-        PC["Recorded PCAP<br/>(optional)"]
+    classDef reused fill:#0f2a3d,stroke:#38bdf8,color:#e6edf3
+    classDef happened fill:#3b1218,stroke:#ef4444,color:#e6edf3
+    classDef predict fill:#2a1640,stroke:#a855f7,color:#e6edf3
+    classDef did fill:#0d2f2c,stroke:#14b8a6,color:#e6edf3
+    classDef neutral fill:#1a2230,stroke:#66758f,color:#e6edf3
+
+    subgraph SRC["Replay inputs"]
+        S1["Scenario files<br/>traffic, technique, attempt"]:::neutral
+        S2["Recorded PCAP<br/>(optional)"]:::neutral
     end
 
-    subgraph REPLAY["Replay · GRAPH"]
-        RC["Replay controller + writer<br/>background thread<br/>pauses at the decision point"]
+    subgraph GR["GRAPH: replay and graph"]
+        RC["Replay controller + writer<br/>(background thread)"]:::neutral
+        ST["Static topology + feasible paths<br/>(attackgraph)"]:::neutral
+        AG["Live attack graph<br/>(networkx)"]:::happened
     end
 
-    subgraph NIDS["NIDS · reused unmodified"]
-        DB[("SQLite<br/>packets · users")]
-        DT["Isolation Forest<br/>detector"]
+    subgraph NIDS["NIDS (reused as-is)"]
+        DB[("SQLite<br/>packets, users")]:::reused
+        DT["Isolation Forest<br/>detector"]:::reused
     end
 
-    subgraph PIPE["Intelligence pipeline · in-process add-ons"]
-        EV["Security events + ATT&CK + audit<br/>DETECT"]
-        AG["Live attack graph<br/>networkx + attackgraph · GRAPH"]
-        PR["Precog Engine<br/>Markov Top-3 · LEAD-CORE"]
-        CT["Containment + re-evaluation<br/>propose then confirm · VIZ"]
+    subgraph DE["DETECT: events"]
+        EV["Security events + ATT&CK<br/>+ audit log"]:::happened
+        OFF["Offline CICIDS2017 model<br/>+ evaluation"]:::neutral
     end
 
-    subgraph STATE["State and API · LEAD-CORE"]
-        WS["World state<br/>+ version counter"]
-        API["REST /api/x<br/>+ serves /app/"]
-        SES["Session record<br/>+ Precog metrics"]
-        PUSH["Push sender"]
+    subgraph LC["LEAD-CORE: add-ons"]
+        PR["Precog Engine<br/>Top-3 next hosts"]:::predict
+        WS["World state<br/>+ version counter"]:::reused
+        API["Add-on routes<br/>/api/x/*"]:::reused
+        SES["Session record<br/>+ metrics"]:::neutral
     end
 
-    subgraph WEB["One web project · React + Vite"]
-        CON["3D SOC console<br/>desktop · VIZ"]
-        MOB["Mobile PWA<br/>phone · GRAPH"]
+    subgraph VZ["VIZ: response"]
+        CT["Containment<br/>+ re-evaluation"]:::did
     end
 
-    OFF["Offline CICIDS2017 model<br/>DETECT · own environment"]:::ext
-    FCM["Firebase Cloud Messaging"]:::ext
+    subgraph WEB["Single web project: React + Vite, served at /app/"]
+        CON["3D console"]:::reused
+        MOB["Mobile PWA"]:::reused
+        CH["Charts"]:::neutral
+        PUSH["Push (FCM)"]:::neutral
+    end
 
-    SC --> RC
-    PC -.-> RC
-    RC -->|"1 write packets"| DB
-    RC -->|"2 call detector now"| DT
-    DT -->|"3 label rows"| DB
-    DB --> EV
+    S1 --> RC --> DB
+    S2 -.-> RC
+    RC -->|"call detector now"| DT
+    DB --> DT --> DB
     RC -->|"technique events"| EV
-    EV -->|"host compromised"| AG
-    AG -->|"graph state"| PR
+    DB --> EV
+    EV --> AG
+    ST --> AG
+    AG --> PR
     EV --> WS
     AG --> WS
-    PR -->|"forecast"| WS
+    PR --> WS
     WS --> API
-    WS --> SES
-    WS --> PUSH
-    PUSH -.-> FCM
-    FCM -.->|"web push"| MOB
-    API <-->|"poll every 1 to 2 s"| CON
-    API <-->|"poll every 1 to 2 s"| MOB
+    DB -.->|"users (login)"| API
+    API -->|"poll"| CON
+    API -->|"poll"| MOB
+    CH --- MOB
+    CH --- CON
+    API --> PUSH
     CON -->|"propose / confirm"| API
     MOB -->|"propose / confirm"| API
     API --> CT
-    CT -->|"contained, attempt blocked"| WS
-    CT -->|"resume replay"| RC
-    OFF -.->|"static report"| API
+    CT -->|"new state"| RC
+    CT --> WS
+    WS --> SES
+    OFF -.->|"static results"| API
 
-    classDef reused fill:#1a2230,stroke:#66758f,color:#e6edf3
-    classDef detect fill:#3b1219,stroke:#ef4444,color:#fecaca
-    classDef precog fill:#2e1a47,stroke:#a855f7,color:#e9d5ff
-    classDef act fill:#0f3a36,stroke:#14b8a6,color:#ccfbf1
-    classDef ours fill:#10283a,stroke:#38bdf8,color:#e0f2fe
-    classDef ext fill:#121821,stroke:#66758f,color:#9aa7b8,stroke-dasharray:4 3
-
-    class SC,PC,RC,WS,API,SES,PUSH,CON,MOB ours
-    class DB,DT reused
-    class EV,AG detect
-    class PR precog
-    class CT act
+    style SRC fill:#0b0f14,stroke:#263042,color:#9aa7b8
+    style GR fill:#0b0f14,stroke:#66758f,color:#9aa7b8
+    style NIDS fill:#0b0f14,stroke:#38bdf8,color:#9aa7b8
+    style DE fill:#0b0f14,stroke:#ef4444,color:#9aa7b8
+    style LC fill:#0b0f14,stroke:#a855f7,color:#9aa7b8
+    style VZ fill:#0b0f14,stroke:#14b8a6,color:#9aa7b8
+    style WEB fill:#0b0f14,stroke:#38bdf8,color:#9aa7b8
 ```
 
-<sub><b>Reading the colours:</b> 🔴 red = detection and what happened · 🟣 violet = Precog's prediction · 🟢 teal = containment, what you did · 🔵 blue = our glue, state and clients · ⚪ grey = reused, unmodified NIDS.</sub>
+<sub>Colour key: <b>red</b> = what happened, <b>violet</b> = what Precog predicts, <b>teal</b> = what you did, <b>sky</b> = reused or delivery layer, <b>grey</b> = supporting parts.</sub>
+
+### The same system as a stack
+
+<img src="docs/assets/architecture-stack.svg" alt="Isometric stack of seven layers from bottom to top: replay inputs, NIDS core, security events and ATT&CK, live attack graph, Precog Engine, world state and API, and clients, with a teal containment loop running back down to the replay" width="100%">
 
 ### Layer responsibilities
 
 | Layer | Responsibility | Owner |
 |---|---|---|
-| Replay feed | Supplies realistic attack activity without a live network: scripted scenarios, with an optional recorded PCAP | GRAPH |
-| Ingestion | Writes replayed packets into NIDS's own packet table in the shape NIDS expects, then calls the detector immediately | GRAPH |
-| ML detection | NIDS's Isolation Forest labels packets live with a severity and a 0–100 risk score. A CICIDS2017 model trained offline supplies the evaluation numbers | DETECT |
-| Event processing | Normalizes detections into security events with identity, timestamp, severity, plain-English explanation, ATT&CK technique and an audit log | DETECT |
-| Attack graph | A live networkx graph (hosts are nodes, observed connections are edges) over a static topology from attackgraph | GRAPH |
-| Precog Engine | Forecasts the Top-3 next hosts and scores itself | LEAD-CORE |
-| Backend and API | The NIDS Flask app plus add-on routes under `/api/x`. A version counter makes polling cheap | LEAD-CORE |
-| 3D console / mobile PWA | Two experiences from one React project, reading the same state | VIZ / GRAPH |
-| Containment | Simulated, two-step, human-confirmed isolation, then re-evaluation | VIZ |
+| **Replay inputs and controller** | Supply realistic attack activity with no live network: start, pause, resume, restart, speed | GRAPH |
+| **NIDS core** | Login, packet table, Isolation Forest detector, PCAP analysis, its own dashboard; used unchanged | reused |
+| **Security event processing** | Normalizes detections into events with identity, time, severity, plain-English explanation; writes the audit log | DETECT |
+| **ATT&CK correlation** | Adds technique id, name and tactic from a curated 26-technique table built from MITRE's official data | DETECT |
+| **Live attack graph** | Hosts as nodes (`normal`, `compromised`, `contained`), observed connections as edges, feasible paths from `attackgraph` | GRAPH |
+| **Precog Engine** | Top-3 next-host forecast, technique hint, forecast resolution and metrics | LEAD-CORE |
+| **World state and API** | One in-memory state with a **version counter**; REST routes under `/api/x`; serves the web app at `/app/` | LEAD-CORE |
+| **Containment and re-evaluation** | Propose, confirm, simulated isolation, then check whether the chain ended | VIZ |
+| **3D console, charts, push** | Three.js scene, Chart.js components, Firebase notifications | VIZ |
+| **Mobile web app (PWA)** | Installable app: alerts, forecast, one-tap Contain, history | GRAPH (LEAD-CORE assisting) |
 
-<details>
-<summary><b>🚢 Deployment: laptop, development and phone</b></summary>
-<br>
+### How the clients stay live: polling with a version number
 
-```mermaid
-flowchart LR
-    subgraph LOCAL["Localhost · primary demo"]
-        L1["Flask app :5000<br/>NIDS + add-ons + web app at /app/"]
-        L2["Laptop browser<br/>3D console"] --> L1
-    end
-
-    subgraph DEV["Web development"]
-        D1["Vite dev server :5173"] -->|"proxies /api"| D2["Flask app :5000"]
-    end
-
-    subgraph HOSTED["Hosted · phone demo"]
-        H1["One free backend host<br/>same Flask app · HTTPS · 1 worker"]
-        H2["Phone<br/>installed PWA"] --> H1
-    end
-
-    H1 -.->|"push"| FCM["Firebase Cloud Messaging"]
-    FCM -.-> H2
-```
-
-| Situation | How it runs |
-|---|---|
-| **Primary demo** | One Flask process on port 5000, serving the API and the built web app at `/app/`. No internet-hosted part |
-| **Web development** | Flask on 5000 plus the Vite dev server on 5173 forwarding API calls, so cookies work |
-| **Phone demo** | The same Flask app on one free backend host over HTTPS (required to install a PWA), serving the API and the built web app |
-| **App file requested by a teacher** | The finished web app is wrapped into an APK. No hand-coded native app |
-
-</details>
-
-<details>
-<summary><b>🔄 Live updates: polling with a version counter</b></summary>
-<br>
-
-NIDS has no WebSocket, so both clients poll. A version number that rises on every state change keeps an unchanged poll tiny.
+NIDS has no WebSocket, so both clients **poll**. A version number makes each poll cheap.
 
 ```mermaid
 sequenceDiagram
     participant C as Client (console or phone)
-    participant S as GET /api/x/state
-
-    loop every 1.5 s
-        C->>S: since = N
-        alt nothing changed
-            S-->>C: version N, changed false
+    participant S as GET /api/x/state?since=N
+    loop every ~1.5 s
+        C->>S: since = last version seen
+        alt nothing new
+            S-->>C: version N, changed: false (tiny reply)
         else something changed
-            S-->>C: version N+1, changed true, full state
+            S-->>C: version N+k, changed: true, full current state
         end
     end
-    Note over C: no reply for twice the interval,<br/>so show the amber stale banner,<br/>keep the last state, keep retrying
+    Note over C: No reply for 2 intervals? Show the amber stale banner and keep the last state.
 ```
+
+### Where it runs
+
+```mermaid
+%%{init: {'themeVariables': {'lineColor': '#8b9bb0'}}}%%
+flowchart LR
+    subgraph L["Localhost (primary demo)"]
+        LB["Flask app :5000<br/>NIDS + add-ons + web app at /app/"]
+        LBR["Laptop browser<br/>3D console"] --> LB
+    end
+    subgraph H["Hosted (phone demo)"]
+        HB["One free backend host<br/>same Flask app, HTTPS"]
+        PH["Phone<br/>installed PWA"] --> HB
+    end
+    FCM["Firebase Cloud Messaging"] -.push.-> PH
+    HB -.send.-> FCM
+
+    classDef box fill:#1a2230,stroke:#66758f,color:#e6edf3
+    class LB,LBR,HB,PH,FCM box
+    style L fill:#0b0f14,stroke:#14b8a6,color:#9aa7b8
+    style H fill:#0b0f14,stroke:#38bdf8,color:#9aa7b8
+```
+
+<details>
+<summary><b>Design principles and key decisions</b></summary>
+
+<br>
+
+| # | Principle | Consequence |
+|:---:|---|---|
+| P1 | **Replay, not live** | All traffic is scripted or from a PCAP; containment is a status change plus a log entry |
+| P2 | **Use NIDS as it is** | Add-on files register routes; **no NIDS file is edited** |
+| P3 | **Contract first** | Data formats between roles are fixed first; everyone builds against sample JSON |
+| P4 | **One folder, one owner** | Each person edits only their own folder |
+| P5 | **Only the lead merges** | Branch protection and `CODEOWNERS` enforce it |
+| P6 | **Every risky part has a switch and a fallback** | See [Run modes](#run-modes-and-configuration) |
+| P7 | **Deterministic demo** | Seeded randomness, fixed scenario files, no network dependency on localhost |
+| P8 | **Honest evaluation** | Metrics come from held-out data, never the rehearsed golden path |
+| P9 | **Low hardware demand** | No GPU, no Docker, no database server, no live packet capture |
+| P10 | **No fake intelligence presented as real** | NIDS's invented threat-actor, ASN and location values are never shown as real |
+
+| Decision | Why |
+|---|---|
+| **DD-1/2** NIDS as-is plus add-on files on one Flask blueprint | Avoids a rewrite; NIDS has no graph, forecast, containment or push, so those are add-ons |
+| **DD-3** Add-ons run **in the same process** and keep product state in memory | One deployment; matches the no-long-term-retention rule |
+| **DD-4** Polling with a version number | NIDS has no push channel |
+| **DD-5** Scripted packets are written **unlabelled**, then NIDS's `run_detection()` is called immediately | The real detector labels them, and the 30-second batch loop is bypassed |
+| **DD-6** Technique events are injected directly as security events | Lets the golden path name ATT&CK techniques, which a packet-level detector cannot |
+| **DD-7** The CICIDS2017 model is trained **offline** in DETECT's own environment | Avoids library clashes with NIDS's pinned versions; produces the paper's numbers |
+| **DD-8** `networkx` for the live graph; `attackgraph` for static topology and feasible paths | `attackgraph` is static |
+| **DD-9** Precog has a node layer and a technique layer | The reused repository predicts techniques, not hosts |
+| **DD-10** Containment is **propose, then confirm** | Human confirmation is enforced by the API, so no client can skip it |
+| **DD-12/13** Web app at `/app/`; an add-on JSON login reuses NIDS's own user table | Same-origin cookies work; NIDS's redirect-style login stays untouched |
 
 </details>
 
+---
+
+<a id="tech-stack"></a>
+
+## 🧰 Tech stack and reused repositories
+
+**Standing rule:** reuse an existing, best-in-class open-source repository for every subsystem where one exists. Custom code is written only for the glue and for parts nothing existing covers.
+
+| Layer | Technology | Notes |
+|---|---|---|
+| Language | Python **3.11** (3.11.9 installer on Windows) | Tested; NIDS's own `.python-version` also says 3.11.9 |
+| Backend | **Flask 3.0** from `123dars/NIDS` | Flask-Login, SQLAlchemy and Flask-Bcrypt come with it |
+| Database | **SQLite** through NIDS's `DATABASE_URL` | No Docker, no PostgreSQL; every NIDS route verified on SQLite |
+| Live detector | NIDS Isolation Forest (`scikit-learn`) | Used unchanged |
+| Live updates | Polling with a version counter | About every 1.5 s |
+| Graphs | `networkx` (live) and `attackgraph` (static) | `attackgraph` is **not on PyPI**; installed from GitHub at a pinned commit |
+| Frontend | **React + Vite**, one project | Built to static files, served at `/app/` |
+| 3D | `3d-force-graph` (Three.js) | Octahedron, cube and sphere host shapes plus custom cones |
+| Charts | **Chart.js** | Calibration and alert-volume charts |
+| Mobile | Web app manifest + service worker (PWA) | Scope `/app/`; HTTPS when hosted |
+| Push | **Firebase Cloud Messaging** web push | Needs HTTPS when hosted |
+| Validation / tests | `jsonschema`, `pytest` | Contract and unit tests |
+| Build tools | Antigravity and other AI coding tools | AI-assisted development throughout |
+
 <details>
-<summary><b>🛡 Human-confirmed containment: why no client can skip the confirmation</b></summary>
+<summary><b>Reused repositories and how each one is used</b></summary>
+
 <br>
 
-```mermaid
-stateDiagram-v2
-    [*] --> pending_confirmation: POST propose
-    pending_confirmation --> executed: POST confirm with action id
-    pending_confirmation --> cancelled: POST cancel
-    pending_confirmation --> expired: no answer in 60 s
-    executed --> [*]
-    cancelled --> [*]
-    expired --> [*]
-```
+| Subsystem | Repository / tool | How it is used |
+|---|---|---|
+| Backend | [`123dars/NIDS`](https://github.com/123dars/NIDS) (MIT) | Unchanged copy in `lead-core/backend/nids/`; adjusted only from outside by `run_app.py` |
+| ML (offline) | [`Western-OC2-Lab/Intrusion-Detection-System-Using-Machine-Learning`](https://github.com/Western-OC2-Lab/Intrusion-Detection-System-Using-Machine-Learning) | Training code for the **offline** CICIDS2017 model (fallback: CICIDS2017's own labels) |
+| Dataset | CICIDS2017 (University of New Brunswick) | Offline training and evaluation only, **not** a replay input |
+| Attack graph | [`cwccie/attackgraph`](https://github.com/cwccie/attackgraph) (MIT) + `networkx` | Static topology, feasible paths and ATT&CK-mapped risk; `networkx` fallback if missing |
+| Precog (technique layer) | [`mayank02raj/MITRE-ATTACK-based-Attack-Chain-Prediction`](https://github.com/mayank02raj/MITRE-ATTACK-based-Attack-Chain-Prediction) | Markov table exported once to JSON, **with the author's permission** |
+| ATT&CK data | [`mitre-attack/attack-stix-data`](https://github.com/mitre-attack/attack-stix-data) | Curated 26-technique subset in `attack_techniques.json`, MITRE notice kept |
+| 3D | [`vasturiano/3d-force-graph`](https://github.com/vasturiano/3d-force-graph) | The console's graph scene |
+| Charts | [`chartjs/Chart.js`](https://github.com/chartjs/Chart.js) | Both chart components |
+| Technique format | [`apache/caldera`](https://github.com/apache/caldera), [`redcanaryco/atomic-red-team`](https://github.com/redcanaryco/atomic-red-team) | Output-format reference for scripted technique events |
+| Containment pattern | [`wazuh/wazuh`](https://github.com/wazuh/wazuh) Active Response | Pattern reference only; execution is simulated |
 
-Nothing in the world state changes until `confirm` succeeds, and `confirm` must carry the `action_id` that `propose` returned. The confirmation lives in the API, not just the screen, so it cannot be bypassed by a client. Containment only flips an in-memory status and writes an audit line: no firewall, no network, no device is touched.
+**Dropped:** `bqmxnh/ids-agent` (Linux and live-capture only; NIDS already provides ingestion). NIDS's Docker setup, PostgreSQL and live packet sniffer are **not used**.
 
-**Host state machine:**
+</details>
+
+---
+
+<a id="demo-network"></a>
+
+## 🌐 Demo network and host states
+
+Six hosts in three zones. Packet records identify hosts by IP, so each host has a fixed address in a host-mapping table.
+
+| Host id | Name | Role | Zone | Address |
+|---|---|---|---|---|
+| `host-a` | Workstation A | User workstation (entry point) | user | `192.168.1.11` |
+| `host-b` | Workstation B | User workstation | user | `192.168.1.12` |
+| `server-b` | Web Server B | Web server (the golden path's predicted target) | dmz | `192.168.1.20` |
+| `file-server` | File Server | File server | internal | `192.168.1.30` |
+| `db-server` | Database | Database server | internal | `192.168.1.40` |
+| `domain-controller` | Domain Controller | Domain controller | internal | `192.168.1.50` |
+
+| State | 3D shape | Colour | Word | Meaning |
+|---|---|---|---|---|
+| `normal` | small sphere | slate | Normal | Nothing to report |
+| `compromised` | **octahedron**, pulses once | red | Compromised | Confirmed by the detector |
+| `contained` | **cube** with a thin ring | teal | Contained | Isolated after a confirmed Contain (simulated) |
+| predicted target | dashed ring plus confidence label | violet | Predicted, with % | Forecast by Precog |
 
 ```mermaid
 stateDiagram-v2
@@ -448,230 +618,87 @@ stateDiagram-v2
     compromised --> normal: replay restart
 ```
 
-</details>
+---
 
-<details>
-<summary><b>🗃 Data model: the contracts between roles</b></summary>
-<br>
+<a id="quick-start"></a>
 
-Every data format passed between roles is a JSON Schema with sample JSON in `contracts/`, agreed before anyone builds. Each role builds and tests against the samples, then swaps in real data without changing its own code.
+## 🚀 Quick start
 
-```mermaid
-erDiagram
-    HOST ||--o{ SECURITY_EVENT : "is concerned in"
-    HOST ||--o{ FORECAST : "is forecast from"
-    FORECAST ||--|{ FORECAST_TARGET : "ranks Top-3"
-    CONTAINMENT_ACTION }o--o| FORECAST : "prompted by"
-    CONTAINMENT_ACTION ||--o| REEVAL_RESULT : "evaluated by"
-    SESSION_RECORD ||--o{ FORECAST : contains
-    SESSION_RECORD ||--o{ CONTAINMENT_ACTION : contains
-    AUDIT_ENTRY }o--|| SECURITY_EVENT : logs
-
-    HOST {
-        string host_id PK
-        string name
-        string zone "user, dmz, internal"
-        string state "normal, compromised, contained"
-    }
-    SECURITY_EVENT {
-        string event_id PK
-        string host FK
-        string severity "HIGH, MEDIUM, LOW, NORMAL"
-        number risk_score "0 to 100"
-        string technique_id "ATT and CK, may be null"
-        string source "nids_detector or scripted"
-    }
-    FORECAST {
-        string forecast_id PK
-        string from_host FK
-        string status "pending, hit, miss, superseded"
-        string source "repo or lookup"
-    }
-    FORECAST_TARGET {
-        int rank "1 to 3"
-        string host_id FK
-        number confidence "0 to 1"
-    }
-    CONTAINMENT_ACTION {
-        string action_id PK
-        string target_host FK
-        string status "pending, executed, cancelled, expired"
-        string requested_by "console or mobile"
-    }
-    REEVAL_RESULT {
-        string action_id FK
-        boolean attack_progressed
-        boolean chain_ended_early
-    }
-```
-
-The full contract set: `packet_record`, `security_event`, `graph_snapshot`, `forecast`, `containment_action`, `reeval_result`, `audit_entry`, `world_state`, `session_record`, `session_metrics`, `replay_status`, `detection_report`.
-
-</details>
-
-<details>
-<summary><b>🧠 Key design decisions</b></summary>
-<br>
-
-| Decision | Why |
-|---|---|
-| Use NIDS as-is, extend through add-ons | A reused, working backend beats a rewrite. `run_app.py` imports NIDS from the outside and replaces its secret key, admin password and cookie settings, so no NIDS file is edited |
-| SQLite, no Docker, no PostgreSQL | Heavy on modest laptops. NIDS reads its database from `DATABASE_URL`, and every NIDS route was tested on SQLite |
-| Polling with a version number | NIDS has no push channel. Unchanged polls are tiny, so 2–4 clients are light |
-| Scripted packets are written unlabelled, then NIDS's real detector is called immediately | The real detector does the labelling, and we skip its 30-second batch loop to meet the latency target |
-| Technique events are injected directly | NIDS's packet-level detector cannot name ATT&CK techniques, but the golden path needs to |
-| The CICIDS2017 model is trained offline, in its own environment | Avoids library clashes with NIDS's pinned versions and produces the paper's evaluation numbers |
-| attackgraph is static, so the live graph is networkx | attackgraph supplies topology, feasible paths and ATT&CK-mapped risk. Feasible paths also limit which hosts Precog may forecast |
-| One shared web project with per-role folders | LEAD-CORE creates placeholder files first, so three people build in parallel without merge conflicts |
-
-</details>
-
-<details>
-<summary><b>🪂 Fallbacks: every risky part has a switch</b></summary>
-<br>
-
-| If this fails… | …this happens |
-|---|---|
-| NIDS's detector cannot be called in-process | `DETECTOR_MODE=scripted` takes labels from the scenario file |
-| SQLite does not work with NIDS | Fall back to NIDS's own Docker Compose (documented, heavier) |
-| Precog's technique export fails | `FORECAST_SOURCE=lookup` uses a rule-based ATT&CK table |
-| The offline repository model fails | CICIDS2017's own labels are used for the evaluation |
-| A scenario file is invalid | Rejected with a clear error; previous state kept |
-| Polling fails | Clients show an amber stale banner and keep the last state |
-| Push is unavailable | Every alert still appears in the in-app feed |
-| Hosted backend is asleep | Demo on localhost, or play the recorded video |
-| A confirmation times out | The action becomes `expired`; nothing changes |
-
-</details>
-
-
-## 🧰 Tech Stack
-
-| Layer | Technology | Notes |
-|---|---|---|
-| Backend | Flask 3.0 from [123dars/NIDS](https://github.com/123dars/NIDS), Flask-Login, SQLAlchemy | Used as-is (MIT). Extended through add-on files only |
-| Language | Python 3.11 (3.11.9 on Windows) | NIDS pins older libraries; everything installs and runs on 3.11 |
-| Database | SQLite via `DATABASE_URL` | No Docker, no database server |
-| Live detector | NIDS's Isolation Forest (scikit-learn) | Severity HIGH / MEDIUM / LOW / NORMAL plus risk score 0–100 |
-| Offline detector | CICIDS2017 + tree-based models from [Western-OC2-Lab/Intrusion-Detection-System-Using-Machine-Learning](https://github.com/Western-OC2-Lab/Intrusion-Detection-System-Using-Machine-Learning) | Own environment. Produces precision, recall, F1, false-positive rate |
-| Attack graph | networkx + [cwccie/attackgraph](https://github.com/cwccie/attackgraph) | attackgraph is not on PyPI: installed from GitHub at a pinned commit |
-| Forecasting | Own Markov model + technique table exported from [mayank02raj/MITRE-ATTACK-based-Attack-Chain-Prediction](https://github.com/mayank02raj/MITRE-ATTACK-based-Attack-Chain-Prediction) | Used with the author's permission |
-| ATT&CK data | [mitre-attack/attack-stix-data](https://github.com/mitre-attack/attack-stix-data), curated 26-technique subset | Rebuilt by `detect/tools/build_attack_table.py` |
-| Frontend | React + Vite, one project | Built to static files served by Flask at `/app/` |
-| 3D | [vasturiano/3d-force-graph](https://github.com/vasturiano/3d-force-graph) (Three.js) | Custom cones, shapes and propagation animation |
-| Charts | Chart.js | Calibration view, alert volume by severity |
-| Mobile | PWA: web app manifest + service worker | Installable via Add to Home Screen, scope `/app/` |
-| Push | Firebase Cloud Messaging (web push) | Needs HTTPS. Optional to set up: the in-app feed always works |
-| Dataset | CICIDS2017 (University of New Brunswick) | Offline evaluation only, never a replay input |
-| Tooling | Git + GitHub, pytest, jsonschema | Branch protection + CODEOWNERS |
-
-## ✨ Features
-
-| Capability | What you get | Priority |
-|---|---|---|
-| Scripted replay | Multi-stage scenario (recon, credential attack, lateral movement, simulated exfiltration) with start, pause, resume, restart and speed control | Must |
-| Live detection | Every replayed packet labelled by NIDS's detector with severity and risk score | Must |
-| Plain-English alerts | Each alert explained so a first-year student can read it, with the ATT&CK technique when matched | Must |
-| Live attack graph | Hosts and connections drawn as they are observed, with compromised and contained states | Must |
-| Precog forecast | Top-3 next hosts with confidence, updating as evidence arrives | Must |
-| 3D SOC console | Isometric-style 3D scene, propagation animation, forecast cones, node detail, timeline strip | Must |
-| Installable mobile app | Mock login, threat-level home, alert feed, 2D attack detail, forecast with Contain, history and reports | Must |
-| Two-step containment | Propose, then slide to confirm. Simulated, audited, then re-evaluated | Must |
-| Session scoring | Live hit-rate, precision@k, calibration data, containment success rate | Must |
-| Push notifications | A notification for each HIGH alert on the installed app (needs HTTPS and Firebase; the in-app feed always works) | Must |
-| Stale-data safety | If the connection drops, the last known state stays visible and marked stale: no crash, no blank screen | Must |
-| Additional charts | Alert volume or severity over time | Should |
-| GNN / LSTM forecaster | Node-type, service and patch-aware replacement for the Markov model | Could |
-| APK wrapper | The web app wrapped as an APK, only if a teacher requires an app file | Could |
-
-
-## 🚀 Getting Started
+Run the full product on one Windows laptop, on **localhost**, with no Docker, no database server and no internet-hosted part.
 
 ### Prerequisites
 
-| Tool | Version | Why |
+| Need | Version | Why |
 |---|---|---|
-| Windows | 10 / 11 | The tested development and demo platform |
-| Python | 3.11.9 | NIDS pins older libraries. Stay on 3.11 |
-| Node.js | 18 or newer (20 LTS recommended) | Builds the React + Vite web app |
-| Git | any recent | Clone and branch |
-| Chrome or Edge | latest | 3D console. Chrome on Android for installing the phone app |
-| Firebase project | optional | Push notifications only |
-| Docker | **not needed** | Only a documented fallback |
+| **Windows** 10 or 11 | | Primary supported platform (macOS and Linux work too; see the note below) |
+| **Python** | **3.11** (3.11.9 recommended) | Backend; NIDS's pinned libraries are tested on 3.11 |
+| **Node.js** | Current LTS | Builds the React + Vite web app |
+| **Git** | any recent | Clones the repo and installs `attackgraph` from GitHub |
+| Not needed | | Docker, PostgreSQL, a GPU, live packet capture |
 
-> [!NOTE]
-> File names and commands below follow the entry points defined in the TRD in [`docs/`](docs/). If your checkout differs, the build guides in `docs/` are the source of truth.
+### 1. Get the code
 
-### Quick start (about 5 minutes)
-
-#### 1. Clone
-
-```bash
-git clone https://github.com/Sagar44-Github/precog-platform.git
-cd precog-platform
+```powershell
+git clone https://github.com/<your-org>/<your-repo>.git
+cd <your-repo>
 ```
 
-#### 2. Create a Python 3.11 environment and install the backend
+### 2. Create the Python environment
 
 ```powershell
 py -3.11 -m venv .venv
 .\.venv\Scripts\Activate.ps1
-pip install -r lead-core/backend/nids/requirements.txt   # NIDS's pinned libraries
-pip install -r graph/requirements.txt                     # networkx + attackgraph (pinned GitHub commit)
+python -m pip install --upgrade pip
+pip install -r lead-core/backend/requirements.txt
+pip install -r graph/requirements.txt
 ```
 
-#### 3. Configure
-
-Copy the example file and set your own values. **Never commit `.env`.**
-
-```powershell
-Copy-Item .env.example .env
-notepad .env
-```
-
-```ini
-# Flask session secret. Generate one: python -c "import secrets; print(secrets.token_hex(32))"
-SECRET_KEY=replace-with-a-long-random-string
-
-# Demo account password. NIDS's published default password never works.
-ADMIN_PASSWORD=choose-a-demo-password
-
-# SQLite: no Docker, no PostgreSQL
-DATABASE_URL=sqlite:///precog.db
-
-# sample = serve the contract sample files, live = run the real pipeline
-DATA_MODE=live
-
-# nids = real detector, scripted = labels come from the scenario file
-DETECTOR_MODE=nids
-
-# repo = exported Markov table, lookup = rule-based ATT&CK table
-FORECAST_SOURCE=repo
-
-REPLAY_SPEED=1
-```
+> [!TIP]
+> If PowerShell refuses to run the activate script, allow it for this window only: `Set-ExecutionPolicy -Scope Process Bypass`. The second requirements file installs `attackgraph` straight from GitHub at a pinned commit (it is not on PyPI), so `git` must be on your PATH.
 
 <details>
-<summary>My settings aren't being picked up</summary>
-<br>
+<summary><b>macOS / Linux equivalent</b></summary>
 
-If the backend does not read `.env` in your setup, set the variables for the current PowerShell session instead, then start the app from the same window:
-
-```powershell
-$env:SECRET_KEY = "replace-with-a-long-random-string"
-$env:ADMIN_PASSWORD = "choose-a-demo-password"
-$env:DATABASE_URL = "sqlite:///precog.db"
-$env:DATA_MODE = "live"
-$env:DETECTOR_MODE = "nids"
-$env:FORECAST_SOURCE = "repo"
-$env:REPLAY_SPEED = "1"
+```bash
+python3.11 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+pip install -r lead-core/backend/requirements.txt
+pip install -r graph/requirements.txt
 ```
-
-macOS or Linux: use `export SECRET_KEY=...` and activate with `source .venv/bin/activate`. Windows is the tested platform.
 
 </details>
 
-#### 4. Build the web app (3D console + phone app)
+### 3. Configure secrets
+
+Secrets and switches live in environment variables. `.env` is git-ignored; only `.env.example` (names, no values) is committed.
+
+```powershell
+Copy-Item .env.example .env
+python -c "import secrets; print(secrets.token_hex(32))"
+```
+
+Open `.env` and set at least these two:
+
+```dotenv
+SECRET_KEY=paste-the-long-random-string-here
+ADMIN_PASSWORD=choose-a-password-you-do-not-use-anywhere-else
+```
+
+NIDS ships with a published default admin login and a hardcoded secret key. `run_app.py` replaces both from the outside at start-up, so **NIDS's default password never works**.
+
+<details>
+<summary><b>If your shell does not load <code>.env</code>, set the variables directly</b></summary>
+
+```powershell
+$env:SECRET_KEY     = "paste-the-long-random-string-here"
+$env:ADMIN_PASSWORD = "choose-a-password-you-do-not-use-anywhere-else"
+$env:DATA_MODE      = "live"
+```
+
+</details>
+
+### 4. Build the web app
 
 ```powershell
 cd web
@@ -680,458 +707,576 @@ npm run build
 cd ..
 ```
 
-#### 5. Run everything (one process, port 5000)
+The build output is served by the Flask app itself at `/app/`, so there is no second server to run.
+
+### 5. Start everything
 
 ```powershell
 cd lead-core/backend
 python run_app.py
 ```
 
-The first start trains NIDS's detector model if its file is missing, so give it a moment. Then open:
+On first start, `run_app.py` trains NIDS's detector model if the model file is missing, seeds the demo account, registers the add-on routes and serves on **port 5000**.
 
-| What | URL | Sign in |
-|---|---|---|
-| Web app | http://localhost:5000/app/ | username `admin`, password = your `ADMIN_PASSWORD` |
-| 3D SOC console | http://localhost:5000/app/console/ | |
-| Mobile app (resize to phone width) | http://localhost:5000/app/mobile/ | |
-| Health check | http://localhost:5000/api/x/health | |
+### 6. Open it and play the golden path
 
-### Run the golden path
+| What | URL |
+|---|---|
+| Sign in (and the mobile app) | <http://localhost:5000/app/> |
+| 3D console (desktop) | <http://localhost:5000/app/console/> |
+| Mobile app (resize the window to phone width) | <http://localhost:5000/app/mobile/> |
+| NIDS's own dashboard (unchanged) | <http://localhost:5000/> |
 
-| # | Do this | You should see |
-|---|---|---|
-| 1 | Open the console and sign in | Six slate hosts in three zones, status *Idle* |
-| 2 | Open the mobile app in a second window (or on a phone, see *Phone demo* below) and sign in | Home screen, threat level *Calm* |
-| 3 | In the console top bar pick scenario **golden-path** and press **Start** | Alerts begin to arrive on both clients |
-| 4 | Watch Workstation A | It turns red and pulses. Violet cones appear. The status word turns violet: *Waiting for your decision* |
-| 5 | On the phone app open Forecast, tap **Contain Web Server B**, then slide to confirm | A toast: *Web Server B contained (simulated)* |
-| 6 | Watch the console | Cone fades, host becomes a teal cube, the next attacker move stops short, the counter reads *1 / 1* |
-| 7 | Press **Restart** to run it again | Everything resets. Same scenario, same result |
+1. **Sign in** as `admin` with the `ADMIN_PASSWORD` you set.
+2. On the console, choose the `golden-path` scenario and press **Start** in the replay controls.
+3. Watch Workstation A turn red and the violet cones appear. The replay stops at **Waiting for your decision**.
+4. Press **Contain Web Server B** on the console (or on the phone view) and confirm.
+5. The replay resumes, the next move is **blocked**, and the accuracy counter updates.
 
-<details>
-<summary><b>🛠 Development mode (hot reload for the web app)</b></summary>
-<br>
-
-Run the backend and the Vite dev server side by side. Vite forwards `/api` calls to Flask so login cookies work.
+### 7. Check it is healthy
 
 ```powershell
-# terminal 1: backend on :5000
-cd lead-core/backend
-python run_app.py
-
-# terminal 2: web app on :5173 with hot reload
-cd web
-npm run dev
+curl.exe http://localhost:5000/api/x/health
 ```
 
-Open http://localhost:5173/app/. Each role edits only its own folder (see [Repository structure](#-repository-structure)).
+A small JSON status object means the backend is up. If the page loads but shows *Connection lost: showing old data*, the clients cannot reach the backend (see [troubleshooting](#troubleshooting)).
 
-**Build the UI without waiting for the pipeline:** set `DATA_MODE=sample` and the backend serves the contract sample JSON from `contracts/samples/`, so the console and phone screens can be built and tested against the exact data shapes.
+### Put it on a phone
 
-</details>
+A phone can only install the app from a **hosted HTTPS address**, so the whole app (backend plus built web app) runs on one free backend host.
 
-<details>
-<summary><b>📱 Phone demo: host it and install the app</b></summary>
-<br>
+1. Build the web app locally ([step 4](#4-build-the-web-app)) so the build is included.
+2. On the host, set `SECRET_KEY`, `ADMIN_PASSWORD`, `DATABASE_URL` and the Firebase credentials in the host's dashboard (never in the repo).
+3. Start command, from `lead-core/backend`, **one worker only** because state is in memory:
 
-A phone can only install a PWA from an HTTPS address, so the whole app (API + built web app) is hosted on one free backend host.
+   ```bash
+   gunicorn --workers 1 --threads 4 wsgi:application
+   ```
 
-1. Make sure the built web app ships with the backend: either run `cd web && npm ci && npm run build` as part of the host's build step, or commit the build output.
-2. Deploy the backend folder to one free backend host.
-3. Set the environment variables (`SECRET_KEY`, `ADMIN_PASSWORD`, `DATABASE_URL`, and the Firebase credentials if you want push) in the host's dashboard. **Never commit them.**
-4. Start command, from `lead-core/backend`:
-
-```bash
-gunicorn --workers 1 --threads 4 wsgi:application
-```
-
-Keep one worker: product state (graph, forecasts, containment) lives in memory.
-
-5. On the phone, open `https://<your-host>/app/` in Chrome, sign in, then use the browser menu → **Add to Home Screen** (or **Install app**).
+4. Open the HTTPS address in **Chrome on Android**, sign in, then use the browser's **Add to Home Screen**.
+5. Allow notifications when asked, to receive `HIGH`-severity alerts.
 
 > [!WARNING]
-> Free tiers sleep and may lose their disk. Wake and test the hosted app before the demo. Localhost stays the primary demo, with the recorded video as the backup.
+> Free hosts may sleep or lose their disk. **Wake and test the hosted app before a demo.** Localhost is the primary demo, and a recorded video of a perfect run is the backup. `gunicorn` is for the Linux host; on Windows use `python run_app.py`. NIDS's own `run.py` is never used because it starts Flask in debug mode.
 
-</details>
+---
 
-<details>
-<summary><b>⚙️ Configuration reference</b></summary>
-<br>
+<a id="run-modes-and-configuration"></a>
 
-| Variable | Values | Effect |
+## ⚙️ Run modes and configuration
+
+| Mode | How | Use it for |
 |---|---|---|
-| `SECRET_KEY` | long random string | Flask session secret. Replaces NIDS's hard-coded value |
-| `ADMIN_PASSWORD` | any | Demo account password. Written (hashed) into NIDS's own users table at start |
-| `DATABASE_URL` | SQLAlchemy URL | SQLite by default |
-| `DATA_MODE` | `sample` · `live` | `sample` serves `contracts/samples`; `live` runs the real pipeline |
-| `DETECTOR_MODE` | `nids` · `scripted` | `scripted` takes labels from the scenario file if NIDS's detector cannot run |
-| `FORECAST_SOURCE` | `repo` · `lookup` | `lookup` uses the rule-based ATT&CK table |
-| `REPLAY_SPEED` | number | Speed factor for the replay (the console also offers 1×, 2×, 4×) |
-| `FCM_PROJECT_ID` + Firebase credentials | — | Push notifications. Values are never committed |
+| **Localhost demo** (primary) | `python run_app.py`, open `:5000/app/` | The demo and the golden path |
+| **Web development** | Flask on `:5000` plus the Vite dev server (`npm run dev`) on `:5173`, which forwards API calls to `:5000` | Editing the UI with hot reload; cookies keep working |
+| **Sample mode** | `DATA_MODE=sample` | Building a screen with **no pipeline**: the backend serves the contract sample files |
+| **Hosted** | `gunicorn` on one free host over HTTPS | The phone demo |
+| **Offline detection work** | Scripts in `detect/offline_model/` in their own environment | Training and evaluating the CICIDS2017 model |
+
+### Environment variables
+
+| Variable | Values | Purpose |
+|---|---|---|
+| `SECRET_KEY` | long random string | Flask session secret (replaces NIDS's hardcoded value) |
+| `ADMIN_PASSWORD` | your password | The demo account's password |
+| `DATABASE_URL` | database address | SQLite by default; NIDS reads it at import time |
+| `DATA_MODE` | `sample` or `live` | `sample` serves contract samples; `live` runs the real pipeline |
+| `DETECTOR_MODE` | `nids` or `scripted` | `scripted` takes labels from the scenario file if NIDS's detector cannot run |
+| `FORECAST_SOURCE` | `repo` or `lookup` | `lookup` uses the rule-based ATT&CK table instead of the exported Markov table |
+| `REPLAY_SPEED` | number | Replay speed factor |
+| `FCM_PROJECT_ID` + Firebase private credentials | | Push notifications (values are never committed) |
+
+<a id="troubleshooting"></a>
+
+<details>
+<summary><b>Troubleshooting and built-in fallbacks</b></summary>
+
+<br>
+
+| Problem | What to do |
+|---|---|
+| NIDS's detector cannot be called in-process | Set `DETECTOR_MODE=scripted`; the pipeline continues with labels from the scenario file |
+| SQLite does not work with NIDS on your machine | Fall back to NIDS's Docker Compose as shipped (heavier; documented fallback) |
+| NIDS's pinned libraries will not install on your Python | Use the Python version NIDS targets (3.9) for the backend environment, with separate environments for the other tools |
+| `attackgraph` fails to install | Check that `git` is on PATH; a plain `networkx` fallback gives the same connections |
+| The Precog export fails or PyTorch is missing | Set `FORECAST_SOURCE=lookup` |
+| "Connection lost: showing old data" | The client has had no reply for twice the polling interval; it keeps the last state and retries on its own |
+| A **401** from an `/api/x` route | You are signed out; the web app returns you to the login screen |
+| "This request expired. Try again." | A containment confirmation expires after 60 seconds; propose it again |
+| "No forecast available" | A forecast could not be produced; the loop continues |
+| Push notifications do not arrive | Push needs HTTPS and notification permission; alerts still appear in the in-app feed |
+| The hosted app is asleep or down | Demo on localhost, or play the recorded backup video |
+| A scenario file is rejected | It was invalid; the previous state is kept and the error says why |
 
 </details>
 
-<details>
-<summary><b>🧪 Run the tests</b></summary>
-<br>
+### Tests
 
 ```powershell
-pip install pytest jsonschema   # if not already installed
+pip install pytest jsonschema
 pytest
 ```
 
-| Level | What is checked |
+| Level | What is tested | Owner |
+|---|---|---|
+| Contract | Every sample validates against its JSON Schema, and every add-on response validates | LEAD-CORE (each role fixes their own) |
+| Unit | Each module alone against sample data | Each role owner |
+| Model | Offline detection metrics and Precog metrics | DETECT, LEAD-CORE |
+| Integration | Replay writer, NIDS detector, events, graph and Precog wired together with `DATA_MODE=live` | LEAD-CORE |
+| End-to-end | The full golden path, scripted, in `lead-core/integration` | LEAD-CORE |
+| Timing | Stage timestamps checked against the latency budgets | LEAD-CORE |
+| Device | Install on real phones; stale behaviour; push | GRAPH, VIZ |
+| Rehearsal | Repeated full runs; count consecutive successes (target: 5) | All |
+
+---
+
+<a id="using-the-app"></a>
+
+## 📲 Using the app
+
+### Mobile app
+
+| Tab | What it shows |
 |---|---|
-| **Contract** | Every sample JSON validates against its schema, and every add-on response validates (jsonschema) |
-| **Unit** | Each module alone against sample data |
-| **Integration** | Replay writer → NIDS detector → events → graph → Precog wired together with `DATA_MODE=live` |
-| **End-to-end** | The scripted golden path in `lead-core/integration`, with stage timestamps checked against the latency budgets |
-| **Device** | Install on real phones, stale behaviour, push (manual checklist) |
+| **Home** | Threat level (Calm, Watching, Under attack, Contained), the Top-3 forecast with **Contain**, the latest alert, the session accuracy |
+| **Alerts** | Newest-first alert cards, filterable by All, High, Medium, Low; tap for plain-English detail, the ATT&CK technique and where it sits in the attack |
+| **Forecast** | The full forecast, the Contain button, a 2D attack path and the outcome of the last resolved forecast |
+| **History** | Accuracy and calibration chart, past sessions, the offline detection report and an "all data is simulated" note |
 
-</details>
+### 3D console
 
-<details>
-<summary><b>🔬 Offline work: the CICIDS2017 model and the Precog technique export</b></summary>
-<br>
-
-These two jobs run outside the backend, in their own Python environments, because their libraries clash with NIDS's pins. The backend never imports them.
-
-| Job | Where | Output | Fallback |
-|---|---|---|---|
-| CICIDS2017 detection model (DETECT) | `detect/offline_model/` | Precision, recall, F1, false-positive rate from a held-out day or attack type, saved as a static report the backend serves at `/api/x/metrics/detection` | Evaluate using CICIDS2017's own labels |
-| Precog technique export (LEAD-CORE) | one-time run, CPU only, in its own Python environment | A Markov transition table saved as JSON in `lead-core/precog/` | `FORECAST_SOURCE=lookup` |
-
-See the DETECT and LEAD-CORE build guides in `docs/` for the exact steps and Python versions.
-
-</details>
-
-<details>
-<summary><b>🩹 Troubleshooting</b></summary>
-<br>
-
-| Symptom | Likely cause and fix |
+| Area | What it shows |
 |---|---|
-| `Activate.ps1` cannot be loaded because running scripts is disabled | Run `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`, then activate again |
-| `pip install` fails on NIDS's pinned libraries | You are probably on Python 3.12 or newer. Use 3.11 (`py -3.11 -m venv .venv`) |
-| `pip install attackgraph` says no such package | Expected: it is not on PyPI. Use `pip install -r graph/requirements.txt`, which installs it from GitHub at a pinned commit |
-| `/app/` shows a blank page or 404 | The web app is not built. Run `npm run build` in `web/` |
-| Everything redirects to the login screen | Your session expired or the secret key changed. Sign in again, using `ADMIN_PASSWORD` from your `.env` |
-| NIDS's default password is rejected | By design. `run_app.py` replaces it with your `ADMIN_PASSWORD` |
-| Amber *Connection lost: showing old data* banner | The backend is unreachable. Check the terminal running `run_app.py`; the app keeps the last state and retries |
-| Port 5000 already in use | Find the process with `netstat -ano \| findstr :5000` and stop it |
-| Phone will not offer *Install* | PWAs need HTTPS. Use the hosted address, not `http://<laptop-ip>:5000` |
-| No push notification | Check the Firebase variables on the host. Alerts still appear in the in-app feed either way |
-| The hosted demo is slow or down | Free tiers sleep. Wake it first, or demo on localhost / play the recorded video |
-| 3D console stutters | Keep the demo network at six hosts and test on the weakest laptop early |
+| **Top bar** | Threat level, replay controls (Start, Pause, Resume, Restart, 1x/2x/4x), replay status, live accuracy counter, connection indicator |
+| **Centre** | The 3D graph: drag to rotate, scroll to zoom, click a host for details, double-click to reset |
+| **Right panel** | Forecast plus **Contain**; node detail when a host is selected; alerts or charts from the left rail |
+| **Timeline strip** | One mark per alert (shape by severity), a violet marker where a forecast was made, and the replay position |
 
-</details>
+### Contain, step by step
 
-
-## 🔌 API Reference
-
-All product endpoints live under `/api/x`, return JSON, and (except health and login) answer `401 JSON` rather than a redirect when you are not signed in. Any error uses one shape: a short `code` plus a plain-English `message`. Exact request and response shapes are the schemas in `contracts/schemas/`.
-
-```bash
-# health check (no sign-in needed)
-curl http://localhost:5000/api/x/health
-
-# sign in and keep the session cookie
-curl -c cookies.txt -H "Content-Type: application/json" \
-  -d '{"username":"admin","password":"<your ADMIN_PASSWORD>"}' \
-  http://localhost:5000/api/x/login
-
-# poll for changes since version 0
-curl -b cookies.txt "http://localhost:5000/api/x/state?since=0"
+```mermaid
+stateDiagram-v2
+    [*] --> pending_confirmation: POST propose
+    pending_confirmation --> executed: POST confirm
+    pending_confirmation --> cancelled: POST cancel
+    pending_confirmation --> expired: no answer in 60 s
+    executed --> [*]
+    cancelled --> [*]
+    expired --> [*]
 ```
 
+Nothing changes in the world state until `confirm` succeeds with the action id that `propose` returned. On the phone, step two is a **slide to confirm** (keyboard users get a Confirm button), and the sheet always says: *"This marks the host as contained. It is a SIMULATION: nothing on a real network changes."*
+
+---
+
+<a id="api-reference"></a>
+
+## 🔌 API reference
+
+The product's own screens use the add-on endpoints under **`/api/x`**, so they never meet NIDS's redirect-style login. Every add-on endpoint except `health` and `login` returns a **JSON 401** when you are not signed in. Errors share one JSON shape with a short code and a plain-English message.
+
 <details>
-<summary><b>Endpoint list</b></summary>
+<summary><b>Add-on endpoints</b> (25 routes, click to expand)</summary>
+
 <br>
 
 | Method | Path | Purpose |
 |---|---|---|
-| `GET` | `/api/x/health` | Backend alive? |
-| `POST` | `/api/x/login` · `/api/x/logout` | JSON sign-in using NIDS's user table and session cookie |
+| `GET` | `/api/x/health` | Check the backend is alive |
+| `POST` | `/api/x/login` | JSON login using NIDS's user table; sets the session cookie |
+| `POST` | `/api/x/logout` | Log out |
 | `GET` | `/api/x/me` | Who is signed in |
-| `GET` | `/api/x/state?since=N` | Polling. Changes since version N: graph, alerts, forecast, actions, replay, metrics |
-| `GET` | `/api/x/alerts` · `/api/x/alerts/{id}` | Security events, newest first · one alert with explanation |
+| `GET` | `/api/x/state?since=N` | **Polling:** changes since version N |
+| `GET` | `/api/x/alerts` | Security events, newest first (limit parameter) |
+| `GET` | `/api/x/alerts/{id}` | One alert with its explanation |
 | `GET` | `/api/x/graph` | Current graph snapshot |
-| `GET` | `/api/x/forecasts` · `/api/x/forecasts/current` | Forecasts (filter by status) · the pending forecast |
-| `POST` | `/api/x/containment/propose` | Step 1: propose containing a target. Returns `pending_confirmation` |
-| `POST` | `/api/x/containment/confirm` | Step 2: confirm with the action id. Returns `executed` |
+| `GET` | `/api/x/forecasts` | Forecasts, filterable by status |
+| `GET` | `/api/x/forecasts/current` | The pending forecast |
+| `POST` | `/api/x/containment/propose` | Step 1: propose containing a target (target host, forecast id) |
+| `POST` | `/api/x/containment/confirm` | Step 2: confirm with the action id |
 | `POST` | `/api/x/containment/cancel` | Cancel a pending action |
-| `GET` | `/api/x/containment/actions` | List containment actions |
-| `GET` | `/api/x/session` · `/api/x/sessions` | Current session record · past sessions |
+| `GET` | `/api/x/containment/actions` | List actions |
+| `GET` | `/api/x/session` | Current session record |
+| `GET` | `/api/x/sessions` | Past sessions |
 | `GET` | `/api/x/metrics/precog` | precision@k, calibration bins, hit-rate |
-| `GET` | `/api/x/metrics/detection` | Static offline detection report |
-| `GET` | `/api/x/replay/scenarios` · `/api/x/replay/status` | Available scenarios · replay state |
-| `POST` | `/api/x/replay/start` · `pause` · `resume` · `restart` | Replay controls |
+| `GET` | `/api/x/metrics/detection` | Static offline detection results |
+| `GET` | `/api/x/replay/scenarios` | Available scenarios |
+| `GET` | `/api/x/replay/status` | Current replay state |
+| `POST` | `/api/x/replay/start` | Start a scenario (scenario id, speed) |
+| `POST` | `/api/x/replay/pause` | Pause |
+| `POST` | `/api/x/replay/resume` | Resume |
+| `POST` | `/api/x/replay/restart` | Restart |
 | `POST` | `/api/x/push/register` | Register a phone's push token |
 
-NIDS's own endpoints (`/login`, `/api/stats`, `/api/alerts`, `/api/packets`, `/api/upload_pcap`, …) stay available and unchanged. The product's screens use `/api/x` so they never meet NIDS's redirect-style login.
-
 </details>
 
 <details>
-<summary><b>The demo network</b></summary>
+<summary><b>NIDS's own endpoints</b> (unchanged)</summary>
+
 <br>
 
-Packet records identify hosts by IP address, so each host has a fixed address in a host mapping table. With six hosts, a Top-3 forecast is meaningful.
+`/login`, `/logout`, `/`, `/analyze`, `/api/upload_pcap`, `/api/stats`, `/api/alerts`, `/api/throughput`, `/api/packets`, `/api/protocol_counts`, `/api/osint/<ip>`, `/api/export_pdf`.
 
-| Host ID | Name | Role | Zone | Address |
-|---|---|---|---|---|
-| `host-a` | Workstation A | User workstation (entry point) | user | `192.168.1.11` |
-| `host-b` | Workstation B | User workstation | user | `192.168.1.12` |
-| `server-b` | Web Server B | Web server (golden path's predicted target) | dmz | `192.168.1.20` |
-| `file-server` | File Server | File server | internal | `192.168.1.30` |
-| `db-server` | Database Server | Database server | internal | `192.168.1.40` |
-| `domain-controller` | Domain Controller | Domain controller | internal | `192.168.1.50` |
-
-A scenario is a small JSON file of timed events (`traffic`, `technique`, `attempt`). `pause_for_decision` stops the replay before an event and waits for the analyst, and `compromise: true` marks where a host becomes compromised and triggers a forecast. The same file at the same speed always gives the same result.
+They stay available and untouched. NIDS's `/api/alerts` and the add-on `/api/x/alerts` are different endpoints. NIDS's PCAP upload only **analyses** a file and never stores its packets, and its "PDF export" returns an HTML report page meant for printing.
 
 </details>
 
+---
 
-## 📊 Evaluation
+<a id="data-contracts"></a>
 
-Security ML is judged harshly on rigor, so evaluation is fixed up front and not retrofitted. No numbers are quoted in this README until they are measured on held-out data, and numeric thresholds are set only after the Week 2 baseline.
+## 📐 Data contracts
 
-| Area | What is measured | How |
-|---|---|---|
-| **Detection (offline)** | Precision, recall, F1 and false-positive rate | Train on CICIDS2017, test on a held-out day or attack type to show generalization |
-| **Class imbalance** | Handled and stated explicitly | SMOTE or class weighting |
-| **Experiment log** | Features, model, hyperparameters, precision, recall, F1, false-positive rate | Logged for every run from Week 2 |
-| **Precog forecasts** | precision@1 and precision@3 | Held-out generated sequences (300 proposed, 80% train / 20% held out) |
-| **Calibration** | Stated confidence vs actual outcome | Confidence bins of width 0.1, drawn as a calibration curve |
-| **Containment** | Containment success rate | Share of held-out scenarios where Contain on a predicted host ended the chain early |
-| **Baseline** | What the model adds | The same metrics for the rule-based lookup |
-| **Live counter** | Session hit-rate | Shown in the product, labelled as a session counter |
+Data passed between roles is agreed **first**, in writing. `contracts/schemas/` holds one JSON Schema per format and `contracts/samples/` holds sample JSON that follows it, so the phone-app and console builders can see exactly what the backend will send without waiting for it.
+
+| Contract | What it carries |
+|---|---|
+| `packet_record` | NIDS's native packet row plus the detector's result fields |
+| `security_event` | Id, time, host, severity, risk score, explanation, ATT&CK technique, source |
+| `graph_snapshot` | Hosts with state, observed edges, the ordered compromised path |
+| `forecast` | Up to three targets with confidence, a technique hint, status and outcome |
+| `containment_action` | Target, requesting client, status, proposed and confirmed times |
+| `reeval_result` | Whether the attack progressed and whether the chain ended early |
+| `audit_entry` | One line per detection, forecast or containment |
+| `world_state` | `version`, `changed`, graph, alerts, forecast, actions, replay, metrics |
+| `session_record` | Every forecast with its outcome, plus containment actions |
+| `session_metrics` | Hit-rate, precision@1, precision@3, calibration bins, containment success rate |
+| `replay_status` | `idle`, `running`, `paused`, `waiting_for_decision` or `finished` |
+| `detection_report` | Model, dataset, split, precision, recall, F1, false-positive rate, notes |
 
 <details>
-<summary><b>🎓 Subjects integrated</b></summary>
-<br>
+<summary><b>Example: a forecast</b></summary>
 
-| Subject | Where it shows up |
-|---|---|
-| Machine Learning | NIDS's Isolation Forest, the offline CICIDS2017 model, the Precog Markov model |
-| Computer Graphics | The 3D SOC console: shapes, forecast cones, propagation animation, camera |
-| Mobile Application Development | The installable PWA, push notifications, stale-data handling, two-step containment |
-| Research Methodology | The IEEE paper on Precog's contribution, with a literature-search-backed novelty claim |
-
-</details>
-
-## 🧱 Known Limitations
-
-*Stated up front, because an honest prototype is more useful than an impressive-sounding one.*
-
-| Limitation | What it means |
-|---|---|
-| **Replay only** | The system has never seen live traffic. It runs on CICIDS2017-derived and scripted events over a six-host demo network |
-| **Forecast metrics are generator-bound** | Precog is trained and evaluated on generated sequences, so precision@k shows how well it learns the scripted attacker model, not how real adversaries behave |
-| **The golden path is arranged** | Its forecast is scripted to be right. Only held-out results measure the model |
-| **Containment is simulated** | A status change and an audit line. No real enforcement exists |
-| **Single process, in-memory state** | Restarting the server resets the graph, forecasts and containment. Not designed for multiple analysts or production use |
-| **Packet-level detector** | NIDS's Isolation Forest is unsupervised and cannot name ATT&CK techniques, which is why technique events are injected by the scenario |
-| **Polling, not push, for live state** | Updates arrive within 1–2 seconds. Push notifications cover alerts only |
-| **Tested on Windows** | macOS and Linux should work but are not part of the test plan |
-
-## 📁 Repository Structure
-
-One repository, one folder per role, so each person normally edits only their own folder.
-
+```json
+{
+  "forecast_id": "fc-000001",
+  "ts": "2026-10-03T10:00:03Z",
+  "from_host": "host-a",
+  "targets": [
+    { "rank": 1, "host_id": "server-b",   "confidence": 0.74 },
+    { "rank": 2, "host_id": "host-b",     "confidence": 0.15 },
+    { "rank": 3, "host_id": "file-server", "confidence": 0.07 }
+  ],
+  "technique_hint": { "technique_id": "T1021", "technique_name": "Remote Services", "probability": 0.41 },
+  "source": "repo",
+  "status": "pending",
+  "outcome": null
+}
 ```
-precog-platform/
-├── README.md · LICENSE · .gitignore · .env.example · .github/CODEOWNERS
+
+*Illustrative numbers only.* Identifiers are lowercase text (`host-a`, `evt-000001`, `fc-000001`, `act-000001`); the product's own times are ISO 8601 UTC; severity uses NIDS's words `HIGH`, `MEDIUM`, `LOW`, `NORMAL`.
+
+</details>
+
+---
+
+<a id="repository-layout"></a>
+
+## 🗂️ Repository layout
+
+One repository, **one folder per role**, so four people can build in parallel with the fewest merge conflicts.
+
+```text
+repository-root/
+├── README.md, .gitignore, .env.example, .github/CODEOWNERS      LEAD-CORE
 │
-├── contracts/                              shared data formats (changed only through the lead)
-│   ├── schemas/                            one JSON Schema per contract
-│   └── samples/                            sample JSON that follows each schema
+├── contracts/                      shared; changed only through the lead's merge
+│   ├── schemas/                    one JSON Schema per contract
+│   └── samples/                    sample JSON that follows the schemas
 │
-├── lead-core/                              LEAD-CORE
+├── lead-core/
 │   ├── backend/
-│   │   ├── nids/                           unchanged copy of 123dars/NIDS (MIT licence kept)
-│   │   ├── addons/                         loader, world state, /api/x routes, session record, push sender
-│   │   ├── run_app.py                      start-up: wraps NIDS, sets secrets, registers add-ons
-│   │   └── wsgi.py                         gunicorn entry point for the hosted demo
-│   ├── precog/                             Precog Engine + exported technique JSON
-│   └── integration/                        integration tests, golden-path script
+│   │   ├── nids/                   unchanged copy of 123dars/NIDS (MIT licence kept)
+│   │   ├── addons/                 loader, world state, /api/x routes, session record, push sender
+│   │   └── run_app.py              start-up script (adjusts NIDS from the outside)
+│   ├── precog/                     Precog Engine + exported technique JSON
+│   └── integration/                integration tests, golden-path script
 │
-├── detect/                                 DETECT
-│   ├── detect_events/                      security events, ATT&CK correlation, audit
-│   └── offline_model/                      CICIDS2017 features, training, evaluation (own environment)
+├── detect/
+│   ├── detect_events/              security events, ATT&CK correlation, audit
+│   └── offline_model/              CICIDS2017 features, training, evaluation (own environment)
 │
-├── graph/                                  GRAPH
-│   ├── graph_replay/                       replay controller + writer, scenario files, generator
-│   └── graph_net/                          live graph + static topology
+├── graph/
+│   ├── graph_replay/               replay controller + writer, scenarios, scenario generator
+│   └── graph_net/                  live graph + static topology
 │
-├── viz/viz_containment/                    VIZ: containment and re-evaluation (Python)
+├── viz/
+│   └── viz_containment/            containment + re-evaluation
 │
-├── web/                                    ONE shared React + Vite project
-│   ├── package.json · vite config · manifest · service worker       LEAD-CORE
+├── web/                            ONE shared React + Vite project
 │   └── src/
-│       ├── App · router · shared/ (API client, polling hook, theme)  LEAD-CORE
+│       ├── shared/                 API client, polling hook, theme.css      (LEAD-CORE)
 │       └── areas/
-│           ├── mobile/                     phone screens             GRAPH
-│           ├── console/                    3D console                VIZ
-│           ├── charts/                     Chart.js components       VIZ
-│           └── push/                       Firebase + notifications  VIZ
+│           ├── mobile/             all phone screens                        (GRAPH)
+│           ├── console/            3D console                               (VIZ)
+│           ├── charts/             Chart.js components                      (VIZ)
+│           └── push/               Firebase + notifications                 (VIZ)
 │
-└── docs/                                   Master Project Document, PRD, TRD, UI/UX Brief, build guides
-    └── assets/                             hero, network-3d, mobile-app, screenshots
+└── docs/                           project documents + assets/
 ```
 
+The web project avoids conflicts by design: LEAD-CORE creates the whole structure first with **placeholder files** in every area, and each person replaces only their own. `App` and the router import each area through one fixed entry file, so nobody edits them.
 
-## 👥 Team and Workflow
-
-**Guide:** Dr. Nandini C, Vice Principal and Head of Department, Department of Computer Science and Engineering. Academic year: 2026–27, 5th semester.
-
-| Member | USN | Role in the docs | Owns | Load |
-|---|---|---|---|---|
-| **Sagar R** | 1DT24CS232 | LEAD-CORE · Team lead, backend and AI integration | NIDS-based backend add-ons, Precog Engine, integration and golden path. Only person who merges code | 17 |
-| **Neha** | 1DT24CS174 | DETECT · ML detection and security systems | Flow features, ML detection, event processing and audit, ATT&CK correlation | 21 |
-| **Pallavi Bammanni** | 1DT24CS185 | GRAPH · Simulation, ingestion and mobile web app | Replay feed, ingestion, attack graph, the mobile PWA | 19 |
-| **Preethi S Pujari** | 1DT24CS195 | VIZ · Visualization and containment | 3D console, charts, push notifications, containment and re-evaluation | 20 |
-
-<sub>Load is relative build difficulty on a 1–10 scale per subsystem, summed. Sagar's total is lowest because he also merges everyone's work and carries integration. The split groups technically adjacent work, not skill, and roles can be swapped between any two members at any point. Project documents other than the master use the role aliases above.</sub>
-
-### How four people build in parallel without breaking main
+### Branches and merging
 
 ```mermaid
 gitGraph
-    commit id: "contracts + web skeleton"
+    commit id: "scaffold + placeholders"
     branch detect
     branch graph
     branch viz
-    branch lead
     checkout detect
     commit id: "events + ATT&CK"
     checkout graph
     commit id: "replay + graph"
     checkout viz
-    commit id: "3D console"
-    checkout lead
-    commit id: "integration + golden path"
+    commit id: "console + containment"
     checkout main
-    merge detect id: "lead merges via PR"
-    merge graph
-    merge viz
-    merge lead tag: "demo"
+    merge detect id: "lead merges (PR)"
+    merge graph id: "lead merges (PR) "
+    merge viz id: "lead merges (PR)  "
+    commit id: "golden path passes"
 ```
 
-| Rule | How it is enforced |
+| Rule | Detail |
 |---|---|
-| One branch per person, named after the alias (`detect`, `graph`, `viz`, and `lead` for the lead's own work) | Nobody pushes directly to `main`. The first bootstrap commit is made before branch protection is switched on |
-| Only the lead merges, through a Pull Request | GitHub branch protection + a one-line CODEOWNERS (`* @Sagar44-Github`) |
-| Contract first | Data formats are written as schemas + samples before anyone builds. Changes go through the lead, who tells everyone |
-| Per-role folders | Each person edits only their own folder, including their own sub-folder of `web/` |
-| Never blocked | Every role builds against sample JSON first, then swaps in real data |
-| Definition of done | Runs, passes its acceptance test, committed to your branch, merged by the lead, main still runs, contracts match |
+| Branches | `main` plus one working branch per person, named after the alias |
+| Direct work on `main` | Not allowed for anyone |
+| Merge route | Commit to your branch, tell LEAD-CORE, LEAD-CORE merges through a Pull Request |
+| After a merge | Everyone brings `main` into their own branch |
+| Enforcement | Branch protection (require a PR, restrict merging to the lead, block direct pushes) plus a one-line `CODEOWNERS` |
+| Contracts | Change only through LEAD-CORE's merge, and LEAD-CORE tells everyone |
 
 <details>
-<summary><b>🗓 The 8-week plan</b></summary>
+<summary><b>Definition of done</b> (per requirement)</summary>
+
 <br>
+
+1. The code or file exists in the owner's folder and runs without errors.
+2. It has been tested against its acceptance criterion, with the result noted.
+3. It was committed to the owner's branch and LEAD-CORE was asked to merge.
+4. LEAD-CORE merged it and confirmed that `main` still runs.
+5. Any contract it uses matches the files in `contracts/`.
+
+</details>
+
+---
+
+<a id="evaluation"></a>
+
+## 📏 Evaluation
+
+Security ML is judged on rigour, so the method is fixed up front, not retrofitted.
+
+| Area | Approach |
+|---|---|
+| **Detection split** | Train on CICIDS2017 and test on a held-out day or attack type to show generalization |
+| **Detection metrics** | Precision, recall, F1 and, critically, the **false-positive rate** |
+| **Class imbalance** | Handled explicitly (for example SMOTE or class weighting) and stated in the paper |
+| **Precog metrics** | **precision@1**, **precision@3**, a **calibration curve**, and **containment success rate** under simulated replay |
+| **Baseline** | The same Precog metrics for the rule-based lookup |
+| **Experiment log** | Every experiment (features, model, hyperparameters, resulting metrics) logged from Week 2 onward |
+
+| Metric | Definition |
+|---|---|
+| precision@1 | Share of held-out forecasts where the next attempted host was the top-ranked host |
+| precision@3 | Share where it was anywhere in the Top-3 |
+| Calibration | Forecasts grouped into confidence bins of width 0.1; each bin's average stated confidence vs its observed hit rate |
+| Containment success rate | Of held-out scenarios where Contain was applied to a predicted host, the share in which the chain ended early |
+
+Numbers are produced by the evaluation scripts and surfaced in the app's **History** tab (including the honest note that unseen attacks are mostly missed). They are deliberately **not hard-coded in this README**.
+
+---
+
+<a id="safety-and-ethics"></a>
+
+## 🛡️ Safety and ethics
+
+| # | Boundary |
+|:---:|---|
+| 1 | **No live attacks.** No scanning, exploitation or attack tool runs anywhere; all attack behaviour is scripted data or a PCAP file |
+| 2 | **No sniffer.** NIDS's live packet capture is never started |
+| 3 | **Containment is simulated.** It changes only in-memory state and writes a log entry: no firewall, network or device is touched |
+| 4 | **A human always confirms.** Propose-then-confirm lives in the API, so no client can skip it and nothing acts autonomously |
+| 5 | **No secrets in the repo.** The secret key, admin password and tokens live in environment variables; `.env` is git-ignored |
+| 6 | **A single demo account** whose password is not reused anywhere; NIDS's published default password is replaced |
+| 7 | **HTTPS when hosted**, required for install and push |
+| 8 | **Simulated intelligence is never shown as real.** NIDS invents threat-actor names, ASN and location values from ports and hashes; the screens hide them |
+| 9 | **A permanent SIMULATION badge** on every phone screen and in the console top bar |
+| 10 | **Only licensed public data.** CICIDS2017 and internally generated replay logs; no real personal data anywhere |
+| 11 | **Stated in the paper.** The methodology says no live attacks were run |
+
+---
+
+<a id="plan-and-risks"></a>
+
+## 🗓️ Plan and risks
 
 ```mermaid
 timeline
-    title 8-week build plan with scope frozen after Week 3
-    section Phase 1 · Foundation
-        Week 1 : CICIDS2017 acquisition and cleaning : Replay pipeline set-up
+    title Eight-week plan, scope frozen after Week 3
+    section Phase 1 - Foundation
+        Week 1 : CICIDS2017 acquisition and cleaning : Replay pipeline setup
         Week 2 : Baseline ML detection model
-        Week 3 : Feature engineering and tuning : Attack-graph reconstruction starts
-        Milestone 1 : Scope freeze, no new features
-    section Phase 2 · Core build
-        Week 4 : NIDS backend, add-on routes, polling
-        Week 5 : Installable mobile web app
+        Week 3 : Feature engineering and tuning : Attack-graph reconstruction begins
+        Milestone 1 : Scope freeze
+    section Phase 2 - Core build
+        Week 4 : NIDS backend, add-on routes, polling updates
+        Week 5 : Installable mobile web app (PWA)
         Week 6 : 3D visualization and propagation animation
         Milestone 2 : Core pipeline works end to end
-    section Phase 3 · Novel feature and wrap-up
+    section Phase 3 - Novel feature and wrap-up
         Week 7 : Precog Engine and forecast cones
-        Week 8 : Integration tests, rehearsal, paper, buffer
-        Demo Day : Demo and IEEE paper
+        Week 8 : Integration testing, rehearsal, paper, buffer
+        Demo Day : Demo and paper submission
 ```
 
-Week 8 is a buffer and is **not optional**. Anything not integration-tested by the end of Week 7 is cut from the demo, even if code exists for it.
-
-</details>
+> [!NOTE]
+> **The Week 8 buffer is not optional.** Anything not integration-tested by the end of Week 7 is cut from the demo, even if code exists for it. New ideas after the scope freeze become *future work* in the paper.
 
 <details>
-<summary><b>🎯 Success criteria: when is this "done"?</b></summary>
+<summary><b>Top risks and mitigations</b></summary>
+
 <br>
 
-- [ ] The golden path runs start to finish on localhost: replayed event → detection → graph → ATT&CK context → Precog forecast → 3D view → mobile alert → analyst containment → re-evaluation
-- [ ] Detection is measured on held-out CICIDS2017 data and reported with precision, recall, F1 and false-positive rate
-- [ ] Precog produces Top-3 forecasts with confidence and reports precision@k, a calibration curve and containment success rate
-- [ ] The live session counter is visible and updates correctly
-- [ ] The mobile web app installs on a phone, shows live alerts and executes a containment
-- [ ] No containment executes without human confirmation
-- [ ] The golden path survives 5 consecutive rehearsals, and a recorded backup video exists
-- [ ] The IEEE paper is scoped to Precog's contribution with an honest novelty claim
+| Risk | Mitigation |
+|---|---|
+| A reused repository breaks or is poorly maintained | Documented fallbacks: CICIDS2017 labels for the ML model, a rule-based lookup for Precog |
+| Backend and real-time work is underestimated | Owned by the lead and scoped as its own week (Week 4) |
+| Scope creep | Scope frozen after Week 3 |
+| Live demo failure on the day | Replay Mode removes live-network dependence; localhost demo; recorded backup video |
+| NIDS ships a default admin login, a hardcoded secret key and hardcoded database passwords | Moved to environment variables; real values never committed |
+| NIDS's detector runs in a 30-second batch loop | The replay writer calls the detector function immediately after writing packets |
+| NIDS pins older libraries and expects PostgreSQL | SQLite through `DATABASE_URL` and the pinned libraries verified on Python 3.11; separate environments where versions clash |
+| The phone can only install from hosted HTTPS | The Flask app serves the built web app itself, so one free host covers both |
+| Merge conflicts or a broken `main` | Folder-per-role, branch per person, only the lead merges, branch protection |
+| Novelty is narrower than assumed | The claim is scoped to node-level forecasting with confirmed containment, backed by a literature search |
 
 </details>
 
+---
 
-## 🔒 Safety and Ethics
+<a id="team"></a>
 
-> [!CAUTION]
-> **No live attack is ever run.** No scanning, exploitation or attack tool touches any live network, classmate's device or infrastructure the team does not fully own. All attack behaviour is pre-recorded dataset traffic or scripted event logs.
+## 👥 Team
 
-| Safeguard | Detail |
+**5th Semester Project-Based Learning (PBL)**, Department of Computer Science and Engineering, academic year **2026-27**.
+Integrates **Machine Learning**, **Computer Graphics**, **Mobile Application Development** and **Research Methodology** (IEEE paper).
+
+**Guide:** Dr. Nandini C, Vice Principal and Head of Department, Department of Computer Science and Engineering.
+
+| | Name | USN | Alias | Role |
+|:---:|---|---|---|---|
+| 🧭 | **Sagar R** | 1DT24CS232 | `LEAD-CORE` | Team lead: backend, Precog Engine, integration; the only person who merges code |
+| 🔎 | **Neha** | 1DT24CS174 | `DETECT` | Flow features, ML detection, security event processing, ATT&CK correlation |
+| 🕸️ | **Pallavi Bammanni** | 1DT24CS185 | `GRAPH` | Data ingestion, simulation, attack graph, mobile web app (PWA) |
+| 🧊 | **Preethi S Pujari** | 1DT24CS195 | `VIZ` | 3D visualization, charts, push notifications, containment |
+
+The repository, folders and branches use the **aliases**; the table above maps them to people. Roles can be swapped between any two members with no loss of fairness: the split divides the work by technical adjacency, not by skill.
+
+<details>
+<summary><b>Who owns what</b> (subsystem by subsystem)</summary>
+
+<br>
+
+**LEAD-CORE: Sagar R**
+
+| Subsystem | Repo / approach |
 |---|---|
-| **Replay only** | NIDS's live packet sniffer is never started. The product never captures live traffic |
-| **Containment is simulated** | A status change plus an audit line. No firewall, no network, no device is changed |
-| **Human in the loop** | Propose then confirm, enforced in the API, with a 60 s expiry. Nothing acts autonomously |
-| **No secrets in the repo** | Secret key, admin password and Firebase credentials live in environment variables. `.env` is git-ignored; only `.env.example` (names only) is committed |
-| **NIDS defaults neutralised** | Its hard-coded secret key and published admin password are replaced from outside, without editing NIDS |
-| **No fake intelligence** | NIDS invents threat-actor names, ASN and location values from ports and hashes. They are never shown anywhere, so they cannot be mistaken for real threat intelligence |
-| **No real personal data** | Only CICIDS2017 (a licensed public research dataset) and internally generated replay logs |
-| **Always labelled** | A permanent **SIMULATION** badge on every screen, and the word *simulated* on every containment message |
-| **Honest evaluation** | Reported results come only from held-out data, never from the rehearsed golden path |
+| Backend core | `123dars/NIDS`, used as-is and extended with add-on files |
+| Precog Forecasting | `mayank02raj/...` Markov export (fallback: rule-based lookup) |
+| Cross-team integration and golden path | Integration only |
 
-## 📚 Documentation
+**DETECT: Neha**
 
-Everything the team works from lives in [`docs/`](docs/).
+| Subsystem | Repo / approach |
+|---|---|
+| Flow feature preparation (offline) | CICIDS2017 pre-extracted features |
+| ML detection | NIDS detector (live) plus `Western-OC2-Lab/...` trained offline |
+| Security event processing + audit | Own code, built on NIDS's alerts |
+| ATT&CK correlation | Official MITRE ATT&CK data subset |
+
+**GRAPH: Pallavi Bammanni**
+
+| Subsystem | Repo / approach |
+|---|---|
+| Sandbox / lab (simulated) and attack simulation | Scripted, Caldera and Atomic Red Team style sequences |
+| Data ingestion | NIDS's packet table plus a small replay writer |
+| Attack graph | `cwccie/attackgraph` plus `networkx` |
+| Mobile web app (PWA) | Own code, with LEAD-CORE assisting |
+
+**VIZ: Preethi S Pujari**
+
+| Subsystem | Repo / approach |
+|---|---|
+| 3D visualization and SOC console | `vasturiano/3d-force-graph` |
+| Charts | `chartjs/Chart.js` |
+| Push notifications | Firebase Cloud Messaging (web push) |
+| Containment and re-evaluation | Wazuh Active Response as a pattern (simulated) |
+
+</details>
+
+---
+
+<a id="documentation-and-credits"></a>
+
+## 📚 Documentation and credits
+
+### Project documents
 
 | Document | Answers |
 |---|---|
-| [Master Project Document](docs/Master_Project_Document) | What the whole project is and why |
-| [PRD (Product Requirements)](docs/PRD_Product_Requirements_Document) | What must be built for whom, and how we know it is done. Every requirement has an ID, a priority and an acceptance criterion |
-| [TRD (Technical Requirements)](docs/TRD_Technical_Requirements_Document) | How it is built: architecture, API, data contracts, module designs, fallbacks |
-| [UI/UX Brief](docs/UI_UX_Brief.md) | How it looks, feels and reads: colour system, components, screens, motion, accessibility |
-| Build Guides (4) | The exact steps each role follows to build, test and merge its part |
+| **Master Project Document** | What the whole project is and why |
+| **PRD** (Product Requirements) | What must be built, for whom, and when it is done |
+| **TRD** (Technical Requirements) | How it is built: architecture, contracts, module designs |
+| **UI/UX Brief** | How it looks, feels and reads |
+| **Build Guides** (four, one per role) | The exact steps each role follows to build and merge their part |
 
-## 🙏 Credits and Licences
+All of them live in [`docs/`](docs/).
 
-> The standing rule: reuse a best-in-class open-source repository for every subsystem where one exists, and write custom code only for the glue and for what nothing existing covers.
+### Credits and licensing
 
-| Component | Repository | Used for | Terms |
-|---|---|---|---|
-| Backend | [123dars/NIDS](https://github.com/123dars/NIDS) | Flask backend, users, packet table, Isolation Forest detector | MIT. Licence and copyright notice kept with the copy |
-| Static attack graph | [cwccie/attackgraph](https://github.com/cwccie/attackgraph) | Topology, feasible paths, ATT&CK-mapped risk | MIT. Installed from GitHub at a pinned commit |
-| Precog technique layer | [mayank02raj/MITRE-ATTACK-based-Attack-Chain-Prediction](https://github.com/mayank02raj/MITRE-ATTACK-based-Attack-Chain-Prediction) | Markov table exported once to JSON | Used with the author's written permission and cited with its paper. The exported JSON is committed or redistributed only as that permission allows |
-| Offline detection | [Western-OC2-Lab/Intrusion-Detection-System-Using-Machine-Learning](https://github.com/Western-OC2-Lab/Intrusion-Detection-System-Using-Machine-Learning) | CICIDS2017 training code | Upstream licence, recorded in the DETECT guide |
-| ATT&CK data | [mitre-attack/attack-stix-data](https://github.com/mitre-attack/attack-stix-data) | Curated 26-technique subset | MITRE ATT&CK Terms of Use, copyright notice kept |
-| 3D | [vasturiano/3d-force-graph](https://github.com/vasturiano/3d-force-graph) | 3D graph rendering | MIT |
-| Charts | [chartjs/Chart.js](https://github.com/chartjs/Chart.js) | Charts | MIT |
-| Dataset | CICIDS2017, University of New Brunswick | Offline detection evaluation | Public research dataset, cited as its authors request |
-| Pattern references | [apache/caldera](https://github.com/apache/caldera), [redcanaryco/atomic-red-team](https://github.com/redcanaryco/atomic-red-team), [wazuh/wazuh](https://github.com/wazuh/wazuh) | Output shape of scripted technique events; Active Response pattern | Reference only, no code copied |
+Standing on the shoulders of open source:
 
-## 📄 License
+| Component | Terms |
+|---|---|
+| `123dars/NIDS` | **MIT**; the licence file and copyright notice stay with the vendored copy |
+| `cwccie/attackgraph` | **MIT**; installed from GitHub at a pinned commit |
+| `mayank02raj/MITRE-ATTACK-based-Attack-Chain-Prediction` | Used **with the author's permission** (confirmed by email). Please cite the repository and its associated SECRYPT 2026 paper, and do not redistribute its code outside this project without the author's agreement |
+| MITRE ATT&CK | Technique data derived from `mitre-attack/attack-stix-data`, with MITRE's copyright notice kept |
+| CICIDS2017 | University of New Brunswick, used offline for research |
+| Other reused repositories | Licences are recorded in the build guides |
 
-The original code written for Precog SOC is covered by the terms in [LICENSE](LICENSE). Third-party components keep their own licences, listed above.
+<details>
+<summary><b>Glossary</b></summary>
+
+<br>
+
+| Term | Meaning |
+|---|---|
+| **SOC** | Security Operations Center: the team or room that watches for and responds to cyber attacks |
+| **Replay Mode** | Running the pipeline from pre-recorded and scripted attack events instead of live attacks |
+| **Golden path** | The single rehearsed demo scenario that must work every time |
+| **Precog Engine** | The novel feature: predicts the attacker's most likely next targets with confidence scores |
+| **Forecast cone** | The glowing directional shape from the compromised host toward a predicted target |
+| **Containment** | The simulated isolation of a host (a status change plus a logged action) |
+| **Closed loop** | Detect, forecast, act, re-evaluate, repeating |
+| **Markov transition model** | Estimates, from observed sequences, the probability of moving from one state to the next |
+| **precision@k** | The fraction of forecasts whose top-k contain the node actually attacked next |
+| **Calibration** | Whether a stated confidence (say 74%) matches how often that forecast is actually right |
+| **False-positive rate** | How often harmless traffic is wrongly flagged as an attack |
+| **PWA** | Progressive Web App: installable on a phone's home screen |
+| **Polling** | A client asking the server for updates every second or two instead of being pushed |
+| **Add-on** | A file of our own that plugs routes or logic into NIDS without editing NIDS's files |
+
+</details>
 
 <br>
 
 <div align="center">
 
+<sub>Built for the 5th Semester PBL, Department of CSE, 2026-27. Every attack in this project is replayed, never run. Nothing here touches a real network.</sub>
 
-**Precog SOC** · 5th Semester PBL · Department of Computer Science and Engineering · 2026–27
-
-*Detect. Forecast. Act. Re-evaluate.*
-
-<sub>Built by Sagar R · Neha · Pallavi Bammanni · Preethi S Pujari, under the guidance of Dr. Nandini C</sub>
-
-<br>
-
-[⬆ Back to top](#top)
+<!-- Add the recorded backup demo video link and real screenshots here once available. -->
 
 </div>
