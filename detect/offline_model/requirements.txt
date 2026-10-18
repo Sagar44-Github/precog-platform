@@ -1,0 +1,11 @@
+# DETECT's offline model environment. Separate from the backend environment on purpose.
+# Versions are the ones the code was tested with (Python 3.11).
+numpy==2.4.6
+pandas==3.0.6
+scikit-learn==1.9.1
+imbalanced-learn==0.14.2
+lightgbm==4.7.0
+xgboost==3.2.0
+catboost==1.2.10
+jsonschema==4.23.0
+pytest==9.1.1
