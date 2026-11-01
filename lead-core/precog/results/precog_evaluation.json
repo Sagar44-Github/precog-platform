@@ -1,0 +1,202 @@
+{
+ "node_model": {
+  "forecasts": 149,
+  "precision_at_1": 0.651,
+  "precision_at_1_std_error": 0.039,
+  "precision_at_3": 1.0,
+  "max_candidates": 3,
+  "share_with_more_than_3_candidates": 0.0,
+  "calibration_bins": [
+   {
+    "bin_low": 0.1,
+    "bin_high": 0.2,
+    "mean_confidence": 0.147,
+    "observed_rate": 0.2,
+    "count": 60
+   },
+   {
+    "bin_low": 0.2,
+    "bin_high": 0.3,
+    "mean_confidence": 0.2981,
+    "observed_rate": 0.2222,
+    "count": 27
+   },
+   {
+    "bin_low": 0.3,
+    "bin_high": 0.4,
+    "mean_confidence": 0.394,
+    "observed_rate": 0.2833,
+    "count": 60
+   },
+   {
+    "bin_low": 0.4,
+    "bin_high": 0.5,
+    "mean_confidence": 0.4607,
+    "observed_rate": 0.5053,
+    "count": 95
+   },
+   {
+    "bin_low": 0.5,
+    "bin_high": 0.6,
+    "mean_confidence": 0.5364,
+    "observed_rate": 0.5143,
+    "count": 35
+   },
+   {
+    "bin_low": 0.7,
+    "bin_high": 0.8,
+    "mean_confidence": 0.7019,
+    "observed_rate": 0.7778,
+    "count": 27
+   },
+   {
+    "bin_low": 0.9,
+    "bin_high": 1.0,
+    "mean_confidence": 1.0,
+    "observed_rate": 1.0,
+    "count": 27
+   }
+  ],
+  "expected_calibration_error": 0.0572
+ },
+ "baseline_rule_based": {
+  "forecasts": 149,
+  "precision_at_1": 0.6376,
+  "precision_at_1_std_error": 0.0394,
+  "precision_at_3": 1.0,
+  "max_candidates": 3,
+  "share_with_more_than_3_candidates": 0.0,
+  "calibration_bins": [
+   {
+    "bin_low": 0.2,
+    "bin_high": 0.3,
+    "mean_confidence": 0.2664,
+    "observed_rate": 0.2,
+    "count": 60
+   },
+   {
+    "bin_low": 0.3,
+    "bin_high": 0.4,
+    "mean_confidence": 0.332,
+    "observed_rate": 0.2833,
+    "count": 60
+   },
+   {
+    "bin_low": 0.4,
+    "bin_high": 0.5,
+    "mean_confidence": 0.4314,
+    "observed_rate": 0.459,
+    "count": 122
+   },
+   {
+    "bin_low": 0.5,
+    "bin_high": 0.6,
+    "mean_confidence": 0.5397,
+    "observed_rate": 0.5968,
+    "count": 62
+   },
+   {
+    "bin_low": 0.9,
+    "bin_high": 1.0,
+    "mean_confidence": 1.0,
+    "observed_rate": 1.0,
+    "count": 27
+   }
+  ],
+  "expected_calibration_error": 0.0417
+ },
+ "baseline_uniform": {
+  "forecasts": 149,
+  "precision_at_1": 0.5503,
+  "precision_at_1_std_error": 0.0408,
+  "precision_at_3": 1.0,
+  "max_candidates": 3,
+  "share_with_more_than_3_candidates": 0.0,
+  "calibration_bins": [
+   {
+    "bin_low": 0.3,
+    "bin_high": 0.4,
+    "mean_confidence": 0.3333,
+    "observed_rate": 0.3333,
+    "count": 180
+   },
+   {
+    "bin_low": 0.5,
+    "bin_high": 0.6,
+    "mean_confidence": 0.5,
+    "observed_rate": 0.5,
+    "count": 124
+   },
+   {
+    "bin_low": 0.9,
+    "bin_high": 1.0,
+    "mean_confidence": 1.0,
+    "observed_rate": 1.0,
+    "count": 27
+   }
+  ],
+  "expected_calibration_error": 0.0
+ },
+ "containment_success": {
+  "contain_top_1": 0.651,
+  "contain_top_3": 1.0
+ },
+ "by_profile": {
+  "data-hunter": {
+   "forecasts": 32,
+   "precision_at_1": 0.9688,
+   "precision_at_1_std_error": 0.0308,
+   "precision_at_3": 1.0,
+   "max_candidates": 3,
+   "share_with_more_than_3_candidates": 0.0,
+   "expected_calibration_error": 0.2885
+  },
+  "domain-chaser": {
+   "forecasts": 24,
+   "precision_at_1": 0.5833,
+   "precision_at_1_std_error": 0.1006,
+   "precision_at_3": 1.0,
+   "max_candidates": 3,
+   "share_with_more_than_3_candidates": 0.0,
+   "expected_calibration_error": 0.2858
+  },
+  "opportunist": {
+   "forecasts": 47,
+   "precision_at_1": 0.5106,
+   "precision_at_1_std_error": 0.0729,
+   "precision_at_3": 1.0,
+   "max_candidates": 3,
+   "share_with_more_than_3_candidates": 0.0,
+   "expected_calibration_error": 0.1338
+  },
+  "wanderer": {
+   "forecasts": 46,
+   "precision_at_1": 0.6087,
+   "precision_at_1_std_error": 0.072,
+   "precision_at_3": 1.0,
+   "max_candidates": 3,
+   "share_with_more_than_3_candidates": 0.0,
+   "expected_calibration_error": 0.101
+  }
+ },
+ "split": {
+  "seed": 0,
+  "training_sequences": 240,
+  "test_sequences": 60,
+  "test_forecasts": 149
+ },
+ "alpha": {
+  "chosen": 0.01,
+  "validation_surprise": {
+   "0.01": 0.6832,
+   "0.05": 0.6832,
+   "0.1": 0.6832,
+   "0.2": 0.6833,
+   "0.5": 0.6833,
+   "1.0": 0.6834
+  }
+ },
+ "generated_at": "2026-11-01T09:32:41Z",
+ "training_file_sha256": "354f29819ec9b0b7573d3a8210c5f6fe7a173ae9fd91008f017c2322ad624b5e",
+ "notes": "The training sequences are made by GRAPH's scripted generator (four attacker styles over a six-host demo network), not by real attackers. The numbers measure how well the model learned that generator's habits on sequences it never saw, and are NOT a claim about real intrusions. Containment success equals precision@1 (contain the top host) or precision@3 (contain the Top-3) by construction in this replay setting. The numbers come only from held-out sequences, never from the rehearsed golden path. On this six-host network at most three hosts can be reached from any host, so a Top-3 list nearly always contains every candidate: precision@3 is about 1.0 for EVERY method and says nothing. Judge the model by precision@1, by calibration, and by its gap to the baselines, and read that gap against the standard error given with precision@1."
+}

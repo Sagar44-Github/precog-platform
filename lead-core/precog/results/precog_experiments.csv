@@ -1,0 +1,2 @@
+timestamp_utc,seed,alpha,train_sequences,test_forecasts,model_p1,model_p3,model_ece,rule_p1,rule_p3,uniform_p1,uniform_p3
+2026-11-01T09:32:41Z,0,0.01,240,149,0.651,1.0,0.0572,0.6376,1.0,0.5503,1.0
