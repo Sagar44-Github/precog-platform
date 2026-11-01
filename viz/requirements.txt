@@ -1,2 +1,4 @@
-# VIZ's libraries for the backend environment (VIZ replaces this file with the real list).
-# It is read by lead-core/backend/requirements.txt, so it must exist.
+# VIZ's libraries for the backend environment (installed together with the backend's own list).
+# google-auth signs the request to Firebase Cloud Messaging. (We call Firebase's HTTP API with the "requests" library
+# NIDS already pins; the much bigger firebase-admin package would upgrade "requests" and clash with NIDS.)
+google-auth==2.61.0
