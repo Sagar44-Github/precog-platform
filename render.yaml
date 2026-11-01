@@ -1,0 +1,47 @@
+# Render Blueprint for Precog SOC Platform.
+# One service serves the backend and the built web app over HTTPS, so a phone
+# can install the PWA. Set ADMIN_PASSWORD (and optional Firebase values) in the
+# Render dashboard; no secret values belong in this file.
+services:
+  - type: web
+    name: precog-soc
+    runtime: python
+    plan: free
+    region: singapore
+    buildCommand: "pip install --upgrade pip && pip install -r lead-core/backend/requirements.txt"
+    # WorldState lives in memory, so a single worker keeps all requests consistent.
+    startCommand: "cd lead-core/backend && gunicorn --workers 1 --threads 4 --timeout 120 --bind 0.0.0.0:$PORT wsgi:application"
+    healthCheckPath: /api/x/health
+    envVars:
+      # Match the Python version used to test the NIDS backend.
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+      # Render creates a fresh Flask session secret for each service.
+      - key: SECRET_KEY
+        generateValue: true
+      # Set the demo sign-in password in the Render dashboard.
+      - key: ADMIN_PASSWORD
+        sync: false
+      # Run the replay and detection pipeline rather than sample contract data.
+      - key: DATA_MODE
+        value: "live"
+      # Secure cookies are required for the hosted HTTPS app and PWA.
+      - key: COOKIE_SECURE
+        value: "1"
+      # Train the detector model on first start.
+      - key: AUTO_TRAIN_MODEL
+        value: "1"
+      # Maximum time to wait at a replay decision point, in seconds.
+      - key: REPLAY_DECISION_TIMEOUT
+        value: "120"
+      # Maximum time for a proposed containment action to be confirmed.
+      - key: CONTAINMENT_CONFIRM_SECONDS
+        value: "60"
+      # Prefer the exported repository technique table for forecasts.
+      - key: FORECAST_SOURCE
+        value: "repo"
+      # Optional Firebase values; set them in the dashboard only when using push.
+      - key: FCM_PROJECT_ID
+        sync: false
+      - key: FCM_CREDENTIALS_JSON
+        sync: false
