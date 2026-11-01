@@ -1,0 +1,726 @@
+{
+ "meta": {
+  "source": "https://github.com/mayank02raj/MITRE-ATTACK-based-Attack-Chain-Prediction",
+  "commit": "e188cc6ec96df0288470380dbafccda1591e2c95",
+  "data": "the repository's own 'Attack flows' folder (Attack Flow STIX files)",
+  "flow_files": 39,
+  "sequences": 1617,
+  "free_text_steps_cut_out": 212,
+  "start_states": 21,
+  "unique_transitions": 237,
+  "repository_functions_used": [
+   "af_sequences_from_file",
+   "train_markov_from_sequences"
+  ],
+  "markov": "first-order, unsmoothed, exactly as in train_markov_from_sequences, trained on ATT&CK-id steps only (sequences are cut at steps that have no id)",
+  "notice": "Used with the author's permission (by email). Cite the repository and its paper. Do not redistribute the repository's code outside the project without the author's agreement."
+ },
+ "names": {
+  "T1566.001": "Phishing: Spearphishing Attachment",
+  "T1204.002": "User Execution: Malicious File",
+  "T1569.002": "System Services: Service Execution",
+  "T1047": "Windows Management Instrumentation",
+  "T1059.001": "Command and Scripting Interpreter: PowerShell",
+  "T1136": "Create Account",
+  "T1098": "Account Manipulation",
+  "T1543.003": "Create or Modify System Process: Windows Service",
+  "T1574.001": "Hijack Execution Flow: DLL Search Order Hijacking",
+  "T1059.005": "Command and Scripting Interpreter: Visual Basic",
+  "T1484.001": "Domain Policy Modification: Group Policy Modification",
+  "T1218.010": "System Binary Proxy Execution: Regsvr32",
+  "T1070.004": "Indicator Removal on Host: File Deletion",
+  "T1112": "Modify Registry",
+  "T1140": "Deobfuscate/Decode Files or Information",
+  "T1562.001": "Impair Defenses: Disable or Modify Tools",
+  "T1562.004": "Impair Defenses: Disable or Modify System Firewall",
+  "T1562.009": "Impair Defenses: Safe Mode Boot",
+  "T1622": "Debugger Evasion",
+  "T1555": "Credentials from Password Stores",
+  "T1087.002": "Account Discovery: Domain Account",
+  "T1016": "System Network Configuration Discovery",
+  "T1082": "System Information Discovery",
+  "T1021.001": "Remote Services: Remote Desktop Protocol",
+  "T1560.001": "Archive Collected Data: Archive via Utility",
+  "T1567": "Exfiltration Over Web Service",
+  "T1219": "Remote Access Software",
+  "T1573": "Encrypted Channel",
+  "T1486": "Data Encrypted for Impact",
+  "T1489": "Service Stop",
+  "T1490": "Inhibit System Recovery",
+  "T1105": "Ingress Tool Transfer",
+  "T1083": "File and Directory Discovery",
+  "T1491.001": "Internal Defacement",
+  "T1657": "Financial Theft",
+  "T1497": "Virtualization/Sandbox Evasion",
+  "T1203": "Exploitation for Client Execution",
+  "T1068": "Exploitation for Privilege Escalation",
+  "T1059": "Command and Scripting Interpreter",
+  "T1070": "Indicator Removal",
+  "T1071.001": "Web Protocols",
+  "T1119": "Automated Collection",
+  "T1041": "Exfiltration Over C2 Channel",
+  "T1059.004": "Unix Shell",
+  "T1003.008": "OS Credential Dumping: /etc/passwd and /etc/shadow",
+  "T1573.001": "Symmetric Cryptography",
+  "T1090": "Proxy",
+  "T1222.002": "File and Directory Permissions Modification: Linux and Mac File and Directory Permissions Modification",
+  "T1190": "Exploit Public-Facing Application",
+  "T1136.001": "Local Account",
+  "T1016.001": "Internet Connection Discovery",
+  "T1053.005": "Scheduled Task",
+  "T1078.001": "Default Accounts",
+  "T1136.002": "Domain Account",
+  "T1570": "Lateral Tool Transfer",
+  "T1018": "Remote System Discovery",
+  "T1003.001": "LSASS Memory",
+  "T1566.002": "Spearphishing Link",
+  "T1547.001": "Registry Run Keys / Startup Folder",
+  "T1564.004": "NTFS File Attributes",
+  "T1137": "Office Application Startup",
+  "T1574.002": "DLL Side-Loading",
+  "T1001.003": "Protocol Impersonation",
+  "T1071.004": "DNS",
+  "T1071.003": "Mail Protocols",
+  "T1046": "Network Service Discovery",
+  "T1003.004": "LSA Secrets",
+  "T1021.002": "SMB/Windows Admin Shares",
+  "T1550.002": "Pass the Hash",
+  "T1550.003": "Pass the Ticket",
+  "T1049": "System Network Connections Discovery",
+  "T1558.003": "Kerberoasting",
+  "T1608.006": "Fake Software",
+  "T1598.004": "Social Engineering",
+  "T1078": "Valid Accounts",
+  "T1076": "Remote Desktop Protocol",
+  "T1057": "Process Discovery",
+  "T1110": "Brute Force",
+  "T1204": "User Execution",
+  "T1586": "Compromise Accounts",
+  "T1218.011": "Rundll32",
+  "T1033": "System Owner/User Discovery",
+  "T1069": "Permission Groups Discovery",
+  "T1134": "Access Token Manipulation",
+  "T1059.007": "JavaScript",
+  "T1547.009": "Shortcut Modification",
+  "T1055": "Process Injection",
+  "T1135": "Network Share Discovery",
+  "T1482": "Domain Trust Discovery",
+  "T1071": "Application Layer Protocol",
+  "T1087": "Account Discovery",
+  "T1059.003": "Windows Command Shell",
+  "T1595.002": "Vulnerability Scanning",
+  "T1505.003": "Web Shell",
+  "T1589.001": "Credentials",
+  "T1590": "Gather Victim Network Information",
+  "T1560": "Archive Collected Data",
+  "T1048.002": "Exfiltration Over Asymmetric Encrypted Non-C2 Protocol",
+  "T1090.003": "Multi-hop Proxy",
+  "T1070.001": "Clear Windows Event Logs",
+  "T1595": "Active Scanning",
+  "T1222": "File and Directory Permissions Modification",
+  "T1595.001": "Active Scanning: Scanning IP Blocks",
+  "T1210": "Exploitation of Remote Services",
+  "T1003": "OS Credential Dumping",
+  "T1040": "Network Sniffing",
+  "T1533": "Data from Local System",
+  "T1111": "Multi-Factor Authentication Interception",
+  "T1070.002": "Clear Linux or Mac System Logs",
+  "T1021.004": "SSH",
+  "T1005": "Data from Local System",
+  "T1021": "Remote Services",
+  "T1189": "Drive-by Compromise",
+  "T1584": "Compromise Infrastructure",
+  "T1615": "Group Policy Discovery",
+  "T1021.006": "Windows Remote Management",
+  "T1039": "Data from Network Shared Drive",
+  "T1518.001": "Security Software Discovery",
+  "T1027": "Obfuscated Files or Information",
+  "T1027.004": "Compile After Delivery",
+  "T1212": "Exploitation for Credential Access",
+  "T1087.001": "Local Account",
+  "T1562": "Impair Defenses",
+  "T1592.004": "Client Configurations",
+  "T1554": "Compromise Host Software Binary",
+  "T1056.003": "Web Portal Capture",
+  "T1614": "System Location Discovery",
+  "T1090.001": "Internal Proxy",
+  "T1003.003": "NTDS",
+  "T1552.002": "Credentials in Registry",
+  "T1566": "Phishing",
+  "T1056": "Input Capture",
+  "T1587.001": "Malware",
+  "T1030": "Data Transfer Size Limits",
+  "T1090.002": "External Proxy",
+  "T1563.002": "RDP Hijacking",
+  "T1217": "Browser Information Discovery",
+  "T1564.006": "Run Virtual Instance",
+  "T1037.004": "RC Scripts",
+  "T1037": "Boot or Logon Initialization Scripts",
+  "T1059.006": "Python",
+  "T1074": "Data Staged",
+  "T1048": "Exfiltration Over Alternative Protocol",
+  "T1036.008": "Masquerade File Type",
+  "T1095": "Non-Application Layer Protocol",
+  "T1211": "Exploitation for Defense Evasion",
+  "T1590.004": "Network Topology",
+  "T1001": "Data Obfuscation",
+  "T1204.001": "Malicious Link",
+  "T1036": "Masquerading",
+  "T1218": "System Binary Proxy Execution",
+  "T1195.002": "Compromise Software Supply Chain",
+  "T1134.001": "Token Impersonation/Theft",
+  "T0866": "Exploitation of Remote Services",
+  "T1055.001": "Dynamic-link Library Injection",
+  "T1561.002": "Disk Structure Wipe",
+  "T1542.003": "Bootkit",
+  "T1529": "System Shutdown/Reboot",
+  "T1485": "Data Destruction",
+  "T1593": "Search Open Websites/Domains",
+  "T1195": "Supply Chain Compromise",
+  "T1027.009": "Embedded Payloads",
+  "T1543.001": "Launch Agent",
+  "T1074.001": "Local Data Staging",
+  "T1564.001": "Hidden Files and Directories",
+  "T1134.002": "Create Process with Token",
+  "T1573.002": "Asymmetric Cryptography",
+  "T1012": "Query Registry",
+  "T1069.002": "Domain Groups",
+  "T1546.015": "Component Object Model Hijacking",
+  "T1614.001": "System Language Discovery",
+  "T1218.007": "Msiexec",
+  "T1120": "Peripheral Device Discovery",
+  "T1553.004": "Install Root Certificate",
+  "T1557": "Adversary-in-the-Middle",
+  "T1553": "Subvert Trust Controls",
+  "T1583.008": "Malvertising",
+  "T1185": "Browser Session Hijacking",
+  "T1569": "System Services",
+  "T1007": "System Service Discovery",
+  "T1070.006": "Timestomp",
+  "T1561": "Disk Wipe",
+  "T1553.002": "Code Signing",
+  "T1497.003": "Time Based Evasion",
+  "T1063": "Security Software Discovery",
+  "T1568.002": "Domain Generation Algorithms",
+  "T1132": "Data Encoding",
+  "T1036.005": "Match Legitimate Name or Location",
+  "T1036.003": "Rename System Utilities",
+  "T1183": "Image File Execution Options Injection",
+  "T1003.006": "DCSync",
+  "T1562.002": "Disable Windows Event Logging",
+  "T1567.002": "Exfiltration to Cloud Storage",
+  "T1574.007": "Path Interception by PATH Environment Variable",
+  "T1505.004": "IIS Components",
+  "T1080": "Taint Shared Content",
+  "T1561.001": "Disk Content Wipe",
+  "T1593.002": "Search Engines",
+  "T1199": "Trusted Relationship",
+  "T1078.002": "Domain Accounts",
+  "T1505": "Server Software Component",
+  "T1029": "Scheduled Transfer",
+  "T1557.001": "LLMNR/NBT-NS Poisoning and SMB Relay",
+  "T1074.002": "Remote Data Staging",
+  "T1133": "External Remote Services",
+  "T1552": "Unsecured Credentials",
+  "T1078.004": "Cloud Accounts",
+  "T1530": "Data from Cloud Storage",
+  "T1610": "Deploy Container",
+  "T1583.004": "Server",
+  "T1496": "Resource Highjacking",
+  "T1571": "Non-Standard Port",
+  "T1620": "Reflective Code Loading",
+  "T1547.004": "Winlogon Helper DLL",
+  "T1560.002": "Archive via Library",
+  "T1132.001": "Standard Encoding",
+  "T1574.011": "Services Registry Permissions Weakness",
+  "T1036.004": "Masquerade Task or Service",
+  "T1110.003": "Password Spraying",
+  "T1056.001": "Keylogging",
+  "T1053.003": "Cron",
+  "T1543.002": "Create or Modify System Process: Systemd Service",
+  "T1205": "Traffic Signaling",
+  "T0834": "Native API",
+  "T1553.006": "Code Signing Policy Modification",
+  "T1014": "Rootkit",
+  "T1546": "Event Triggered Execution",
+  "T1559": "Inter-Process Communication",
+  "T1505.002": "Transport Agent",
+  "T1114.002": "Remote Email Collection",
+  "T1001.002": "Steganography",
+  "T1564.008": "Email Hiding Rules",
+  "T1621": "Multi-Factor Authentication Request Generation",
+  "T1552.001": "Credentials In Files",
+  "T1027.003": "Steganography",
+  "T1218.004": "InstallUtil"
+ },
+ "start_prob": {
+  "T1003.003": 0.000618,
+  "T1037": 0.000618,
+  "T1037.004": 0.000618,
+  "T1059.006": 0.000618,
+  "T1070": 0.000618,
+  "T1070.004": 0.000618,
+  "T1071.001": 0.000618,
+  "T1083": 0.000618,
+  "T1105": 0.002474,
+  "T1189": 0.003711,
+  "T1190": 0.014842,
+  "T1203": 0.000618,
+  "T1204.002": 0.004329,
+  "T1547.009": 0.002474,
+  "T1553.002": 0.001237,
+  "T1566": 0.000618,
+  "T1566.001": 0.515152,
+  "T1566.002": 0.445887,
+  "T1583.004": 0.001237,
+  "T1587.001": 0.001237,
+  "T1593": 0.001237
+ },
+ "next_prob": {
+  "T1001.003": {
+   "T1018": 0.333333,
+   "T1046": 0.333333,
+   "T1082": 0.333333
+  },
+  "T1003.001": {
+   "T1021.001": 0.75,
+   "T1595": 0.25
+  },
+  "T1003.003": {
+   "T1560.001": 1.0
+  },
+  "T1003.004": {
+   "T1021.002": 0.25,
+   "T1047": 0.25,
+   "T1550.002": 0.25,
+   "T1550.003": 0.25
+  },
+  "T1005": {
+   "T1041": 0.5,
+   "T1074": 0.5
+  },
+  "T1012": {
+   "T1033": 0.333333,
+   "T1069.002": 0.333333,
+   "T1082": 0.333333
+  },
+  "T1016": {
+   "T1003.004": 0.995851,
+   "T1219": 0.004149
+  },
+  "T1016.001": {
+   "T1053.005": 1.0
+  },
+  "T1018": {
+   "T1016": 0.49896,
+   "T1049": 0.49896,
+   "T1098": 0.002079
+  },
+  "T1021.001": {
+   "T1059.001": 0.009174,
+   "T1059.003": 0.027523,
+   "T1078.001": 0.009174,
+   "T1119": 0.009174,
+   "T1135": 0.009174,
+   "T1217": 0.009174,
+   "T1219": 0.027523,
+   "T1552.002": 0.009174,
+   "T1562.001": 0.009174,
+   "T1569.002": 0.880734
+  },
+  "T1027": {
+   "T1112": 0.947368,
+   "T1620": 0.052632
+  },
+  "T1033": {
+   "T1027": 1.0
+  },
+  "T1036": {
+   "T1057": 0.5,
+   "T1518.001": 0.5
+  },
+  "T1037": {
+   "T1071.001": 1.0
+  },
+  "T1037.004": {
+   "T1071.001": 1.0
+  },
+  "T1046": {
+   "T1016": 0.5,
+   "T1049": 0.5
+  },
+  "T1047": {
+   "T1055": 0.030303,
+   "T1112": 0.484848,
+   "T1562.009": 0.484848
+  },
+  "T1049": {
+   "T1003.004": 1.0
+  },
+  "T1053.005": {
+   "T1021.001": 0.000991,
+   "T1140": 0.713578,
+   "T1574.002": 0.285431
+  },
+  "T1056.003": {
+   "T1021.001": 1.0
+  },
+  "T1059": {
+   "T1087.002": 0.25,
+   "T1135": 0.25,
+   "T1185": 0.25,
+   "T1482": 0.25
+  },
+  "T1059.001": {
+   "T1018": 0.000641,
+   "T1027": 0.000641,
+   "T1053.005": 0.092308,
+   "T1119": 0.000641,
+   "T1137": 0.092308,
+   "T1140": 0.461538,
+   "T1490": 0.005769,
+   "T1505.003": 0.000641,
+   "T1543.003": 0.092308,
+   "T1547.001": 0.092308,
+   "T1562.001": 0.000641,
+   "T1564.004": 0.092308,
+   "T1574.001": 0.067949
+  },
+  "T1059.003": {
+   "T1490": 1.0
+  },
+  "T1059.005": {
+   "T1053.005": 0.174123,
+   "T1059.001": 0.128174,
+   "T1137": 0.174123,
+   "T1218.011": 0.001209,
+   "T1543.003": 0.174123,
+   "T1547.001": 0.174123,
+   "T1564.004": 0.174123
+  },
+  "T1059.006": {
+   "T1211": 0.333333,
+   "T1518.001": 0.666667
+  },
+  "T1059.007": {
+   "T1105": 1.0
+  },
+  "T1068": {
+   "T1059": 0.125,
+   "T1119": 0.125,
+   "T1140": 0.75
+  },
+  "T1069.002": {
+   "T1027": 1.0
+  },
+  "T1070": {
+   "T1071.001": 0.5,
+   "T1560.001": 0.5
+  },
+  "T1070.004": {
+   "T1136.001": 0.5,
+   "T1562.001": 0.5
+  },
+  "T1071": {
+   "T1087": 1.0
+  },
+  "T1071.001": {
+   "T1041": 0.5,
+   "T1203": 0.5
+  },
+  "T1071.003": {
+   "T1018": 0.333333,
+   "T1046": 0.333333,
+   "T1082": 0.333333
+  },
+  "T1071.004": {
+   "T1018": 0.333333,
+   "T1046": 0.333333,
+   "T1082": 0.333333
+  },
+  "T1074": {
+   "T1048": 1.0
+  },
+  "T1074.001": {
+   "T1041": 1.0
+  },
+  "T1078": {
+   "T1021.001": 1.0
+  },
+  "T1082": {
+   "T1016": 0.493827,
+   "T1027": 0.012346,
+   "T1049": 0.493827
+  },
+  "T1083": {
+   "T1005": 0.010204,
+   "T1105": 0.010204,
+   "T1486": 0.979592
+  },
+  "T1087": {
+   "T1003.001": 1.0
+  },
+  "T1087.002": {
+   "T1071": 1.0
+  },
+  "T1090": {
+   "T1021.001": 0.333333,
+   "T1496": 0.333333,
+   "T1583.008": 0.333333
+  },
+  "T1098": {
+   "T1003.001": 0.018519,
+   "T1573": 0.981481
+  },
+  "T1105": {
+   "T1016": 0.016667,
+   "T1055": 0.008333,
+   "T1059.006": 0.016667,
+   "T1068": 0.008333,
+   "T1070": 0.008333,
+   "T1070.004": 0.008333,
+   "T1082": 0.016667,
+   "T1083": 0.008333,
+   "T1087.002": 0.016667,
+   "T1090": 0.008333,
+   "T1105": 0.008333,
+   "T1112": 0.016667,
+   "T1136.002": 0.008333,
+   "T1218.011": 0.016667,
+   "T1219": 0.4,
+   "T1505.003": 0.008333,
+   "T1553.004": 0.008333,
+   "T1555": 0.016667,
+   "T1562.004": 0.4
+  },
+  "T1112": {
+   "T1083": 0.727273,
+   "T1489": 0.272727
+  },
+  "T1119": {
+   "T1005": 0.333333,
+   "T1074.001": 0.333333,
+   "T1560.001": 0.333333
+  },
+  "T1134.002": {
+   "T1012": 1.0
+  },
+  "T1135": {
+   "T1071": 1.0
+  },
+  "T1136": {
+   "T1484.001": 1.0
+  },
+  "T1136.001": {
+   "T1016.001": 1.0
+  },
+  "T1136.002": {
+   "T1016": 0.75,
+   "T1021.001": 0.25
+  },
+  "T1137": {
+   "T1574.002": 1.0
+  },
+  "T1140": {
+   "T1059.001": 0.460358,
+   "T1059.005": 0.460358,
+   "T1134.002": 0.011509,
+   "T1204.002": 0.067775
+  },
+  "T1185": {
+   "T1070.004": 1.0
+  },
+  "T1189": {
+   "T1068": 1.0
+  },
+  "T1190": {
+   "T1059.001": 0.148148,
+   "T1105": 0.037037,
+   "T1190": 0.111111,
+   "T1505.003": 0.555556,
+   "T1554": 0.148148
+  },
+  "T1195": {
+   "T1036": 1.0
+  },
+  "T1195.002": {
+   "T1195": 0.25,
+   "T1195.002": 0.25,
+   "T1569.002": 0.5
+  },
+  "T1203": {
+   "T1003.001": 0.333333,
+   "T1068": 0.333333,
+   "T1105": 0.333333
+  },
+  "T1204.002": {
+   "T1059.005": 0.938596,
+   "T1105": 0.008772,
+   "T1140": 0.052632
+  },
+  "T1218.010": {
+   "T1001.003": 0.310479,
+   "T1071.003": 0.310479,
+   "T1071.004": 0.310479,
+   "T1136": 0.034282,
+   "T1543.003": 0.034282
+  },
+  "T1218.011": {
+   "T1047": 0.5,
+   "T1105": 0.5
+  },
+  "T1219": {
+   "T1021.001": 0.927273,
+   "T1136.002": 0.054545,
+   "T1590.004": 0.018182
+  },
+  "T1482": {
+   "T1071": 1.0
+  },
+  "T1484.001": {
+   "T1098": 1.0
+  },
+  "T1485": {
+   "T1083": 1.0
+  },
+  "T1486": {
+   "T1491.001": 1.0
+  },
+  "T1489": {
+   "T1059.001": 0.214286,
+   "T1059.003": 0.214286,
+   "T1560.001": 0.571429
+  },
+  "T1490": {
+   "T1112": 0.32,
+   "T1485": 0.36,
+   "T1562.009": 0.32
+  },
+  "T1491.001": {
+   "T1070.004": 1.0
+  },
+  "T1497": {
+   "T1560.001": 1.0
+  },
+  "T1505.003": {
+   "T1074": 0.071429,
+   "T1203": 0.071429,
+   "T1563.002": 0.785714,
+   "T1620": 0.071429
+  },
+  "T1543.003": {
+   "T1573": 0.155425,
+   "T1574.002": 0.844575
+  },
+  "T1547.001": {
+   "T1574.002": 1.0
+  },
+  "T1547.009": {
+   "T1059": 0.75,
+   "T1105": 0.25
+  },
+  "T1552": {
+   "T1041": 1.0
+  },
+  "T1553": {
+   "T1105": 1.0
+  },
+  "T1553.002": {
+   "T1195.002": 1.0
+  },
+  "T1553.004": {
+   "T1557": 1.0
+  },
+  "T1554": {
+   "T1056.003": 1.0
+  },
+  "T1557": {
+   "T1553": 1.0
+  },
+  "T1560.001": {
+   "T1070": 0.010309,
+   "T1573": 0.989691
+  },
+  "T1562.001": {
+   "T1105": 0.038462,
+   "T1560.001": 0.923077,
+   "T1570": 0.038462
+  },
+  "T1562.004": {
+   "T1021.001": 1.0
+  },
+  "T1562.009": {
+   "T1083": 1.0
+  },
+  "T1563.002": {
+   "T1078": 1.0
+  },
+  "T1564.004": {
+   "T1574.002": 1.0
+  },
+  "T1566": {
+   "T1219": 1.0
+  },
+  "T1566.001": {
+   "T1053.005": 0.864346,
+   "T1059.007": 0.0012,
+   "T1140": 0.134454
+  },
+  "T1566.002": {
+   "T1059.001": 0.998613,
+   "T1204.002": 0.001387
+  },
+  "T1567": {
+   "T1047": 0.333333,
+   "T1490": 0.333333,
+   "T1657": 0.333333
+  },
+  "T1569.002": {
+   "T1063": 0.02,
+   "T1489": 0.24,
+   "T1497": 0.24,
+   "T1497.003": 0.02,
+   "T1562.001": 0.24,
+   "T1622": 0.24
+  },
+  "T1570": {
+   "T1090": 1.0
+  },
+  "T1571": {
+   "T1496": 1.0
+  },
+  "T1573": {
+   "T1105": 0.524752,
+   "T1567": 0.475248
+  },
+  "T1574.001": {
+   "T1218.010": 1.0
+  },
+  "T1574.002": {
+   "T1218.010": 1.0
+  },
+  "T1583.004": {
+   "T1090": 0.5,
+   "T1571": 0.5
+  },
+  "T1583.008": {
+   "T1059": 1.0
+  },
+  "T1587.001": {
+   "T1195.002": 1.0
+  },
+  "T1593": {
+   "T1195.002": 1.0
+  },
+  "T1620": {
+   "T1552": 1.0
+  },
+  "T1622": {
+   "T1560.001": 1.0
+  },
+  "T1657": {
+   "T1112": 0.5,
+   "T1562.009": 0.5
+  }
+ }
+}

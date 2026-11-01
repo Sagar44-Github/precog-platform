@@ -1,0 +1,394 @@
+{
+ "meta": {
+  "what": "A hand-written rule table: which ATT&CK technique usually follows which, in kill-chain order, for the 26 curated techniques. The numbers are rule weights chosen by hand, NOT learned from data. It is the fallback when the exported repository table is missing (FORECAST_SOURCE=lookup) and the baseline the learned table is compared with.",
+  "technique_names": "official ATT&CK names, copied from detect/detect_events/data/attack_techniques.json"
+ },
+ "names": {
+  "T1046": "Network Service Discovery",
+  "T1110": "Brute Force",
+  "T1110.001": "Password Guessing",
+  "T1110.003": "Password Spraying",
+  "T1078": "Valid Accounts",
+  "T1021": "Remote Services",
+  "T1021.001": "Remote Desktop Protocol",
+  "T1021.002": "SMB/Windows Admin Shares",
+  "T1021.003": "Distributed Component Object Model",
+  "T1021.004": "SSH",
+  "T1571": "Non-Standard Port",
+  "T1048": "Exfiltration Over Alternative Protocol",
+  "T1041": "Exfiltration Over C2 Channel",
+  "T1059": "Command and Scripting Interpreter",
+  "T1087": "Account Discovery",
+  "T1018": "Remote System Discovery",
+  "T1083": "File and Directory Discovery",
+  "T1005": "Data from Local System",
+  "T1560": "Archive Collected Data",
+  "T1003": "OS Credential Dumping",
+  "T1570": "Lateral Tool Transfer",
+  "T1105": "Ingress Tool Transfer",
+  "T1190": "Exploit Public-Facing Application",
+  "T1135": "Network Share Discovery",
+  "T1133": "External Remote Services",
+  "T1068": "Exploitation for Privilege Escalation"
+ },
+ "next": {
+  "T1046": [
+   {
+    "id": "T1110",
+    "probability": 0.4
+   },
+   {
+    "id": "T1021",
+    "probability": 0.3
+   },
+   {
+    "id": "T1190",
+    "probability": 0.2
+   },
+   {
+    "id": "T1018",
+    "probability": 0.1
+   }
+  ],
+  "T1018": [
+   {
+    "id": "T1021",
+    "probability": 0.4
+   },
+   {
+    "id": "T1046",
+    "probability": 0.2
+   },
+   {
+    "id": "T1087",
+    "probability": 0.2
+   },
+   {
+    "id": "T1135",
+    "probability": 0.2
+   }
+  ],
+  "T1110": [
+   {
+    "id": "T1078",
+    "probability": 0.5
+   },
+   {
+    "id": "T1021",
+    "probability": 0.3
+   },
+   {
+    "id": "T1087",
+    "probability": 0.2
+   }
+  ],
+  "T1110.001": [
+   {
+    "id": "T1078",
+    "probability": 0.5
+   },
+   {
+    "id": "T1021",
+    "probability": 0.3
+   },
+   {
+    "id": "T1087",
+    "probability": 0.2
+   }
+  ],
+  "T1110.003": [
+   {
+    "id": "T1078",
+    "probability": 0.5
+   },
+   {
+    "id": "T1021",
+    "probability": 0.3
+   },
+   {
+    "id": "T1087",
+    "probability": 0.2
+   }
+  ],
+  "T1078": [
+   {
+    "id": "T1021",
+    "probability": 0.4
+   },
+   {
+    "id": "T1059",
+    "probability": 0.3
+   },
+   {
+    "id": "T1087",
+    "probability": 0.3
+   }
+  ],
+  "T1021": [
+   {
+    "id": "T1570",
+    "probability": 0.3
+   },
+   {
+    "id": "T1005",
+    "probability": 0.2
+   },
+   {
+    "id": "T1083",
+    "probability": 0.2
+   },
+   {
+    "id": "T1105",
+    "probability": 0.2
+   },
+   {
+    "id": "T1003",
+    "probability": 0.1
+   }
+  ],
+  "T1021.001": [
+   {
+    "id": "T1570",
+    "probability": 0.3
+   },
+   {
+    "id": "T1005",
+    "probability": 0.2
+   },
+   {
+    "id": "T1083",
+    "probability": 0.2
+   },
+   {
+    "id": "T1105",
+    "probability": 0.2
+   },
+   {
+    "id": "T1003",
+    "probability": 0.1
+   }
+  ],
+  "T1021.002": [
+   {
+    "id": "T1570",
+    "probability": 0.3
+   },
+   {
+    "id": "T1005",
+    "probability": 0.2
+   },
+   {
+    "id": "T1083",
+    "probability": 0.2
+   },
+   {
+    "id": "T1105",
+    "probability": 0.2
+   },
+   {
+    "id": "T1003",
+    "probability": 0.1
+   }
+  ],
+  "T1021.003": [
+   {
+    "id": "T1570",
+    "probability": 0.3
+   },
+   {
+    "id": "T1005",
+    "probability": 0.2
+   },
+   {
+    "id": "T1083",
+    "probability": 0.2
+   },
+   {
+    "id": "T1105",
+    "probability": 0.2
+   },
+   {
+    "id": "T1003",
+    "probability": 0.1
+   }
+  ],
+  "T1021.004": [
+   {
+    "id": "T1570",
+    "probability": 0.3
+   },
+   {
+    "id": "T1005",
+    "probability": 0.2
+   },
+   {
+    "id": "T1083",
+    "probability": 0.2
+   },
+   {
+    "id": "T1105",
+    "probability": 0.2
+   },
+   {
+    "id": "T1003",
+    "probability": 0.1
+   }
+  ],
+  "T1190": [
+   {
+    "id": "T1059",
+    "probability": 0.4
+   },
+   {
+    "id": "T1068",
+    "probability": 0.3
+   },
+   {
+    "id": "T1105",
+    "probability": 0.3
+   }
+  ],
+  "T1133": [
+   {
+    "id": "T1021",
+    "probability": 0.5
+   },
+   {
+    "id": "T1078",
+    "probability": 0.5
+   }
+  ],
+  "T1059": [
+   {
+    "id": "T1087",
+    "probability": 0.3
+   },
+   {
+    "id": "T1105",
+    "probability": 0.3
+   },
+   {
+    "id": "T1003",
+    "probability": 0.2
+   },
+   {
+    "id": "T1068",
+    "probability": 0.2
+   }
+  ],
+  "T1087": [
+   {
+    "id": "T1021",
+    "probability": 0.4
+   },
+   {
+    "id": "T1018",
+    "probability": 0.3
+   },
+   {
+    "id": "T1083",
+    "probability": 0.3
+   }
+  ],
+  "T1135": [
+   {
+    "id": "T1005",
+    "probability": 0.5
+   },
+   {
+    "id": "T1083",
+    "probability": 0.5
+   }
+  ],
+  "T1083": [
+   {
+    "id": "T1005",
+    "probability": 0.6
+   },
+   {
+    "id": "T1560",
+    "probability": 0.4
+   }
+  ],
+  "T1005": [
+   {
+    "id": "T1560",
+    "probability": 0.6
+   },
+   {
+    "id": "T1048",
+    "probability": 0.4
+   }
+  ],
+  "T1003": [
+   {
+    "id": "T1021",
+    "probability": 0.5
+   },
+   {
+    "id": "T1078",
+    "probability": 0.5
+   }
+  ],
+  "T1560": [
+   {
+    "id": "T1048",
+    "probability": 0.6
+   },
+   {
+    "id": "T1041",
+    "probability": 0.4
+   }
+  ],
+  "T1105": [
+   {
+    "id": "T1021",
+    "probability": 0.4
+   },
+   {
+    "id": "T1003",
+    "probability": 0.3
+   },
+   {
+    "id": "T1059",
+    "probability": 0.3
+   }
+  ],
+  "T1570": [
+   {
+    "id": "T1021",
+    "probability": 0.4
+   },
+   {
+    "id": "T1003",
+    "probability": 0.3
+   },
+   {
+    "id": "T1059",
+    "probability": 0.3
+   }
+  ],
+  "T1571": [
+   {
+    "id": "T1041",
+    "probability": 0.5
+   },
+   {
+    "id": "T1048",
+    "probability": 0.5
+   }
+  ],
+  "T1068": [
+   {
+    "id": "T1003",
+    "probability": 0.5
+   },
+   {
+    "id": "T1078",
+    "probability": 0.5
+   }
+  ],
+  "T1048": [],
+  "T1041": []
+ }
+}

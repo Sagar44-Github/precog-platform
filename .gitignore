@@ -39,6 +39,5 @@ Thumbs.db
 scratch-ai/
 catboost_info/
 
-# ---- Firebase web settings (kept out of Git) ----
-web/.env.local
-.env.local
+# ---- rehearsal log (your own laptop) ----
+lead-core/integration/rehearsals.csv

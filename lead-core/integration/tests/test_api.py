@@ -21,7 +21,7 @@ def test_health_needs_no_login(client):
     assert reply.status_code == 200
     body = reply.get_json()
     assert body["status"] == "ok" and body["data_mode"] == "sample"
-    assert set(body["modules"]) == {"detect_events", "graph_replay", "graph_net", "viz_containment"}
+    assert set(body["modules"]) == {"detect_events", "graph_replay", "graph_net", "viz_containment", "precog_engine"}
 
 
 def test_protected_routes_answer_401_json_not_a_redirect(client):

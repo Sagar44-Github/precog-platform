@@ -1,20 +1,16 @@
 """Joins everything to the NIDS Flask app. Called once at start-up from run_app.py."""
 import importlib
 import logging
-
 import sys
 from dataclasses import dataclass
 from pathlib import Path
 
 from .config import Config
 from .contracts import Contracts
-
 from .hooks import Hooks
 from .routes import bp
-
 from .sample_loader import load_samples
 from .webapp import register_webapp
-
 from .world_state import WorldState
 
 log = logging.getLogger("precog.addons")
@@ -22,7 +18,7 @@ log = logging.getLogger("precog.addons")
 # Folders that hold each role's Python packages (added to Python's search path).
 ROLE_FOLDERS = ("detect", "graph", "viz", "lead-core/precog")
 # Each package may define register(ctx). Missing packages are skipped, never fatal.
-ROLE_PACKAGES = ("detect_events", "graph_replay", "graph_net", "viz_containment")
+ROLE_PACKAGES = ("detect_events", "graph_replay", "graph_net", "viz_containment", "precog_engine")
 
 
 @dataclass
@@ -36,44 +32,33 @@ class AddonContext:
     flask_app: object
 
 
-
 def _load_role_packages(ctx, packages):
     report = {}
     for name in packages:
-
         try:
             module = importlib.import_module(name)
         except ModuleNotFoundError as exc:
-
             # Only "this package is missing" is fine. A missing library inside it is a real error.
             if exc.name == name:
                 report[name] = "missing"
                 continue
-
             log.exception("Module %s could not be imported", name)
             report[name] = "error: %s" % exc
             continue
-
         except Exception as exc:  # a bug in a role's code must not stop the whole server
             log.exception("Module %s could not be imported", name)
             report[name] = "error: %s" % exc
-
             continue
-
         register = getattr(module, "register", None)
-
         if register is None:
             report[name] = "loaded (no register function yet)"
             continue
-
         try:
             register(ctx)
             report[name] = "registered"
-
         except Exception as exc:
             log.exception("Module %s failed in register()", name)
             report[name] = "error: %s" % exc
-
     return report
 
 
