@@ -1,7 +1,6 @@
 import { useEffect, useReducer, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api, apiGet } from '../../shared/api.js'
-import { SimulationBadge } from '../../shared/components.jsx'
 import { AccuracyCounter, AttackPath2D, ForecastBars, OutcomeCard, SeverityBadge, StateChip } from '../mobile/index.jsx'
 import { AlertVolumeChart, ForecastAccuracyChart } from '../charts/index.jsx'
 import { containReducer, formatTime, hostName, initialContain, replayButtons, replayWord, sceneSummary, SPEEDS, threatLevel, timelineMarks } from './logic.js'
@@ -41,8 +40,7 @@ export function TopBar({ state, stale }) {
   const level = threatLevel(state)
   return (
     <header className="c-top">
-      <div className="c-brand-lockup"><span className="c-brand-glyph" aria-hidden="true">◈</span><div><strong aria-label="Precog SOC">PRECOG <em>SOC</em></strong><small>THREAT OPERATIONS CENTER</small></div></div>
-      <div className="c-top-state"><SimulationBadge />{level && <span className={`c-threat c-threat-${level.key}`} aria-label={`Threat: ${level.word}`} aria-live="polite"><span aria-hidden="true">{level.icon}</span><span><small>THREAT LEVEL</small><b>{level.word}</b></span></span>}</div>
+      <div className="c-top-state">{level && <span className={`c-threat c-threat-${level.key}`} aria-label={`Threat: ${level.word}`} aria-live="polite"><span aria-hidden="true">{level.icon}</span><span><small>THREAT LEVEL</small><b>{level.word}</b></span></span>}</div>
       <ReplayControls replay={state ? state.replay : null} />
       <div className="c-top-actions"><Link to="/mobile" className="c-mobile-link"><span aria-hidden="true">▣</span> Phone view</Link><span className="c-conn" role="status"><i aria-hidden="true" />{stale ? 'Offline · stale data' : 'Connected'}</span></div>
     </header>

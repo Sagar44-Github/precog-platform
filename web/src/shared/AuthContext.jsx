@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { api, ApiError } from './api.js'
+import { ThemeToggle } from './theme-context.jsx'
 
 const AuthContext = createContext(null)
 
@@ -66,6 +67,7 @@ export function LoginPage() {
   return (
     <div className="login-shell">
       <div className="login-ambient" aria-hidden="true"><i /><i /><i /></div>
+      <ThemeToggle className="login-theme-toggle" />
       <form className="login-card" onSubmit={submit}>
         <div className="login-brand-mark" aria-hidden="true"><span>◈</span><i /></div>
         <p className="login-kicker">THREAT OPERATIONS · REPLAY LAB</p>

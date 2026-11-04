@@ -8,7 +8,10 @@ import { spawn } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 
 const repoRoot = resolve(fileURLToPath(new URL('../..', import.meta.url)))
-const screenshots = join(repoRoot, 'docs', 'audit', 'screenshots')
+const artifactsDir = process.env.AUDIT_OUTPUT_DIR
+  ? resolve(repoRoot, process.env.AUDIT_OUTPUT_DIR)
+  : join(repoRoot, 'docs', 'audit')
+const screenshots = join(artifactsDir, 'screenshots')
 const basePort = Number(process.env.AUDIT_PORT || 55120)
 const password = randomBytes(18).toString('hex')
 const sizes = [
@@ -85,13 +88,20 @@ async function stopBackend(child) {
 async function checkViewport(page, mode, routeName, path, size) {
   await page.setViewportSize({ width: size.width, height: size.height })
   await page.goto(path, { waitUntil: 'domcontentloaded', timeout: 30000 })
+  if (routeName === 'console' && size.width >= 1024) {
+    await page.locator('.c-app').waitFor({ timeout: 8000 }).catch(() => {})
+    await page.waitForFunction(() => document.querySelector('.c-scene canvas'), null, { timeout: 15000 }).catch(() => {})
+  }
   await page.waitForTimeout(1800)
   const state = await page.evaluate(() => ({
     width: window.innerWidth,
     scrollWidth: document.documentElement.scrollWidth,
     hasSimulationLabel: document.body.innerText.includes('SIMULATION'),
     title: document.title,
+    bodyTextPreview: document.body.innerText.slice(0, 360),
     canvasCount: document.querySelectorAll('canvas').length,
+    hasConsoleHandoff: Boolean(document.querySelector('.console-handoff')),
+    hasCommandTrigger: Boolean(document.querySelector('.command-trigger')),
     overflowElements: Array.from(document.querySelectorAll('body *')).map((element) => {
       const rect = element.getBoundingClientRect()
       return { tag: element.tagName.toLowerCase(), className: typeof element.className === 'string' ? element.className : '', left: Math.round(rect.left), right: Math.round(rect.right), width: Math.round(rect.width) }
@@ -101,6 +111,8 @@ async function checkViewport(page, mode, routeName, path, size) {
   const failures = []
   if (state.scrollWidth > state.width) failures.push(`horizontal overflow ${state.scrollWidth}px > ${state.width}px`)
   if (!state.hasSimulationLabel) failures.push('SIMULATION label missing')
+  if (routeName === 'console' && size.width < 1024 && !state.hasConsoleHandoff) failures.push('narrow console handoff is missing')
+  if (routeName === 'console' && size.width >= 1024 && !state.hasCommandTrigger) failures.push('desktop command palette trigger is missing')
   if (failures.length) check.failure = failures.join('; ')
   await page.screenshot({ path: join(screenshots, check.screenshot), animations: 'disabled' })
   return check
@@ -129,6 +141,7 @@ async function runMode(browser, mode, port, dbDir, errors) {
   const checks = []
   let context
   let health
+  let liveReplayStarted = false
   try {
     health = await waitForBackend(base, processInfo)
     if (health.data_mode !== mode) throw new Error(`Expected ${mode} mode; health reported ${health.data_mode}`)
@@ -144,15 +157,24 @@ async function runMode(browser, mode, port, dbDir, errors) {
     await page.locator('#login-password').fill(password)
     await page.locator('button[type="submit"]').click()
     await page.waitForURL('**/app/console', { timeout: 15000 })
+    await page.locator('.app-shell, .console-handoff').first().waitFor({ timeout: 15000 })
 
     if (mode === 'live') {
-      await page.getByRole('button', { name: 'Start Golden Path' }).click()
-      await page.waitForFunction(async () => {
-        const response = await fetch('/api/x/state')
-        if (!response.ok) return false
-        const state = await response.json()
-        return Boolean(state.forecast && state.forecast.status === 'pending')
-      }, null, { timeout: 30000 })
+      try {
+        const start = page.getByRole('button', { name: 'Start Golden Path' })
+        await start.waitFor({ timeout: 15000 })
+        await start.click()
+        await page.waitForFunction(async () => {
+          const response = await fetch('/api/x/state')
+          if (!response.ok) return false
+          const state = await response.json()
+          return Boolean(state.forecast && state.forecast.status === 'pending')
+        }, null, { timeout: 30000 })
+        liveReplayStarted = true
+      } catch (error) {
+        report.liveReplayStart = { error: error.message, url: page.url(), bodyText: await page.locator('body').innerText().catch(() => '') }
+        errors.push(`live replay could not start in browser audit: ${error.message}`)
+      }
     }
 
     const alerts = await page.evaluate(async () => {
@@ -168,27 +190,67 @@ async function runMode(browser, mode, port, dbDir, errors) {
           : path
         const check = await checkViewport(page, mode, routeName, `${base}${route}`, size)
         const failures = check.failure ? [check.failure] : []
-        if (routeName === 'console') {
+        if (routeName === 'console' && size.width >= 1024) {
           const canvas = page.locator('canvas').first()
-          const bounds = await canvas.boundingBox()
-          const png = PNG.sync.read(await canvas.screenshot())
-          const colors = new Set()
-          let visibleSamples = 0
-          for (let i = 0; i < png.data.length; i += 4 * 97) {
-            const color = `${png.data[i]},${png.data[i + 1]},${png.data[i + 2]},${png.data[i + 3]}`
-            colors.add(color)
-            if (png.data[i + 3] > 0 && (png.data[i] || png.data[i + 1] || png.data[i + 2])) visibleSamples += 1
+          if (await canvas.count()) {
+            const bounds = await canvas.boundingBox()
+            const png = PNG.sync.read(await canvas.screenshot())
+            const colors = new Set()
+            let visibleSamples = 0
+            for (let i = 0; i < png.data.length; i += 4 * 97) {
+              const color = `${png.data[i]},${png.data[i + 1]},${png.data[i + 2]},${png.data[i + 3]}`
+              colors.add(color)
+              if (png.data[i + 3] > 0 && (png.data[i] || png.data[i + 1] || png.data[i + 2])) visibleSamples += 1
+            }
+            check.canvas = { width: png.width, height: png.height, sampledColors: colors.size, visibleSamples, nonBlank: colors.size > 2 && visibleSamples > 8, bounds }
+            if (!check.canvas.nonBlank) failures.push('WebGL canvas screenshot is blank')
+          } else {
+            check.canvas = { rendered: false, bodyText: await page.locator('body').innerText() }
+            failures.push('3D canvas is missing at desktop width')
           }
-          check.canvas = { width: png.width, height: png.height, sampledColors: colors.size, visibleSamples, nonBlank: colors.size > 2 && visibleSamples > 8, bounds }
-          if (!check.canvas.nonBlank) failures.push('WebGL canvas screenshot is blank')
+        } else if (routeName === 'console') {
+          check.canvas = { rendered: false, reason: 'console handoff is shown below 1024px' }
         }
         if (failures.length) check.failure = failures.join('; ')
         checks.push(check)
       }
     }
 
-    if (mode === 'live') {
-      await page.setViewportSize({ width: 390, height: 844 })
+    if (mode === 'sample') {
+      await page.setViewportSize({ width: 1440, height: 900 })
+      await page.goto(`${base}/app/console`, { waitUntil: 'domcontentloaded' })
+      try {
+        await page.getByRole('button', { name: /Search commands/ }).waitFor({ timeout: 10000 })
+        await page.keyboard.press('Control+k')
+        await page.getByRole('dialog', { name: 'Command palette' }).waitFor({ timeout: 5000 })
+        await page.getByRole('textbox', { name: 'Search commands' }).fill('Open mobile SOC')
+        await page.keyboard.press('Enter')
+        await page.waitForURL('**/app/mobile')
+        report.shellInteractions = { commandPaletteNavigation: 'Ctrl+K search and Enter opened Mobile SOC' }
+
+        await page.goto(`${base}/app/console`, { waitUntil: 'domcontentloaded' })
+        await page.getByRole('button', { name: /Search commands/ }).waitFor({ timeout: 10000 })
+        await page.keyboard.press('Control+k')
+        await page.getByRole('option', { name: /Switch to light theme/ }).click()
+        await page.waitForFunction(() => document.documentElement.dataset.theme === 'light')
+        await page.reload({ waitUntil: 'domcontentloaded' })
+        await page.waitForFunction(() => document.documentElement.dataset.theme === 'light')
+        await page.keyboard.press('Control+k')
+        await page.getByRole('option', { name: /Switch to dark theme/ }).click()
+        await page.waitForFunction(() => document.documentElement.dataset.theme === 'dark')
+        report.shellInteractions.themePersistence = 'light/dark switch and persisted reload verified'
+      } catch (error) {
+        report.shellInteractions = {
+          error: error.message,
+          url: page.url(),
+          bodyText: await page.locator('body').innerText().catch(() => ''),
+        }
+        errors.push(`${mode} shell interaction failed: ${error.message}`)
+      }
+    }
+
+    if (mode === 'live' && liveReplayStarted) {
+      await page.setViewportSize({ width: 1440, height: 900 })
       await page.goto(`${base}/app/console`, { waitUntil: 'domcontentloaded' })
       await page.getByRole('button', { name: /^Contain / }).click({ timeout: 15000 })
       await page.getByRole('dialog').getByRole('button', { name: 'Confirm' }).click()
@@ -225,7 +287,7 @@ async function main() {
   report.errors = errors
   report.expectedEvents = expectedEvents
   report.failures = Object.values(report.modes).flatMap(({ checks }) => checks.filter((check) => check.failure))
-  const reportFile = join(repoRoot, 'docs', 'audit', 'browser-audit-results.json')
+  const reportFile = join(artifactsDir, 'browser-audit-results.json')
   await import('node:fs/promises').then(({ writeFile }) => writeFile(reportFile, `${JSON.stringify(report, null, 2)}\n`))
   console.log(JSON.stringify({
     report: reportFile,

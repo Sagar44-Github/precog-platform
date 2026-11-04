@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { MemoryRouter } from 'react-router-dom'
+import { StaticRouter } from 'react-router-dom/server.js'
 import { AlertsPanel, ConsoleContain, ForecastPanel, LeftRail, NodeDetailPanel, ReplayControls, SceneSummary, TimelineStrip, TopBar } from './panels.jsx'
 import { AlertVolumeChart, ForecastAccuracyChart } from '../charts/index.jsx'
 
@@ -14,12 +14,10 @@ const state = {
   replay: { state: 'waiting_for_decision', scenario_id: 'golden-path', speed: 1, position: 3 },
   metrics: { forecasts_resolved: 1, hits: 1, hit_rate: 1, calibration_bins: [] },
 }
-const html = (el) => renderToStaticMarkup(<MemoryRouter>{el}</MemoryRouter>)
+const html = (el) => renderToStaticMarkup(<StaticRouter location="/console">{el}</StaticRouter>)
 
-test('the top bar shows the name, the simulation badge, the threat level and the connection', () => {
+test('the replay top bar shows the threat level and the connection', () => {
   const out = html(<TopBar state={state} stale={false} />)
-  assert.match(out, /Precog SOC/)
-  assert.match(out, /SIMULATION/)
   assert.match(out, /Threat: Under attack/)
   assert.match(out, /Connected/)
   assert.match(html(<TopBar state={state} stale />), /Offline · stale data/)

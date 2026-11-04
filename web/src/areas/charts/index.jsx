@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import { BarController, BarElement, CategoryScale, Chart, Legend, LineController, LineElement, LinearScale, PointElement, Tooltip } from 'chart.js'
 import { EmptyState } from '../../shared/components.jsx'
+import { useTheme } from '../../shared/theme-context.jsx'
 import { CALIBRATION_CAPTION, PATTERNS, alertVolume, calibrationPoints, calibrationSummary, referenceLine, volumeSummary } from './chartData.js'
 
 Chart.register(BarController, BarElement, CategoryScale, Legend, LineController, LineElement, LinearScale, PointElement, Tooltip)
@@ -36,6 +37,7 @@ function useChart(build, deps) {
 const axis = (title) => ({ title: { display: true, text: title, color: cssVar('--text-muted') }, ticks: { color: cssVar('--text-muted'), maxTicksLimit: 5 }, grid: { color: cssVar('--border') } })
 
 export function ForecastAccuracyChart({ metrics }) {
+  const { theme } = useTheme()
   const points = calibrationPoints(metrics)
   const canvas = useChart(() => ({
     type: 'line',
@@ -44,7 +46,7 @@ export function ForecastAccuracyChart({ metrics }) {
       { label: 'Perfect', data: referenceLine(), borderColor: cssVar('--text-muted'), borderDash: [6, 4], pointRadius: 0 },
     ] },
     options: { parsing: false, animation: reducedMotion() ? false : { duration: 300 }, maintainAspectRatio: false, scales: { x: { type: 'linear', min: 0, max: 100, ...axis('Stated confidence (%)') }, y: { type: 'linear', min: 0, max: 100, ...axis('Observed hit rate (%)') } }, plugins: { legend: { labels: { color: cssVar('--text-muted') } } } },
-  }), [JSON.stringify(points)])
+  }), [JSON.stringify(points), theme])
   if (!points.length) return <EmptyState>No forecasts resolved yet.</EmptyState>
   return (
     <figure style={{ margin: 0 }}>
@@ -55,6 +57,7 @@ export function ForecastAccuracyChart({ metrics }) {
 }
 
 export function AlertVolumeChart({ alerts }) {
+  const { theme } = useTheme()
   const volume = alertVolume(alerts)
   const canvas = useChart(() => {
     const dataset = (label, key, variable) => ({ label, data: volume[key], backgroundColor: pattern(PATTERNS[key], cssVar(variable)), borderColor: cssVar(variable), borderWidth: 1 })
@@ -63,7 +66,7 @@ export function AlertVolumeChart({ alerts }) {
       data: { labels: volume.labels, datasets: [dataset('High', 'high', '--severity-high'), dataset('Medium', 'medium', '--severity-medium'), dataset('Low', 'low', '--severity-low')] },
       options: { animation: reducedMotion() ? false : { duration: 300 }, maintainAspectRatio: false, scales: { x: { stacked: true, ...axis('Time') }, y: { stacked: true, beginAtZero: true, ...axis('Alerts') } }, plugins: { legend: { labels: { color: cssVar('--text-muted') } } } },
     }
-  }, [JSON.stringify(volume)])
+  }, [JSON.stringify(volume), theme])
   if (!alerts.length) return <EmptyState>No alerts yet.</EmptyState>
   return <div style={{ height: 180 }}><canvas ref={canvas} role="img" aria-label={volumeSummary(alerts)} /></div>
 }

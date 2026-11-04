@@ -32,6 +32,8 @@ A closed-loop security console that predicts where an attacker will move next an
 > [!IMPORTANT]
 > **This is a simulation.** The platform runs in **Replay Mode**: pre-recorded and scripted attack events are replayed through the same live pipeline that real traffic would use. No scan, exploit or attack tool is ever run against a real network, device or infrastructure, and **Contain** only changes an in-memory status and writes a log line.
 
+> **Phase B1 shell:** the desktop console now has a shared workspace rail, a Ctrl/Cmd+K command palette, dark/light theme support, and a mobile SOC handoff below 1024 px. The desktop and PWA remain one Flask-served web bundle. See [the B1 browser captures](docs/phase-b1/screenshots/) and [Demo Script V2](docs/DEMO_SCRIPT_V2.md). B1 adds no API routes or data contracts.
+
 <a id="choose-your-path"></a>
 
 ### Choose your path
@@ -144,7 +146,7 @@ Every tool in this category answers **"what happened?"** Precog SOC targets the 
 ## 👀 See it
 
 > [!NOTE]
-> The images below are **design previews** drawn from the project's [UI/UX Brief](docs/), using the brief's real colours, layout and wording with illustrative numbers. Replace them with real screenshots once the screens are merged.
+> The SVGs below are design previews drawn from the project's [UI/UX Brief](docs/UI_UX_Brief.md). Real Chromium captures for the B1 shell and current screens are available under [docs/phase-b1/screenshots](docs/phase-b1/screenshots/).
 
 ### The 3D console (desktop)
 

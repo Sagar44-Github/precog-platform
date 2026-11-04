@@ -96,6 +96,13 @@ def main(argv=None):
     parser.add_argument("--log", default=str(REPO_ROOT / "lead-core" / "integration" / "rehearsals.csv"))
     args = parser.parse_args(argv)
 
+    # run_app changes the process working directory to the bundled NIDS app.
+    # Resolve user-provided relative paths before importing/starting it.
+    log = Path(args.log)
+    if not log.is_absolute():
+        log = REPO_ROOT / log
+    log = log.resolve()
+
     import run_app
 
     run_app.load_env_file(REPO_ROOT / ".env")
@@ -109,7 +116,6 @@ def main(argv=None):
         print("These parts are not merged yet, so the golden path cannot run: " + ", ".join(missing))
         return 2
     replay.settle_seconds = 0.2
-    log = Path(args.log)
     new = not log.exists()
     streak = 0
     with open(log, "a", newline="", encoding="utf-8") as handle:

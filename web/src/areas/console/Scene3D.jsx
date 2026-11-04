@@ -5,10 +5,12 @@ import { makeCone, makeHostObject, placeCone } from './objects3d.js'
 import { createSceneDecorations, disposeSceneDecorations } from './sceneDecorations.js'
 import { pulseScale } from './sceneModel.js'
 import { browserVar, prefersReducedMotion, readSceneColors } from './theme3d.js'
+import { useTheme } from '../../shared/theme-context.jsx'
 
 /** The 3D picture of the network (owner: VIZ). It draws the plain-data model made by sceneModel.js.
  *  Hosts have fixed positions, so the picture is calm. It cannot be tested without a graphics card: check it by eye (guide step D8). */
 export default function Scene3D({ model, pendingForecast, onSelect }) {
+  const { theme } = useTheme()
   const holder = useRef(null)
   const graphRef = useRef(null)
   const live = useRef({ model, pendingForecast, previousStates: {}, pulses: {}, cones: [] })
@@ -17,6 +19,9 @@ export default function Scene3D({ model, pendingForecast, onSelect }) {
 
   // create the scene once
   useEffect(() => {
+    live.current.cones = []
+    live.current.previousStates = {}
+    live.current.pulses = {}
     const colors = readSceneColors(browserVar)
     const reduced = prefersReducedMotion()
     const graph = ForceGraph3D({ controlType: 'orbit' })(holder.current)
@@ -88,7 +93,7 @@ export default function Scene3D({ model, pendingForecast, onSelect }) {
       graph._destructor()
       graphRef.current = null
     }
-  }, [])  // eslint-disable-line react-hooks/exhaustive-deps
+  }, [theme])  // Rebuild the small six-host scene when the CSS theme changes.
 
   // feed new data into the scene
   useEffect(() => {

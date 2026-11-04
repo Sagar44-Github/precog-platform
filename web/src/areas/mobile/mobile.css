@@ -83,7 +83,7 @@
 .m-bars { gap: 11px; }
 .m-bar-row { padding: 3px 0; }
 .m-bar-track { height: 8px; }
-.m-bar-fill { border-radius: 999px; box-shadow: 0 0 12px var(--glow-violet); }
+.m-bar-fill { border-radius: 999px; }
 .m-btn { border-radius: 11px; transition: transform 140ms ease, background 140ms ease, border-color 140ms ease; }
 .m-btn:active { transform: scale(0.98); }
 .m-btn-contain { background: var(--surface-contained-wash-mobile); }

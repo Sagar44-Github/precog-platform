@@ -1,5 +1,6 @@
 import { NavLink, Navigate, Route, Routes } from 'react-router-dom'
 import { SimulationBadge, StaleBanner, ToastProvider } from '../../shared/components.jsx'
+import { ThemeToggle } from '../../shared/theme-context.jsx'
 import { useWorldState } from '../../shared/usePolling.js'
 import { AlertDetailScreen, AlertsScreen, ForecastScreen, HistoryScreen, HomeScreen } from './screens.jsx'
 import { highAlertCount } from './logic.js'
@@ -31,7 +32,7 @@ export default function MobileApp() {
   return (
     <ToastProvider>
       <div className="m-app">
-        <header className="m-top"><h1>Precog SOC</h1><SimulationBadge /></header>
+        <header className="m-top"><h1>Precog SOC</h1><div className="m-top-actions"><ThemeToggle className="m-theme-toggle" /><SimulationBadge /></div></header>
         <StaleBanner stale={stale} />
         <Routes>
           <Route index element={<HomeScreen state={state} stale={stale} />} />

@@ -12,7 +12,7 @@ import './console.css'
 // The 3D console (owner: VIZ). App.jsx imports the default export.
 
 function Console({ state, stale }) {
-  const toast = useToast()
+  const { show } = useToast()
   const [view, setView] = useState('graph')
   const [selected, setSelected] = useState(null)
   const [resolved, setResolved] = useState(null)
@@ -26,12 +26,30 @@ function Console({ state, stale }) {
   }, [state && state.metrics ? state.metrics.forecasts_resolved : 0])  // eslint-disable-line react-hooks/exhaustive-deps
 
   const pending = Boolean(state && state.forecast && state.forecast.status === 'pending')
+
+  useEffect(() => {
+    const onCommand = (event) => {
+      const command = event.detail || {}
+      if (command.type === 'view' && ['graph', 'alerts', 'reports'].includes(command.view)) {
+        setView(command.view)
+        setSelected(null)
+      }
+      if (command.type === 'start-demo') {
+        api.startReplay('golden-path', 1)
+          .then(() => show('Golden Path replay started (simulation)'))
+          .catch((error) => show(error.message || 'Could not start the replay.'))
+      }
+    }
+    window.addEventListener('precog:console-command', onCommand)
+    return () => window.removeEventListener('precog:console-command', onCommand)
+  }, [show])
+
   let panel
   if (!state) panel = <LoadingState />
   else if (view === 'alerts') panel = <AlertsPanel state={state} />
   else if (view === 'reports') panel = <ReportsPanel state={state} />
-  else if (selected) panel = <NodeDetailPanel state={state} hostId={selected} onClose={() => setSelected(null)} onDone={toast.show} />
-  else panel = <ForecastPanel state={state} resolved={resolved} onDone={toast.show} />
+  else if (selected) panel = <NodeDetailPanel state={state} hostId={selected} onClose={() => setSelected(null)} onDone={show} />
+  else panel = <ForecastPanel state={state} resolved={resolved} onDone={show} />
 
   return (
     <div className="c-app" data-waiting={pending ? 'true' : 'false'}>
