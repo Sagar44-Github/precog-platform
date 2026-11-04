@@ -1,0 +1,648 @@
+{
+  "browser": "Playwright Chromium (SwiftShader)",
+  "modes": {
+    "sample": {
+      "health": {
+        "data_mode": "sample",
+        "hooks": [
+          "containment",
+          "events",
+          "graph",
+          "precog",
+          "push",
+          "replay"
+        ],
+        "modules": {
+          "detect_events": "registered",
+          "graph_net": "registered",
+          "graph_replay": "registered",
+          "precog_engine": "registered",
+          "viz_containment": "registered"
+        },
+        "status": "ok",
+        "version": 3
+      },
+      "checks": [
+        {
+          "mode": "sample",
+          "route": "login",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 0,
+          "overflowElements": [],
+          "screenshot": "sample-login-390x844.png"
+        },
+        {
+          "mode": "sample",
+          "route": "login",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 0,
+          "overflowElements": [],
+          "screenshot": "sample-login-820x1180.png"
+        },
+        {
+          "mode": "sample",
+          "route": "login",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 0,
+          "overflowElements": [],
+          "screenshot": "sample-login-1440x900.png"
+        },
+        {
+          "mode": "sample",
+          "route": "mobile",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 0,
+          "overflowElements": [],
+          "screenshot": "sample-mobile-390x844.png"
+        },
+        {
+          "mode": "sample",
+          "route": "mobile-alerts",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 0,
+          "overflowElements": [],
+          "screenshot": "sample-mobile-alerts-390x844.png"
+        },
+        {
+          "mode": "sample",
+          "route": "mobile-alert-detail",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 0,
+          "overflowElements": [],
+          "screenshot": "sample-mobile-alert-detail-390x844.png"
+        },
+        {
+          "mode": "sample",
+          "route": "mobile-forecast",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 0,
+          "overflowElements": [],
+          "screenshot": "sample-mobile-forecast-390x844.png"
+        },
+        {
+          "mode": "sample",
+          "route": "mobile-history",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 1,
+          "overflowElements": [],
+          "screenshot": "sample-mobile-history-390x844.png"
+        },
+        {
+          "mode": "sample",
+          "route": "console",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 1,
+          "overflowElements": [],
+          "screenshot": "sample-console-390x844.png",
+          "canvas": {
+            "width": 390,
+            "height": 690,
+            "sampledColors": 169,
+            "visibleSamples": 2775,
+            "nonBlank": true,
+            "bounds": {
+              "x": 0,
+              "y": 240,
+              "width": 390,
+              "height": 690
+            }
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "mobile",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 0,
+          "overflowElements": [],
+          "screenshot": "sample-mobile-820x1180.png"
+        },
+        {
+          "mode": "sample",
+          "route": "mobile-alerts",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 0,
+          "overflowElements": [],
+          "screenshot": "sample-mobile-alerts-820x1180.png"
+        },
+        {
+          "mode": "sample",
+          "route": "mobile-alert-detail",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 0,
+          "overflowElements": [],
+          "screenshot": "sample-mobile-alert-detail-820x1180.png"
+        },
+        {
+          "mode": "sample",
+          "route": "mobile-forecast",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 0,
+          "overflowElements": [],
+          "screenshot": "sample-mobile-forecast-820x1180.png"
+        },
+        {
+          "mode": "sample",
+          "route": "mobile-history",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 1,
+          "overflowElements": [],
+          "screenshot": "sample-mobile-history-820x1180.png"
+        },
+        {
+          "mode": "sample",
+          "route": "console",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 1,
+          "overflowElements": [],
+          "screenshot": "sample-console-820x1180.png",
+          "canvas": {
+            "width": 762,
+            "height": 767,
+            "sampledColors": 310,
+            "visibleSamples": 6026,
+            "nonBlank": true,
+            "bounds": {
+              "x": 58,
+              "y": 121,
+              "width": 762,
+              "height": 767
+            }
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "mobile",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 0,
+          "overflowElements": [],
+          "screenshot": "sample-mobile-1440x900.png"
+        },
+        {
+          "mode": "sample",
+          "route": "mobile-alerts",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 0,
+          "overflowElements": [],
+          "screenshot": "sample-mobile-alerts-1440x900.png"
+        },
+        {
+          "mode": "sample",
+          "route": "mobile-alert-detail",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 0,
+          "overflowElements": [],
+          "screenshot": "sample-mobile-alert-detail-1440x900.png"
+        },
+        {
+          "mode": "sample",
+          "route": "mobile-forecast",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 0,
+          "overflowElements": [],
+          "screenshot": "sample-mobile-forecast-1440x900.png"
+        },
+        {
+          "mode": "sample",
+          "route": "mobile-history",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 1,
+          "overflowElements": [],
+          "screenshot": "sample-mobile-history-1440x900.png"
+        },
+        {
+          "mode": "sample",
+          "route": "console",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 1,
+          "overflowElements": [],
+          "screenshot": "sample-console-1440x900.png",
+          "canvas": {
+            "width": 1008,
+            "height": 734,
+            "sampledColors": 329,
+            "visibleSamples": 7628,
+            "nonBlank": true,
+            "bounds": {
+              "x": 72,
+              "y": 78,
+              "width": 1008,
+              "height": 734
+            }
+          }
+        }
+      ]
+    },
+    "live": {
+      "health": {
+        "data_mode": "live",
+        "hooks": [
+          "containment",
+          "events",
+          "graph",
+          "precog",
+          "push",
+          "replay"
+        ],
+        "modules": {
+          "detect_events": "registered",
+          "graph_net": "registered",
+          "graph_replay": "registered",
+          "precog_engine": "registered",
+          "viz_containment": "registered"
+        },
+        "status": "ok",
+        "version": 2
+      },
+      "checks": [
+        {
+          "mode": "live",
+          "route": "login",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 0,
+          "overflowElements": [],
+          "screenshot": "live-login-390x844.png"
+        },
+        {
+          "mode": "live",
+          "route": "login",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 0,
+          "overflowElements": [],
+          "screenshot": "live-login-820x1180.png"
+        },
+        {
+          "mode": "live",
+          "route": "login",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 0,
+          "overflowElements": [],
+          "screenshot": "live-login-1440x900.png"
+        },
+        {
+          "mode": "live",
+          "route": "mobile",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 0,
+          "overflowElements": [],
+          "screenshot": "live-mobile-390x844.png"
+        },
+        {
+          "mode": "live",
+          "route": "mobile-alerts",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 0,
+          "overflowElements": [],
+          "screenshot": "live-mobile-alerts-390x844.png"
+        },
+        {
+          "mode": "live",
+          "route": "mobile-alert-detail",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 0,
+          "overflowElements": [],
+          "screenshot": "live-mobile-alert-detail-390x844.png"
+        },
+        {
+          "mode": "live",
+          "route": "mobile-forecast",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 0,
+          "overflowElements": [],
+          "screenshot": "live-mobile-forecast-390x844.png"
+        },
+        {
+          "mode": "live",
+          "route": "mobile-history",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 1,
+          "overflowElements": [],
+          "screenshot": "live-mobile-history-390x844.png"
+        },
+        {
+          "mode": "live",
+          "route": "console",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 1,
+          "overflowElements": [],
+          "screenshot": "live-console-390x844.png",
+          "canvas": {
+            "width": 390,
+            "height": 690,
+            "sampledColors": 168,
+            "visibleSamples": 2775,
+            "nonBlank": true,
+            "bounds": {
+              "x": 0,
+              "y": 240,
+              "width": 390,
+              "height": 690
+            }
+          }
+        },
+        {
+          "mode": "live",
+          "route": "mobile",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 0,
+          "overflowElements": [],
+          "screenshot": "live-mobile-820x1180.png"
+        },
+        {
+          "mode": "live",
+          "route": "mobile-alerts",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 0,
+          "overflowElements": [],
+          "screenshot": "live-mobile-alerts-820x1180.png"
+        },
+        {
+          "mode": "live",
+          "route": "mobile-alert-detail",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 0,
+          "overflowElements": [],
+          "screenshot": "live-mobile-alert-detail-820x1180.png"
+        },
+        {
+          "mode": "live",
+          "route": "mobile-forecast",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 0,
+          "overflowElements": [],
+          "screenshot": "live-mobile-forecast-820x1180.png"
+        },
+        {
+          "mode": "live",
+          "route": "mobile-history",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 1,
+          "overflowElements": [],
+          "screenshot": "live-mobile-history-820x1180.png"
+        },
+        {
+          "mode": "live",
+          "route": "console",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 1,
+          "overflowElements": [],
+          "screenshot": "live-console-820x1180.png",
+          "canvas": {
+            "width": 762,
+            "height": 767,
+            "sampledColors": 317,
+            "visibleSamples": 6026,
+            "nonBlank": true,
+            "bounds": {
+              "x": 58,
+              "y": 121,
+              "width": 762,
+              "height": 767
+            }
+          }
+        },
+        {
+          "mode": "live",
+          "route": "mobile",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 0,
+          "overflowElements": [],
+          "screenshot": "live-mobile-1440x900.png"
+        },
+        {
+          "mode": "live",
+          "route": "mobile-alerts",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 0,
+          "overflowElements": [],
+          "screenshot": "live-mobile-alerts-1440x900.png"
+        },
+        {
+          "mode": "live",
+          "route": "mobile-alert-detail",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 0,
+          "overflowElements": [],
+          "screenshot": "live-mobile-alert-detail-1440x900.png"
+        },
+        {
+          "mode": "live",
+          "route": "mobile-forecast",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 0,
+          "overflowElements": [],
+          "screenshot": "live-mobile-forecast-1440x900.png"
+        },
+        {
+          "mode": "live",
+          "route": "mobile-history",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 1,
+          "overflowElements": [],
+          "screenshot": "live-mobile-history-1440x900.png"
+        },
+        {
+          "mode": "live",
+          "route": "console",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "canvasCount": 1,
+          "overflowElements": [],
+          "screenshot": "live-console-1440x900.png",
+          "canvas": {
+            "width": 1008,
+            "height": 734,
+            "sampledColors": 327,
+            "visibleSamples": 7628,
+            "nonBlank": true,
+            "bounds": {
+              "x": 72,
+              "y": 78,
+              "width": 1008,
+              "height": 734
+            }
+          }
+        }
+      ]
+    }
+  },
+  "containmentFlow": "propose and confirm completed in live replay; host state changed to contained (simulation)",
+  "errors": [],
+  "expectedEvents": [
+    "sample: unauthenticated session check returned the expected 401 before login",
+    "sample: unauthenticated session check returned the expected 401 before login",
+    "sample: unauthenticated session check returned the expected 401 before login",
+    "sample: unauthenticated session check returned the expected 401 before login",
+    "live: unauthenticated session check returned the expected 401 before login",
+    "live: unauthenticated session check returned the expected 401 before login",
+    "live: unauthenticated session check returned the expected 401 before login",
+    "live: unauthenticated session check returned the expected 401 before login"
+  ],
+  "failures": []
+}

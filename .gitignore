@@ -41,3 +41,9 @@ catboost_info/
 
 # ---- rehearsal log (your own laptop) ----
 lead-core/integration/rehearsals.csv
+
+# ---- committed audit evidence ----
+!docs/audit/
+!docs/audit/**
+docs/audit/**/__pycache__/
+docs/audit/**/*.pyc
