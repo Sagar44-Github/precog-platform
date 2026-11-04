@@ -55,3 +55,12 @@
 - Added a 200-snapshot in-memory ring buffer and read-only time-travel and session-comparison endpoints.
 - Added the `time_travel_snapshot` and `session_comparison` contracts; bounded GRAPH scenario descriptions and event count.
 - Added backend, controller, builder, comparison, and page regression tests. Phase evidence is stored under `docs/phase-b6/`.
+
+## Phase B7 — Topology explorer and Lite mode (2026-11-05)
+
+- Added `/app/console/topology` with host inspection, risk/forecast/synthetic-weakness overlays, camera presets, selection focus, a mini-map/view cube, read-only time travel, and PNG export.
+- Consolidated the renderer into a shared 3D component; added lit low-poly host models, zone platforms, attack propagation, forecast cones, compromise shockwaves, and containment shields.
+- Added responsive SVG Lite topology for narrow screens, reduced-motion preferences, and environments without WebGL. The Lite view remains interactive and exports PNGs.
+- Normalized modern CSS HSL theme values before passing colors to Three.js; added automatic pixel-ratio reduction below 40 fps.
+- Added pure scene/camera tests and Chromium checks for desktop WebGL pixels, Lite rendering, no horizontal overflow, camera/overlay controls, and PNG exports.
+- Phase evidence is stored under `docs/phase-b7/`.

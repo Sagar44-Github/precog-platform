@@ -170,3 +170,17 @@ Two contracts were added: `operator_profile` and `containment_playbook_request`;
 The replay controller's new `step()` control resumes from paused state through one event and returns to paused state. Session comparison derives counts and top-1/top-3 precision from stored outcomes; its response labels every score as a session counter. No held-out Precog evaluation artifact is modified.
 
 Two contracts were added: `time_travel_snapshot` and `session_comparison`. The existing GRAPH scenario schema now bounds descriptions and event count. At the B6 gate, the checker reports **28 contracts OK**; route and workflow evidence is stored in `docs/phase-b6/`.
+
+## Phase B7 topology explorer and Lite mode
+
+### Route
+
+| React route | Page |
+|---|---|
+| `/console/topology` | Selectable live topology scene with risk, forecast, and synthetic-weakness overlays; camera presets; mini-map; host inspector; read-only time travel; PNG snapshot export. |
+
+The scene model remains plain data and can be tested without a GPU. The shared 3D renderer reads CSS theme variables, canonicalizes HSL colors for Three.js, uses directional and hemisphere lighting, shadows, tone mapping, zone platforms, state-shaped host models, forecast cones, compromise shockwaves, and containment shields. It caps initial device pixel ratio and drops it to 1 when observed frame rate remains below 40 fps.
+
+Auto view selects the Lite SVG when the viewport is under 1024 px, reduced motion is requested, or WebGL is unavailable. Lite mode keeps host selection, state labels, forecast confidence, keyboard interaction, time travel, and PNG export. The 3D view also provides isometric, top, and side cameras, selection and forecast focus, and bounded orbit/zoom controls. The Chromium browser audit runs with SwiftShader; it verifies canvas pixels and layout but does not establish performance on a physical mid-range laptop.
+
+No backend schema or route was added in B7. The explorer consumes the existing world-state, asset, and time-travel APIs; all weakness/risk values are synthetic simulation data. Current browser and test evidence is stored in `docs/phase-b7/`.

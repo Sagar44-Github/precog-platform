@@ -7,6 +7,7 @@ import { ThemeProvider } from './shared/theme-context.jsx'
 
 const MobileApp = lazy(() => import('./areas/mobile/index.jsx'))
 const ConsoleApp = lazy(() => import('./areas/console/index.jsx'))
+const TopologyExplorerPage = lazy(() => import('./areas/console/topology-explorer.jsx'))
 const AlertsPage = lazy(() => import('./areas/ops/alerts.jsx'))
 const AlertDetailPage = lazy(() => import('./areas/ops/alert-detail.jsx'))
 const HostsPage = lazy(() => import('./areas/ops/hosts.jsx'))
@@ -38,6 +39,7 @@ export default function App() {
       <UiPreferencesProvider>
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/console/topology" element={<WorkspacePage><TopologyExplorerPage /></WorkspacePage>} />
           <Route path="/mobile/*" element={<RequireAuth><Suspense fallback={<LoadingState />}><MobileApp /></Suspense></RequireAuth>} />
           <Route path="/console/*" element={<RequireAuth><AppShell><Suspense fallback={<LoadingState />}><ConsoleApp /></Suspense></AppShell></RequireAuth>} />
           <Route path="/alerts" element={<WorkspacePage><AlertsPage /></WorkspacePage>} />

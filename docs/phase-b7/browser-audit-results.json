@@ -1,0 +1,293 @@
+{
+  "browser": "Playwright Chromium (SwiftShader)",
+  "modes": {
+    "sample": {
+      "health": {
+        "data_mode": "sample",
+        "hooks": [
+          "containment",
+          "events",
+          "graph",
+          "precog",
+          "push",
+          "replay"
+        ],
+        "modules": {
+          "detect_events": "registered",
+          "graph_net": "registered",
+          "graph_replay": "registered",
+          "precog_engine": "registered",
+          "viz_containment": "registered"
+        },
+        "status": "ok",
+        "version": 3
+      },
+      "checks": [
+        {
+          "mode": "sample",
+          "route": "login",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Light theme\n◈\n\nTHREAT OPERATIONS · REPLAY LAB\n\nPrecog SOC\n\nSee the next move before it happens.\n\nSIMULATION ENVIRONMENT\nOPERATOR ID\nACCESS KEY\nEnter command center\n↗\n\nLocal replay mode · Human-confirmed containment\n\nAccess level comes from the signed-in demo account.",
+          "canvasCount": 0,
+          "liteHostCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "mobileHeaderVisible": false,
+          "overflowElements": [],
+          "screenshot": "sample-login-390x844.png"
+        },
+        {
+          "mode": "sample",
+          "route": "login",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Light theme\n◈\n\nTHREAT OPERATIONS · REPLAY LAB\n\nPrecog SOC\n\nSee the next move before it happens.\n\nSIMULATION ENVIRONMENT\nOPERATOR ID\nACCESS KEY\nEnter command center\n↗\n\nLocal replay mode · Human-confirmed containment\n\nAccess level comes from the signed-in demo account.\n\nPREC0G / SOC v1.0\nLOCAL NODE · SECURE SESSION",
+          "canvasCount": 0,
+          "liteHostCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "mobileHeaderVisible": false,
+          "overflowElements": [],
+          "screenshot": "sample-login-820x1180.png"
+        },
+        {
+          "mode": "sample",
+          "route": "login",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Light theme\n◈\n\nTHREAT OPERATIONS · REPLAY LAB\n\nPrecog SOC\n\nSee the next move before it happens.\n\nSIMULATION ENVIRONMENT\nOPERATOR ID\nACCESS KEY\nEnter command center\n↗\n\nLocal replay mode · Human-confirmed containment\n\nAccess level comes from the signed-in demo account.\n\nPREC0G / SOC v1.0\nLOCAL NODE · SECURE SESSION",
+          "canvasCount": 0,
+          "liteHostCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "mobileHeaderVisible": false,
+          "overflowElements": [],
+          "screenshot": "sample-login-1440x900.png"
+        },
+        {
+          "mode": "sample",
+          "route": "topology",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "A\nTopology explorer\nLight theme\nSIMULATION\n\nNETWORK / TOPOLOGY EXPLORER\n\nTopology explorer\n\nInspect the simulated attack surface, forecast field, and host state across time.\n\nSIMULATION ONLY\nLive console\nAuto\n3D\nLite\nHeat overlay\nSimulated risk\nForecast probability\nSimulated weaknesses\nIsometric\nTop\nSide\nExport PNG\nAuto · Lite view\nLive topology\n6 hosts · 1 ",
+          "canvasCount": 0,
+          "liteHostCount": 6,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "mobileHeaderVisible": false,
+          "overflowElements": [],
+          "screenshot": "sample-topology-390x844.png"
+        },
+        {
+          "mode": "sample",
+          "route": "topology",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "A\nWorkspace\nTopology explorer\nSearch commands\nK\nLight theme\nSIMULATION\n\nNETWORK / TOPOLOGY EXPLORER\n\nTopology explorer\n\nInspect the simulated attack surface, forecast field, and host state across time.\n\nSIMULATION ONLY\nLive console\nAuto\n3D\nLite\nHeat overlay\nSimulated risk\nForecast probability\nSimulated weaknesses\nIsometric\nTop\nSide\nExport PNG\nAuto · Lite vie",
+          "canvasCount": 0,
+          "liteHostCount": 6,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "mobileHeaderVisible": false,
+          "overflowElements": [],
+          "screenshot": "sample-topology-820x1180.png"
+        },
+        {
+          "mode": "sample",
+          "route": "topology",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\n\nOPERATIONS\n\nLive console\nTopology explorer\nAlerts\nIncidents\nForecasts\nAnalytics\nContainment\nReplay studio\nScenario builder\nReports\nHosts & assets\nAudit log\nSystem health\nSettings\nMobile SOC\nSIMULATED ENVIRONMENT\nA\nadmin\nADMINISTRATOR\nWorkspace\nTopology explorer\nSearch commands\nK\nLight theme\nSIMULATION\n\nNETWORK / TOPOLOGY EXPLORER\n\n",
+          "canvasCount": 1,
+          "liteHostCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "mobileHeaderVisible": false,
+          "overflowElements": [],
+          "screenshot": "sample-topology-1440x900.png",
+          "topologyCanvas": {
+            "sampledColors": 224,
+            "visibleSamples": 4666,
+            "nonBlank": true
+          }
+        }
+      ]
+    },
+    "live": {
+      "health": {
+        "data_mode": "live",
+        "hooks": [
+          "containment",
+          "events",
+          "graph",
+          "precog",
+          "push",
+          "replay"
+        ],
+        "modules": {
+          "detect_events": "registered",
+          "graph_net": "registered",
+          "graph_replay": "registered",
+          "precog_engine": "registered",
+          "viz_containment": "registered"
+        },
+        "status": "ok",
+        "version": 2
+      },
+      "checks": [
+        {
+          "mode": "live",
+          "route": "login",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Light theme\n◈\n\nTHREAT OPERATIONS · REPLAY LAB\n\nPrecog SOC\n\nSee the next move before it happens.\n\nSIMULATION ENVIRONMENT\nOPERATOR ID\nACCESS KEY\nEnter command center\n↗\n\nLocal replay mode · Human-confirmed containment\n\nAccess level comes from the signed-in demo account.",
+          "canvasCount": 0,
+          "liteHostCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "mobileHeaderVisible": false,
+          "overflowElements": [],
+          "screenshot": "live-login-390x844.png"
+        },
+        {
+          "mode": "live",
+          "route": "login",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Light theme\n◈\n\nTHREAT OPERATIONS · REPLAY LAB\n\nPrecog SOC\n\nSee the next move before it happens.\n\nSIMULATION ENVIRONMENT\nOPERATOR ID\nACCESS KEY\nEnter command center\n↗\n\nLocal replay mode · Human-confirmed containment\n\nAccess level comes from the signed-in demo account.\n\nPREC0G / SOC v1.0\nLOCAL NODE · SECURE SESSION",
+          "canvasCount": 0,
+          "liteHostCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "mobileHeaderVisible": false,
+          "overflowElements": [],
+          "screenshot": "live-login-820x1180.png"
+        },
+        {
+          "mode": "live",
+          "route": "login",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Light theme\n◈\n\nTHREAT OPERATIONS · REPLAY LAB\n\nPrecog SOC\n\nSee the next move before it happens.\n\nSIMULATION ENVIRONMENT\nOPERATOR ID\nACCESS KEY\nEnter command center\n↗\n\nLocal replay mode · Human-confirmed containment\n\nAccess level comes from the signed-in demo account.\n\nPREC0G / SOC v1.0\nLOCAL NODE · SECURE SESSION",
+          "canvasCount": 0,
+          "liteHostCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "mobileHeaderVisible": false,
+          "overflowElements": [],
+          "screenshot": "live-login-1440x900.png"
+        },
+        {
+          "mode": "live",
+          "route": "topology",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "A\nTopology explorer\nLight theme\nSIMULATION\n\nNETWORK / TOPOLOGY EXPLORER\n\nTopology explorer\n\nInspect the simulated attack surface, forecast field, and host state across time.\n\nSIMULATION ONLY\nLive console\nAuto\n3D\nLite\nHeat overlay\nSimulated risk\nForecast probability\nSimulated weaknesses\nIsometric\nTop\nSide\nExport PNG\nAuto · Lite view\nLive topology\n6 hosts · 2 ",
+          "canvasCount": 0,
+          "liteHostCount": 6,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "mobileHeaderVisible": false,
+          "overflowElements": [],
+          "screenshot": "live-topology-390x844.png"
+        },
+        {
+          "mode": "live",
+          "route": "topology",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "A\nWorkspace\nTopology explorer\nSearch commands\nK\nLight theme\nSIMULATION\n\nNETWORK / TOPOLOGY EXPLORER\n\nTopology explorer\n\nInspect the simulated attack surface, forecast field, and host state across time.\n\nSIMULATION ONLY\nLive console\nAuto\n3D\nLite\nHeat overlay\nSimulated risk\nForecast probability\nSimulated weaknesses\nIsometric\nTop\nSide\nExport PNG\nAuto · Lite vie",
+          "canvasCount": 0,
+          "liteHostCount": 6,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "mobileHeaderVisible": false,
+          "overflowElements": [],
+          "screenshot": "live-topology-820x1180.png"
+        },
+        {
+          "mode": "live",
+          "route": "topology",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\n\nOPERATIONS\n\nLive console\nTopology explorer\nAlerts\nIncidents\nForecasts\nAnalytics\nContainment\nReplay studio\nScenario builder\nReports\nHosts & assets\nAudit log\nSystem health\nSettings\nMobile SOC\nSIMULATED ENVIRONMENT\nA\nadmin\nADMINISTRATOR\nWorkspace\nTopology explorer\nSearch commands\nK\nLight theme\nSIMULATION\n\nNETWORK / TOPOLOGY EXPLORER\n\n",
+          "canvasCount": 1,
+          "liteHostCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "mobileHeaderVisible": false,
+          "overflowElements": [],
+          "screenshot": "live-topology-1440x900.png",
+          "topologyCanvas": {
+            "sampledColors": 225,
+            "visibleSamples": 4666,
+            "nonBlank": true
+          }
+        }
+      ]
+    }
+  },
+  "topologyWorkflow": "final bundle: selected camera and heat overlay, then exported 3D and Lite PNG snapshots",
+  "roleChecks": {
+    "analystRole": "analyst",
+    "analystCanPropose": true,
+    "analystRestartDenied": true,
+    "viewerLogin": 200,
+    "viewerRole": "viewer",
+    "viewerReplayDenied": true,
+    "viewerContainmentDenied": true,
+    "viewerUiReadOnly": true,
+    "viewerReplayControlsHidden": true,
+    "viewerDemoCommandHidden": true
+  },
+  "containmentFlow": "propose and confirm completed in live replay; host state changed to contained (simulation)",
+  "errors": [],
+  "expectedEvents": [
+    "sample: unauthenticated session check returned the expected 401 before login",
+    "sample: unauthenticated session check returned the expected 401 before login",
+    "sample: unauthenticated session check returned the expected 401 before login",
+    "sample: unauthenticated session check returned the expected 401 before login",
+    "live: unauthenticated session check returned the expected 401 before login",
+    "live: unauthenticated session check returned the expected 401 before login",
+    "live: unauthenticated session check returned the expected 401 before login",
+    "live: unauthenticated session check returned the expected 401 before login"
+  ],
+  "failures": []
+}

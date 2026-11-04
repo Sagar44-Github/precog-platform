@@ -6,7 +6,7 @@ import { LoadingState, StaleBanner, ToastProvider, useToast } from '../../shared
 import { useWorldState } from '../../shared/usePolling.js'
 import DemoStart from '../../shared/DemoStart.jsx'
 import { AlertsPanel, ForecastPanel, LeftRail, NodeDetailPanel, ReportsPanel, SceneSummary, TimelineStrip, TopBar } from './panels.jsx'
-import Scene3D from './Scene3D.jsx'
+import Scene3D from '../../shared/network3d/Scene3D.jsx'
 import { buildScene } from './sceneModel.js'
 import './console.css'
 
@@ -17,7 +17,14 @@ function Console({ state, stale, permissions }) {
   const [view, setView] = useState('graph')
   const [selected, setSelected] = useState(null)
   const [resolved, setResolved] = useState(null)
-  const model = useMemo(() => buildScene(state), [state && state.version])  // eslint-disable-line react-hooks/exhaustive-deps
+  const [assets, setAssets] = useState([])
+  const model = useMemo(() => buildScene(state, assets, { selectedHostId: selected }), [state && state.version, assets, selected])  // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    let alive = true
+    api.assets().then((result) => { if (alive) setAssets(result.items || []) }).catch(() => {})
+    return () => { alive = false }
+  }, [])
 
   // the newest forecast that has an outcome, for the outcome card
   useEffect(() => {
@@ -59,7 +66,7 @@ function Console({ state, stale, permissions }) {
       <LeftRail view={view} onChange={(v) => { setView(v); setSelected(null) }} />
       <main className="c-centre">
         {state && <div className="c-map-heading"><div><span className="c-eyebrow">TACTICAL NETWORK VIEW / 01</span><h1>Attack surface</h1></div><div className="c-map-totals"><span><b>{state.graph.hosts.length.toString().padStart(2, '0')}</b> ASSETS</span><span><b>{Object.keys(state.graph.hosts.reduce((zones, host) => ({ ...zones, [host.zone]: true }), {})).length.toString().padStart(2, '0')}</b> ZONES</span><span><b>{state.alerts.length.toString().padStart(2, '0')}</b> EVENTS</span></div></div>}
-        <Scene3D model={model} pendingForecast={pending} onSelect={(id) => { setSelected(id); if (id) setView('graph') }} />
+        <Scene3D model={model} pendingForecast={pending} selectedHostId={selected} onSelect={(id) => { setSelected(id); if (id) setView('graph') }} />
         {state && <SceneSummary state={state} />}
         {state && state.replay.state === 'idle' && permissions?.can_run_replay && <DemoStart className="c-demo-launch" hostCount={state.graph.hosts.length} />}
       </main>

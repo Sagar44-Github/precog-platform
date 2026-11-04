@@ -82,3 +82,7 @@ Containment playbooks remain fully simulated. The service publishes one explicit
 | FR-COMPARE-1 | An operator shall compare two finished replay sessions side by side. | M | Alert volume, severity, forecast outcomes, and confirmed containment are derived from those sessions, with an explicit session-only accuracy note. |
 
 All B6 capabilities remain replay-only. Custom scenario files are runtime data; time travel and comparison are read-only views of the bounded in-memory evidence.
+
+## Phase B7: Topology explorer and Lite mode
+
+Operators can open `/console/topology` to explore the same simulated network in 3D or a 2D isometric SVG fallback. Host selection reveals its state, simulated risk and synthetic weaknesses. The explorer provides forecast and risk overlays, camera presets, mini-map selection, time travel, and PNG export. Auto mode uses Lite for narrow viewports, reduced-motion preferences, or missing WebGL. The 3D renderer reads the shared theme tokens and reduces resolution when frame rate falls below 40 fps. No real vulnerability scan or network action is performed.

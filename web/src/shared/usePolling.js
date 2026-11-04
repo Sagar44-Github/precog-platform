@@ -6,7 +6,7 @@ export const POLL_INTERVAL_MS = 1500
 
 /**
  * Keeps the screen up to date by asking the backend for changes (owner: LEAD-CORE).
- * Returns { state, stale, loggedOut }.
+ * Returns { state, stale, loggedOut, error }.
  *   state     - the latest world state (null until the first reply)
  *   stale     - true when the backend has not answered for a while; keep showing the last state, marked as old
  *   loggedOut - true when the backend says the login is no longer valid
@@ -15,6 +15,7 @@ export function useWorldState(intervalMs = POLL_INTERVAL_MS) {
   const [state, setState] = useState(null)
   const [stale, setStale] = useState(false)
   const [loggedOut, setLoggedOut] = useState(false)
+  const [error, setError] = useState('')
   const lastSuccess = useRef(null)
   const version = useRef(null)
 
@@ -30,12 +31,14 @@ export function useWorldState(intervalMs = POLL_INTERVAL_MS) {
         version.current = reply.version
         setState((previous) => applyReply(previous, reply))
         setStale(false)
+        setError('')
       } catch (error) {
         if (cancelled) return
         if (error instanceof ApiError && error.status === 401) {
           setLoggedOut(true)
           return // stop polling; the screen will send the user to the login page
         }
+        setError(error?.message || 'The backend could not be reached.')
         setStale(isStale(lastSuccess.current, Date.now(), intervalMs))
       }
       if (!cancelled) timer = setTimeout(tick, intervalMs)
@@ -48,5 +51,5 @@ export function useWorldState(intervalMs = POLL_INTERVAL_MS) {
     }
   }, [intervalMs])
 
-  return { state, stale, loggedOut }
+  return { state, stale, loggedOut, error }
 }

@@ -24,6 +24,7 @@ import AnalyticsPage from './analytics.jsx'
 import ContainmentPage from './containment.jsx'
 import ReplayStudioPage from './replay-studio.jsx'
 import ScenarioBuilderPage from './scenario-builder.jsx'
+import TopologyExplorerPage from '../console/topology-explorer.jsx'
 
 function render(path) {
   return renderToStaticMarkup(<StaticRouter location={path}><AuthProvider><ThemeProvider><UiPreferencesProvider><AppShell><Routes>
@@ -39,6 +40,7 @@ function render(path) {
     <Route path="/containment" element={<ContainmentPage />} />
     <Route path="/replay" element={<ReplayStudioPage />} />
     <Route path="/scenarios" element={<ScenarioBuilderPage />} />
+    <Route path="/console/topology" element={<TopologyExplorerPage />} />
     <Route path="/hosts" element={<HostsPage />} />
     <Route path="/hosts/:hostId" element={<HostDetailPage />} />
     <Route path="/audit" element={<AuditPage />} />
@@ -147,4 +149,11 @@ test('scenario builder lists the simulation library and explains viewer limits',
   assert.match(html, /Viewer accounts can browse scenarios/)
   assert.match(html, /do not generate real traffic/)
   assert.match(html, /SIMULATION/)
+})
+
+test('topology explorer is refresh-safe and keeps its simulation header while loading', () => {
+  const html = render('/console/topology')
+  assert.match(html, /Topology explorer/)
+  assert.match(html, /SIMULATION ONLY/)
+  assert.match(html, /topology-loading/)
 })

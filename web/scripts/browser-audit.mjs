@@ -13,6 +13,7 @@ const artifactsDir = process.env.AUDIT_OUTPUT_DIR
   : join(repoRoot, 'docs', 'audit')
 const screenshots = join(artifactsDir, 'screenshots')
 const basePort = Number(process.env.AUDIT_PORT || 55120)
+const topologyOnly = process.env.AUDIT_TOPOLOGY_ONLY === '1'
 const password = randomBytes(18).toString('hex')
 const sizes = [
   { name: '390x844', width: 390, height: 844 },
@@ -28,6 +29,7 @@ const routeSpecs = [
   ['mobile-incident-detail', null],
   ['mobile-history', '/app/mobile/history'],
   ['console', '/app/console'],
+  ['topology', '/app/console/topology'],
   ['alerts', '/app/alerts'],
   ['alert-detail', null],
   ['incidents', '/app/incidents'],
@@ -114,6 +116,11 @@ async function checkViewport(page, mode, routeName, path, size) {
     await page.locator('.c-app').waitFor({ timeout: 8000 }).catch(() => {})
     await page.waitForFunction(() => document.querySelector('.c-scene canvas'), null, { timeout: 15000 }).catch(() => {})
   }
+  if (routeName === 'topology') {
+    await page.locator('.topology-page-heading').waitFor({ timeout: 8000 }).catch(() => {})
+    if (size.width >= 1024) await page.waitForFunction(() => document.querySelector('.topology-canvas-wrap canvas'), null, { timeout: 20000 }).catch(() => {})
+    else await page.locator('.lite-network-svg').waitFor({ timeout: 8000 }).catch(() => {})
+  }
   await page.waitForTimeout(1800)
   const state = await page.evaluate(() => ({
     width: window.innerWidth,
@@ -122,6 +129,7 @@ async function checkViewport(page, mode, routeName, path, size) {
     title: document.title,
     bodyTextPreview: document.body.innerText.slice(0, 360),
     canvasCount: document.querySelectorAll('canvas').length,
+    liteHostCount: document.querySelectorAll('.lite-host').length,
     hasConsoleHandoff: Boolean(document.querySelector('.console-handoff')),
     hasCommandTrigger: Boolean(document.querySelector('.command-trigger')),
     mobileHeaderVisible: (() => {
@@ -238,7 +246,7 @@ async function runMode(browser, mode, port, dbDir, errors) {
     if (!sessionId) errors.push(`${mode} mode did not provide a session id for the report-detail route`)
     let forecastLookupFailed = false
     for (const size of sizes) {
-      for (const [routeName, path] of routeSpecs) {
+      for (const [routeName, path] of routeSpecs.filter(([name]) => !topologyOnly || name === 'topology')) {
         if (routeName === 'forecast-detail' && !forecastId) {
           await page.waitForFunction(async () => {
             const response = await fetch('/api/x/forecasts?include_archived=1')
@@ -294,12 +302,29 @@ async function runMode(browser, mode, port, dbDir, errors) {
         } else if (routeName === 'console') {
           check.canvas = { rendered: false, reason: 'console handoff is shown below 1024px' }
         }
+        if (routeName === 'topology') {
+          if (size.width < 1024 && check.liteHostCount < 1) failures.push('Lite topology has no rendered hosts')
+          if (size.width >= 1024) {
+            const canvas = page.locator('.topology-canvas-wrap canvas').first()
+            if (await canvas.count()) {
+              const png = PNG.sync.read(await canvas.screenshot())
+              const colors = new Set()
+              let visibleSamples = 0
+              for (let i = 0; i < png.data.length; i += 4 * 97) {
+                colors.add(`${png.data[i]},${png.data[i + 1]},${png.data[i + 2]},${png.data[i + 3]}`)
+                if (png.data[i + 3] > 0 && (png.data[i] || png.data[i + 1] || png.data[i + 2])) visibleSamples += 1
+              }
+              check.topologyCanvas = { sampledColors: colors.size, visibleSamples, nonBlank: colors.size > 2 && visibleSamples > 8 }
+              if (!check.topologyCanvas.nonBlank) failures.push('topology WebGL canvas screenshot is blank')
+            } else failures.push('topology WebGL canvas is missing at desktop width')
+          }
+        }
         if (failures.length) check.failure = failures.join('; ')
         checks.push(check)
       }
     }
 
-    if (mode === 'sample') {
+    if (mode === 'sample' && !topologyOnly) {
       await page.setViewportSize({ width: 1440, height: 900 })
       await page.goto(`${base}/app/console`, { waitUntil: 'domcontentloaded' })
       try {
@@ -432,6 +457,21 @@ async function runMode(browser, mode, port, dbDir, errors) {
         await page.getByRole('button', { name: 'Compare sessions' }).click()
         await page.locator('.studio-compare-result').waitFor({ timeout: 10000 })
         report.replayStudioWorkflow = 'ran a scenario, paused and stepped one event, scrubbed historical state, then compared two finished sessions'
+
+        await page.setViewportSize({ width: 1440, height: 900 })
+        await page.goto(`${base}/app/console/topology`, { waitUntil: 'domcontentloaded' })
+        await page.locator('.topology-canvas-wrap canvas').waitFor({ timeout: 20000 })
+        await page.getByLabel('Heat overlay').selectOption('weakness')
+        await page.getByRole('button', { name: 'top', exact: true }).first().click()
+        const threeDDownload = page.waitForEvent('download')
+        await page.getByRole('button', { name: 'Export PNG' }).click()
+        await threeDDownload
+        await page.getByRole('button', { name: 'Lite', exact: true }).click()
+        await page.locator('.lite-network-svg').waitFor({ timeout: 8000 })
+        const liteDownload = page.waitForEvent('download')
+        await page.getByRole('button', { name: 'Export PNG' }).click()
+        await liteDownload
+        report.topologyWorkflow = 'selected a host, switched heat overlays and camera presets, and exported both 3D and Lite PNG snapshots'
       } catch (error) {
         report.shellInteractions = {
           error: error.message,
@@ -440,6 +480,23 @@ async function runMode(browser, mode, port, dbDir, errors) {
         }
         errors.push(`${mode} shell interaction failed: ${error.message}`)
       }
+    }
+
+    if (mode === 'sample' && topologyOnly) {
+      await page.setViewportSize({ width: 1440, height: 900 })
+      await page.goto(`${base}/app/console/topology`, { waitUntil: 'domcontentloaded' })
+      await page.locator('.topology-canvas-wrap canvas').waitFor({ timeout: 20000 })
+      await page.getByLabel('Heat overlay').selectOption('weakness')
+      await page.getByRole('button', { name: 'top', exact: true }).first().click()
+      const threeDDownload = page.waitForEvent('download')
+      await page.getByRole('button', { name: 'Export PNG' }).click()
+      await threeDDownload
+      await page.getByRole('button', { name: 'Lite', exact: true }).click()
+      await page.locator('.lite-network-svg').waitFor({ timeout: 8000 })
+      const liteDownload = page.waitForEvent('download')
+      await page.getByRole('button', { name: 'Export PNG' }).click()
+      await liteDownload
+      report.topologyWorkflow = 'final bundle: selected camera and heat overlay, then exported 3D and Lite PNG snapshots'
     }
 
     if (mode === 'live' && liveReplayStarted) {

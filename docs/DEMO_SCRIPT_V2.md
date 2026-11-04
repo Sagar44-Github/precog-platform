@@ -59,3 +59,11 @@ At widths below 1024 px, `/app/console` directs the operator to `/app/mobile`; o
 6. Complete a second replay and compare two finished sessions. Describe the hit, miss, precision, and containment values as per-session counters, not overall model accuracy.
 
 The replay controls remain server-guarded: viewers can inspect; analysts can control and author; admins can also restart. All scenario events and state changes are simulated.
+
+## Phase B7: Topology explorer (2 minutes)
+
+1. Open **Topology explorer** from the workspace navigation. Start in the isometric 3D view and identify the user, DMZ, and internal zones.
+2. Select a host. Point out its state, synthetic risk score, and explicitly simulated weakness count.
+3. Change the overlay from **Simulated risk** to **Forecast probability** and **Simulated weaknesses**. Use the camera presets and select a mini-map marker to focus the scene.
+4. Scrub the time-travel control to inspect a prior network state, then return to **Live state**.
+5. Switch to **Lite** and export a PNG. On a desktop, export the 3D view too. Explain that Lite mode is the accessible 2D fallback and that PNGs capture only the simulated network.

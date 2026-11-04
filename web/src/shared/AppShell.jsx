@@ -25,6 +25,7 @@ function commandEvent(detail) {
 }
 
 function pageTitle(pathname) {
+  if (pathname === '/console/topology') return 'Topology explorer'
   if (pathname.startsWith('/forecasts/')) return 'Forecast detail'
   if (pathname === '/forecasts') return 'Forecast ledger'
   if (pathname === '/analytics') return 'Model analytics'
@@ -56,6 +57,7 @@ export function CommandPalette({ open, onClose, permissions }) {
 
   const commands = useMemo(() => [
     { label: 'Open live console', detail: 'Go to the 3D replay console', icon: 'activity', keywords: 'workspace desktop', run: () => navigate('/console') },
+    { label: 'Open topology explorer', detail: 'Explore the 3D network map, overlays, and history', icon: 'hosts', keywords: 'topology network map 3d lite', run: () => navigate('/console/topology') },
     { label: 'Open mobile SOC', detail: 'Open the phone PWA screens', icon: 'smartphone', keywords: 'phone pwa', run: () => navigate('/mobile') },
     { label: 'Open alerts workspace', detail: 'Search and review security events', icon: 'alerts', keywords: 'alerts incidents events', run: () => navigate('/alerts') },
     { label: 'Open incidents', detail: 'Review attack chains, notes, and status', icon: 'alerts', keywords: 'incident case triage', run: () => navigate('/incidents') },
@@ -185,11 +187,12 @@ export default function AppShell({ children }) {
     try { await logout() } finally { navigate('/login', { replace: true }) }
   }
 
-  if (handoff && location.pathname.startsWith('/console')) return <ConsoleHandoff />
+  if (handoff && location.pathname === '/console') return <ConsoleHandoff />
 
   const currentPage = pageTitle(location.pathname)
   const navigation = [
     { to: '/console', label: 'Live console', icon: 'activity', end: true },
+    { to: '/console/topology', label: 'Topology explorer', icon: 'hosts' },
     { to: '/alerts', label: 'Alerts', icon: 'alerts' },
     { to: '/incidents', label: 'Incidents', icon: 'alerts' },
     { to: '/forecasts', label: 'Forecasts', icon: 'activity' },

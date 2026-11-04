@@ -44,6 +44,8 @@ A closed-loop security console that predicts where an attacker will move next an
 
 > **Phase B6 replay studio:** `/app/replay` adds 1×–8× controls, pause/resume, single-event stepping, a read-only 200-snapshot time-travel scrubber, and side-by-side finished-session comparisons. `/app/scenarios` provides a visual event builder; custom scenarios are checked against the replay schema and simulated host inventory before being saved locally. The contract set now has 28 checked schemas. See [B6 evidence](docs/phase-b6/) and the [B6 technical addendum](docs/TRD_ADDENDUM_B1.md#phase-b6-replay-studio-time-travel-and-scenario-builder).
 
+> **Phase B7 topology explorer:** `/app/console/topology` adds a shared, selectable 3D network scene and an isometric SVG Lite view for narrow screens, reduced-motion preferences, or unavailable WebGL. The explorer includes risk, forecast, and synthetic-weakness overlays; camera presets; host selection and focus; a mini-map; read-only time travel; and PNG export. Colors are read from theme tokens and normalized for Three.js. See [B7 evidence](docs/phase-b7/) and the [B7 technical addendum](docs/TRD_ADDENDUM_B1.md#phase-b7-topology-explorer-and-lite-mode).
+
 <a id="choose-your-path"></a>
 
 ### Choose your path
