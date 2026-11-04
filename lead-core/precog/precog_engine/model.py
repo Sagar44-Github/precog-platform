@@ -77,7 +77,11 @@ class NodeModel:
 
 
 def file_sha256(path):
-    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+    # Training data is text, and Git may check it out with CRLF on Windows.
+    # Hash a canonical LF representation so model metadata is portable across
+    # operating systems and checkout settings.
+    contents = Path(path).read_bytes().replace(b"\r\n", b"\n")
+    return hashlib.sha256(contents).hexdigest()
 
 
 def negative_log_likelihood(model, sequences, candidates_fn):

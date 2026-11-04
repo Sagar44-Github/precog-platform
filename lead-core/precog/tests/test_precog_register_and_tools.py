@@ -69,6 +69,14 @@ def test_the_shipped_model_was_trained_on_the_current_training_file():
     assert model.meta["training_sequences"] == 240 and model.alpha > 0
 
 
+def test_file_sha256_normalizes_windows_line_endings(tmp_path):
+    lf = tmp_path / "training-lf.json"
+    crlf = tmp_path / "training-crlf.json"
+    lf.write_bytes(b'{"sequences": []}\n')
+    crlf.write_bytes(b'{"sequences": []}\r\n')
+    assert file_sha256(lf) == file_sha256(crlf)
+
+
 @needs_graph
 def test_the_shipped_results_match_a_fresh_evaluation_and_are_honest():
     from graph_net import TOPOLOGY_FILE, Topology, load_hosts

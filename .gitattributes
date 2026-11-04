@@ -1,0 +1,25 @@
+# Keep text files consistent across Windows and Unix checkouts.
+* text=auto eol=lf
+
+# Preserve binary assets exactly.
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.zip binary
+*.pdf binary
+*.pkl binary
+*.pickle binary
+*.joblib binary
+*.db binary
+*.sqlite binary
+*.sqlite3 binary
+*.parquet binary
+*.xlsx binary
+*.xls binary

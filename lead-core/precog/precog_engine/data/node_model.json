@@ -28,9 +28,9 @@
   "generator": "graph_replay.generator v1",
   "seed": 0,
   "test_fraction": 0.2,
-  "topology_engine": "networkx-fallback",
+  "topology_engine": "attackgraph",
   "training_file_seed": 0,
-  "training_file_sha256": "354f29819ec9b0b7573d3a8210c5f6fe7a173ae9fd91008f017c2322ad624b5e",
+  "training_file_sha256": "77e472cbd16358d5607eafeaff0d5e9733d9851fcf82043d2158afa14405452a",
   "training_sequences": 240
  }
 }

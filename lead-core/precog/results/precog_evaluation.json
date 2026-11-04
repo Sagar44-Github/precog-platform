@@ -196,7 +196,7 @@
    "1.0": 0.6834
   }
  },
- "generated_at": "2026-11-01T09:32:41Z",
- "training_file_sha256": "354f29819ec9b0b7573d3a8210c5f6fe7a173ae9fd91008f017c2322ad624b5e",
+ "generated_at": "2026-11-04T08:55:27Z",
+ "training_file_sha256": "77e472cbd16358d5607eafeaff0d5e9733d9851fcf82043d2158afa14405452a",
  "notes": "The training sequences are made by GRAPH's scripted generator (four attacker styles over a six-host demo network), not by real attackers. The numbers measure how well the model learned that generator's habits on sequences it never saw, and are NOT a claim about real intrusions. Containment success equals precision@1 (contain the top host) or precision@3 (contain the Top-3) by construction in this replay setting. The numbers come only from held-out sequences, never from the rehearsed golden path. On this six-host network at most three hosts can be reached from any host, so a Top-3 list nearly always contains every candidate: precision@3 is about 1.0 for EVERY method and says nothing. Judge the model by precision@1, by calibration, and by its gap to the baselines, and read that gap against the standard error given with precision@1."
 }
