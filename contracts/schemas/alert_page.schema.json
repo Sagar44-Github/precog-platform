@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/alert_page.schema.json",
+  "title": "Filtered alert page",
+  "type": "object",
+  "properties": {
+    "items": { "type": "array", "items": { "$ref": "security_event.schema.json" } },
+    "total": { "type": "integer", "minimum": 0 },
+    "next_cursor": { "type": ["string", "null"] },
+    "limit": { "type": "integer", "minimum": 1, "maximum": 200 },
+    "filters": {
+      "type": "object",
+      "properties": {
+        "q": { "type": "string" },
+        "severity": { "type": "string", "enum": ["", "HIGH", "MEDIUM", "LOW", "NORMAL"] },
+        "host": { "type": "string" },
+        "technique": { "type": "string" },
+        "from": { "type": "string" },
+        "to": { "type": "string" },
+        "sort": { "type": "string", "enum": ["ts", "risk_score", "severity"] },
+        "order": { "type": "string", "enum": ["asc", "desc"] }
+      },
+      "required": ["q", "severity", "host", "technique", "from", "to", "sort", "order"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["items", "total", "next_cursor", "limit", "filters"],
+  "additionalProperties": false
+}

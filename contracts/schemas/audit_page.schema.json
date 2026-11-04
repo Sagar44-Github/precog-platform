@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/audit_page.schema.json",
+  "title": "Filtered audit page",
+  "type": "object",
+  "properties": {
+    "items": { "type": "array", "items": { "$ref": "audit_entry.schema.json" } },
+    "total": { "type": "integer", "minimum": 0 },
+    "next_cursor": { "type": ["string", "null"] },
+    "limit": { "type": "integer", "minimum": 1, "maximum": 200 },
+    "filters": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["", "detection", "forecast", "containment"] },
+        "ref_id": { "type": "string" },
+        "q": { "type": "string" },
+        "from": { "type": "string" },
+        "to": { "type": "string" }
+      },
+      "required": ["type", "ref_id", "q", "from", "to"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["items", "total", "next_cursor", "limit", "filters"],
+  "additionalProperties": false
+}

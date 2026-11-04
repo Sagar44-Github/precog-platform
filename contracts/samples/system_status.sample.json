@@ -1,0 +1,9 @@
+{
+  "status": "ok",
+  "data_mode": "sample",
+  "world_version": 1,
+  "hooks": ["events", "graph", "replay", "precog", "containment", "push"],
+  "modules": {"detect_events": "registered", "graph_replay": "registered", "graph_net": "registered", "viz_containment": "registered", "precog_engine": "registered"},
+  "versions": {"python": "3.11.9", "flask": "3.0.0", "sqlite": "3.45.1"},
+  "checks": {"contract_validation": true, "audit_log_available": true}
+}

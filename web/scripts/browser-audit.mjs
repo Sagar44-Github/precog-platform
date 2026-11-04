@@ -26,6 +26,13 @@ const routeSpecs = [
   ['mobile-forecast', '/app/mobile/forecast'],
   ['mobile-history', '/app/mobile/history'],
   ['console', '/app/console'],
+  ['alerts', '/app/alerts'],
+  ['alert-detail', null],
+  ['hosts', '/app/hosts'],
+  ['host-detail', null],
+  ['audit', '/app/audit'],
+  ['system', '/app/system'],
+  ['settings', '/app/settings'],
 ]
 const report = { browser: 'Playwright Chromium (SwiftShader)', modes: {} }
 const expectedEvents = []
@@ -177,16 +184,26 @@ async function runMode(browser, mode, port, dbDir, errors) {
       }
     }
 
+    await page.waitForFunction(async () => {
+      const response = await fetch('/api/x/alerts?limit=1')
+      if (!response.ok) return false
+      const alerts = await response.json()
+      return Array.isArray(alerts) && alerts.length > 0
+    }, null, { timeout: 15000 }).catch(() => {})
     const alerts = await page.evaluate(async () => {
       const response = await fetch('/api/x/alerts?limit=1')
-      return response.ok ? response.json() : []
+      return response.ok ? response.json() : { error: `HTTP ${response.status}` }
     })
     const alertId = alerts[0]?.event_id
-    if (!alertId) errors.push(`${mode} mode did not provide an alert id for the alert-detail route`)
+    if (!alertId) errors.push(`${mode} mode did not provide an alert id for the alert-detail route (${JSON.stringify(alerts).slice(0, 180)})`)
     for (const size of sizes) {
       for (const [routeName, path] of routeSpecs) {
         const route = routeName === 'mobile-alert-detail'
           ? (alertId ? `/app/mobile/alerts/${encodeURIComponent(alertId)}` : '/app/mobile/alerts')
+          : routeName === 'alert-detail'
+            ? (alertId ? `/app/alerts/${encodeURIComponent(alertId)}` : '/app/alerts')
+            : routeName === 'host-detail'
+              ? '/app/hosts/host-a'
           : path
         const check = await checkViewport(page, mode, routeName, `${base}${route}`, size)
         const failures = check.failure ? [check.failure] : []
@@ -239,6 +256,29 @@ async function runMode(browser, mode, port, dbDir, errors) {
         await page.getByRole('option', { name: /Switch to dark theme/ }).click()
         await page.waitForFunction(() => document.documentElement.dataset.theme === 'dark')
         report.shellInteractions.themePersistence = 'light/dark switch and persisted reload verified'
+
+        await page.goto(`${base}/app/settings`, { waitUntil: 'domcontentloaded' })
+        const density = page.getByLabel('Row spacing')
+        await density.selectOption('compact')
+        await page.reload({ waitUntil: 'domcontentloaded' })
+        await page.waitForFunction(() => document.documentElement.dataset.density === 'compact')
+        report.shellInteractions.settingsPersistence = 'compact density saved and restored after reload'
+
+        await page.goto(`${base}/app/alerts`, { waitUntil: 'domcontentloaded' })
+        await page.locator('.ops-alert-filter .ops-search-field input').fill('Brute Force')
+        await page.getByRole('button', { name: 'Apply filters' }).click()
+        await page.waitForFunction(() => {
+          const rows = Array.from(document.querySelectorAll('.ops-table tbody tr'))
+          return rows.length > 0 && rows.every((row) => row.innerText.includes('Brute Force'))
+        }, null, { timeout: 10000 })
+        report.shellInteractions.alertSearch = 'search for Brute Force returned only matching alerts'
+
+        const csvDownload = page.waitForEvent('download')
+        await page.getByRole('button', { name: 'Export CSV' }).click()
+        report.shellInteractions.csvExport = `downloaded ${(await csvDownload).suggestedFilename()}`
+        const jsonDownload = page.waitForEvent('download')
+        await page.getByRole('button', { name: 'Export JSON' }).click()
+        report.shellInteractions.jsonExport = `downloaded ${(await jsonDownload).suggestedFilename()}`
       } catch (error) {
         report.shellInteractions = {
           error: error.message,

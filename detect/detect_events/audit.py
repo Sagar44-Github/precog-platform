@@ -54,8 +54,22 @@ class AuditLog:
         with self._lock:
             if not self.path.is_file():
                 return []
-            lines = self.path.read_text(encoding="utf-8").splitlines()
-        return [json.loads(line) for line in lines if line.strip()]
+            lines = self.path.read_bytes().decode("utf-8", errors="replace").splitlines()
+        entries = []
+        for line in lines:
+            if not line.strip():
+                continue
+            try:
+                entry = json.loads(line)
+                if not isinstance(entry, dict):
+                    continue
+                if self._contracts is not None:
+                    self._contracts.validate("audit_entry", entry)
+            except (json.JSONDecodeError, ValueError):
+                # A damaged line must not make the whole read-only audit view unavailable.
+                continue
+            entries.append(entry)
+        return entries
 
     def clear(self):
         with self._lock:

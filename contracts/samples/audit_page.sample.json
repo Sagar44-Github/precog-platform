@@ -1,0 +1,7 @@
+{
+  "items": [{"ts": "2026-10-03T10:00:01Z", "type": "detection", "ref_id": "evt-000001", "summary": "High alert on host-a: Brute Force"}],
+  "total": 1,
+  "next_cursor": null,
+  "limit": 50,
+  "filters": {"type": "", "ref_id": "", "q": "", "from": "", "to": ""}
+}

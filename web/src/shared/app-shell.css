@@ -192,10 +192,28 @@
 }
 
 @media (max-width: 1023px) {
-  .app-shell { display: none; }
+  .app-shell { min-height: 560px; }
 }
 
 @media (max-width: 620px) {
+  .app-shell { --sidebar-width: 56px; min-height: 100dvh; grid-template-columns: var(--sidebar-width) minmax(0, 1fr); }
+  .app-sidebar { gap: 3px; padding: 10px 5px; }
+  .app-brand { min-height: 38px; }
+  .app-brand .brand-mark { width: 32px; height: 32px; }
+  .app-primary-nav { gap: 3px; }
+  .app-nav-link { min-height: 42px; }
+  .app-nav-link > svg { width: 19px; height: 19px; }
+  .app-account { min-height: 42px; padding: 5px 0 0; border-top: 0; }
+  .account-avatar { width: 28px; height: 28px; }
+  .app-main { grid-template-rows: 54px minmax(0, 1fr); }
+  .app-topbar { gap: 5px; padding: 0 7px; }
+  .app-breadcrumb { gap: 4px; }
+  .app-breadcrumb > span, .app-breadcrumb > svg { display: none; }
+  .app-breadcrumb h1 { font-size: 12px; }
+  .app-top-actions { gap: 5px; }
+  .app-top-actions .theme-toggle { min-width: 34px; min-height: 34px; padding-inline: 7px; }
+  .app-topbar .sim-badge { padding-inline: 4px; font-size: 9px; }
+  .app-shell-content { overflow: hidden; }
   .command-trigger { width: 40px; padding: 0; }
   .command-trigger > span, .command-trigger kbd { display: none; }
   .command-backdrop { padding-inline: 10px; }

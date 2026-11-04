@@ -34,6 +34,8 @@ A closed-loop security console that predicts where an attacker will move next an
 
 > **Phase B1 shell:** the desktop console now has a shared workspace rail, a Ctrl/Cmd+K command palette, dark/light theme support, and a mobile SOC handoff below 1024 px. The desktop and PWA remain one Flask-served web bundle. See [the B1 browser captures](docs/phase-b1/screenshots/) and [Demo Script V2](docs/DEMO_SCRIPT_V2.md). B1 adds no API routes or data contracts.
 
+> **Phase B2 workspaces:** authenticated routes now include `/app/alerts`, `/app/hosts`, `/app/audit`, `/app/system`, and `/app/settings`, with deep-linkable alert and host details. Alerts support filtering, sorting, paging, CSV/JSON export; asset records include explicitly simulated `DEMO-` weaknesses and replay state history. The contract set now has 16 checked schemas. See [B2 browser evidence](docs/phase-b2/) and [B2 requirements/technical addenda](docs/PRD_ADDENDUM_B1.md#phase-b2-product-requirements), [TRD addendum](docs/TRD_ADDENDUM_B1.md#phase-b2-route-and-api-additions).
+
 <a id="choose-your-path"></a>
 
 ### Choose your path
@@ -96,7 +98,7 @@ flowchart LR
     <td align="center"><b>6</b><br>demo hosts in 3 zones</td>
     <td align="center"><b>Top-3</b><br>forecast, with confidence</td>
     <td align="center"><b>2 steps</b><br>propose, then confirm</td>
-    <td align="center"><b>25</b><br>add-on API routes</td>
+    <td align="center"><b>29</b><br>add-on API routes</td>
   </tr>
   <tr>
     <td align="center"><b>26</b><br>ATT&amp;CK techniques mapped</td>
@@ -874,7 +876,7 @@ Nothing changes in the world state until `confirm` succeeds with the action id t
 The product's own screens use the add-on endpoints under **`/api/x`**, so they never meet NIDS's redirect-style login. Every add-on endpoint except `health` and `login` returns a **JSON 401** when you are not signed in. Errors share one JSON shape with a short code and a plain-English message.
 
 <details>
-<summary><b>Add-on endpoints</b> (25 routes, click to expand)</summary>
+<summary><b>Add-on endpoints</b> (29 routes, click to expand)</summary>
 
 <br>
 
@@ -886,7 +888,11 @@ The product's own screens use the add-on endpoints under **`/api/x`**, so they n
 | `GET` | `/api/x/me` | Who is signed in |
 | `GET` | `/api/x/state?since=N` | **Polling:** changes since version N |
 | `GET` | `/api/x/alerts` | Security events, newest first (limit parameter) |
+| `GET` | `/api/x/alerts/search` | Filtered and cursor-paged alerts (`q`, severity, host, technique, time range, sort, order) |
 | `GET` | `/api/x/alerts/{id}` | One alert with its explanation |
+| `GET` | `/api/x/assets` | Demo host inventory with topology, synthetic weaknesses, risk, state and history |
+| `GET` | `/api/x/audit` | Filtered, read-only audit log (`type`, reference, summary and time range) |
+| `GET` | `/api/x/system` | Runtime versions, hooks, modules, data mode and readiness checks |
 | `GET` | `/api/x/graph` | Current graph snapshot |
 | `GET` | `/api/x/forecasts` | Forecasts, filterable by status |
 | `GET` | `/api/x/forecasts/current` | The pending forecast |
@@ -941,6 +947,10 @@ Data passed between roles is agreed **first**, in writing. `contracts/schemas/` 
 | `session_metrics` | Hit-rate, precision@1, precision@3, calibration bins, containment success rate |
 | `replay_status` | `idle`, `running`, `paused`, `waiting_for_decision` or `finished` |
 | `detection_report` | Model, dataset, split, precision, recall, F1, false-positive rate, notes |
+| `alert_page` | Filtered alert records, total, cursor and applied filters |
+| `audit_page` | Filtered scrubbed audit records, total, cursor and applied filters |
+| `host_inventory` | Demo asset profile, risk, services, simulated weaknesses and replay state history |
+| `system_status` | Runtime versions, data mode, modules, hooks and readiness checks |
 
 <details>
 <summary><b>Example: a forecast</b></summary>

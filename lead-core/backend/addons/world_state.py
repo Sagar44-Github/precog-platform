@@ -6,6 +6,7 @@ All methods are safe to call from several threads at once.
 """
 import copy
 import threading
+from datetime import datetime, timezone
 
 MAX_ALERTS = 200
 
@@ -55,6 +56,7 @@ class WorldState:
 
     def _reset_locked(self):
         self._graph = _empty_graph()
+        self._host_history = {}
         self._alerts = []
 
         self._forecasts = []
@@ -90,6 +92,10 @@ class WorldState:
 
         with self._lock:
             return copy.deepcopy(self._graph)
+
+    def host_state_history(self, host_id):
+        with self._lock:
+            return copy.deepcopy(self._host_history.get(host_id, []))
 
     def alerts(self, limit=50):
 
@@ -157,7 +163,17 @@ class WorldState:
     # ---------- writing (each one bumps the version) ----------
     def set_graph(self, graph):
         with self._lock:
-            self._graph = copy.deepcopy(self._check("graph_snapshot", graph))
+            checked = self._check("graph_snapshot", graph)
+            previous = {host["host_id"]: host["state"] for host in self._graph.get("hosts", [])}
+            now = datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+            for host in checked.get("hosts", []):
+                host_id, state = host["host_id"], host["state"]
+                prior_state = previous.get(host_id)
+                history = self._host_history.setdefault(host_id, [])
+                if prior_state != state:
+                    history.append({"ts": now, "from_state": prior_state, "state": state})
+                    del history[:-20]
+            self._graph = copy.deepcopy(checked)
             return self._bump()
 
     def add_alert(self, alert):

@@ -45,6 +45,15 @@ async function request(method, path, body) {
 export const apiGet = (path) => request('GET', path)
 export const apiPost = (path, body = {}) => request('POST', path, body)
 
+function withQuery(path, values = {}) {
+  const query = new URLSearchParams()
+  Object.entries(values).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') query.set(key, String(value))
+  })
+  const suffix = query.toString()
+  return suffix ? `${path}?${suffix}` : path
+}
+
 // Named helpers, one per backend endpoint the screens need. Names match docs: TRD section 11.
 export const api = {
   health: () => apiGet('/api/x/health'),
@@ -54,6 +63,10 @@ export const api = {
   state: (since) => apiGet(since === null || since === undefined ? '/api/x/state' : `/api/x/state?since=${since}`),
   alerts: (limit = 50) => apiGet(`/api/x/alerts?limit=${limit}`),
   alert: (id) => apiGet(`/api/x/alerts/${encodeURIComponent(id)}`),
+  searchAlerts: (filters = {}) => apiGet(withQuery('/api/x/alerts/search', filters)),
+  assets: () => apiGet('/api/x/assets'),
+  audit: (filters = {}) => apiGet(withQuery('/api/x/audit', filters)),
+  system: () => apiGet('/api/x/system'),
   graph: () => apiGet('/api/x/graph'),
   forecasts: (status) => apiGet(status ? `/api/x/forecasts?status=${status}` : '/api/x/forecasts'),
   currentForecast: () => apiGet('/api/x/forecasts/current'),

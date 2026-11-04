@@ -22,3 +22,16 @@ An authenticated operator can move between the desktop console and phone SOC fro
 ## Non-goals in B1
 
 Incident, asset, forecast-ledger, playbook, analytics, and scenario-builder pages are scheduled for later B phases. B1 adds no server-side role model and no new backend API.
+
+## Phase B2 product requirements
+
+| ID | Requirement | Priority | Acceptance |
+|---|---|---:|---|
+| FR-OPS-1 | An operator shall search and filter the current alert buffer by text, severity, host, technique, and time range; select sort order and page through matching results. | M | API results match filters and paging; the browser table links to refresh-safe alert details. |
+| FR-OPS-2 | An operator shall export the filtered alert result as CSV or JSON. | M | Both downloads contain the applied filter result; CSV cells are quoted and formula-like values are neutralized. |
+| FR-OPS-3 | An operator shall inspect the six-host demo inventory, current state, zone, risk, criticality, services, simulated weaknesses, reachable demo hosts, and state history. | M | Host list and detail pages use live replay state and clearly label every synthetic weakness with a `DEMO-` id. |
+| FR-OPS-4 | An operator shall search the scrubbed detection/forecast/containment audit records by type, reference, summary, and date range. | M | The reader skips corrupt lines without dropping valid records; the API remains authenticated and read-only. |
+| FR-OPS-5 | An operator shall inspect module/hook registration, Python/Flask/SQLite versions, data mode, and basic readiness checks. | M | System status is available through a protected route and displays actual process values. |
+| FR-OPS-6 | An operator may persist display density and default alert severity locally, alongside the existing theme. | S | Preferences survive reload in the same browser and do not alter model or detection behavior. |
+
+The new pages preserve the replay-only safety boundary and show the shared SIMULATION label from the authenticated application shell. The audit and system workspaces are read-only.

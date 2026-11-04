@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from './AuthContext.jsx'
 import { SimulationBadge } from './components.jsx'
 import { Icon } from './icons.jsx'
@@ -24,6 +24,18 @@ function commandEvent(detail) {
   window.dispatchEvent(new CustomEvent('precog:console-command', { detail }))
 }
 
+function pageTitle(pathname) {
+  if (pathname.startsWith('/alerts/')) return 'Alert detail'
+  if (pathname === '/alerts') return 'Alerts'
+  if (pathname.startsWith('/hosts/')) return 'Asset detail'
+  if (pathname === '/hosts') return 'Hosts & assets'
+  if (pathname === '/audit') return 'Audit log'
+  if (pathname === '/system') return 'System health'
+  if (pathname === '/settings') return 'Settings'
+  if (pathname.startsWith('/mobile')) return 'Mobile SOC'
+  return 'Live console'
+}
+
 export function CommandPalette({ open, onClose }) {
   const navigate = useNavigate()
   const { theme, toggleTheme } = useTheme()
@@ -35,6 +47,11 @@ export function CommandPalette({ open, onClose }) {
   const commands = useMemo(() => [
     { label: 'Open live console', detail: 'Go to the 3D replay console', icon: 'activity', keywords: 'workspace desktop', run: () => navigate('/console') },
     { label: 'Open mobile SOC', detail: 'Open the phone PWA screens', icon: 'smartphone', keywords: 'phone pwa', run: () => navigate('/mobile') },
+    { label: 'Open alerts workspace', detail: 'Search and review security events', icon: 'alerts', keywords: 'alerts incidents events', run: () => navigate('/alerts') },
+    { label: 'Open hosts and assets', detail: 'Review the simulated network inventory', icon: 'hosts', keywords: 'assets inventory devices', run: () => navigate('/hosts') },
+    { label: 'Open audit log', detail: 'Review detection and response records', icon: 'audit', keywords: 'audit history log', run: () => navigate('/audit') },
+    { label: 'Open system health', detail: 'Inspect backend modules and runtime', icon: 'system', keywords: 'health status modules', run: () => navigate('/system') },
+    { label: 'Open settings', detail: 'Set theme, density, and alert defaults', icon: 'settings', keywords: 'preferences appearance', run: () => navigate('/settings') },
     { label: 'Show alert stream', detail: 'Open alerts in the console panel', icon: 'activity', keywords: 'alerts events', run: () => commandEvent({ type: 'view', view: 'alerts' }) },
     { label: 'Show session report', detail: 'Open the current session report panel', icon: 'sliders', keywords: 'reports metrics', run: () => commandEvent({ type: 'view', view: 'reports' }) },
     { label: 'Start Golden Path replay', detail: 'Start the deterministic simulation', icon: 'play', keywords: 'demo replay simulation', run: () => commandEvent({ type: 'start-demo' }) },
@@ -131,6 +148,7 @@ export function ConsoleHandoff() {
 export default function AppShell({ children }) {
   const { username, logout } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [paletteOpen, setPaletteOpen] = useState(false)
   const handoff = useConsoleHandoff()
   const closePalette = () => setPaletteOpen(false)
@@ -150,7 +168,18 @@ export default function AppShell({ children }) {
     try { await logout() } finally { navigate('/login', { replace: true }) }
   }
 
-  if (handoff) return <ConsoleHandoff />
+  if (handoff && location.pathname.startsWith('/console')) return <ConsoleHandoff />
+
+  const currentPage = pageTitle(location.pathname)
+  const navigation = [
+    { to: '/console', label: 'Live console', icon: 'activity', end: true },
+    { to: '/alerts', label: 'Alerts', icon: 'alerts' },
+    { to: '/hosts', label: 'Hosts & assets', icon: 'hosts' },
+    { to: '/audit', label: 'Audit log', icon: 'audit' },
+    { to: '/system', label: 'System health', icon: 'system' },
+    { to: '/settings', label: 'Settings', icon: 'settings' },
+    { to: '/mobile', label: 'Mobile SOC', icon: 'smartphone' },
+  ]
 
   return (
     <div className="app-shell">
@@ -159,14 +188,11 @@ export default function AppShell({ children }) {
           <span className="brand-mark"><Icon name="activity" size={21} /></span>
           <span className="brand-copy"><b>Precog <strong>SOC</strong></b><small>SIMULATION LAB</small></span>
         </Link>
-        <p className="app-nav-caption">WORKSPACE</p>
+        <p className="app-nav-caption">OPERATIONS</p>
         <nav className="app-primary-nav" aria-label="Main navigation">
-          <NavLink to="/console" end className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
-            <Icon name="activity" /><span>Live console</span><kbd>1</kbd>
-          </NavLink>
-          <NavLink to="/mobile" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
-            <Icon name="smartphone" /><span>Mobile SOC</span><kbd>2</kbd>
-          </NavLink>
+          {navigation.map(({ to, label, icon, end }) => <NavLink key={to} to={to} end={end} title={label} aria-label={label} className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
+            <Icon name={icon} /><span>{label}</span>
+          </NavLink>)}
         </nav>
         <div className="app-sidebar-spacer" />
         <div className="app-simulation-note"><span className="status-square" /> SIMULATED ENVIRONMENT</div>
@@ -178,7 +204,7 @@ export default function AppShell({ children }) {
       </aside>
       <div className="app-main">
         <header className="app-topbar">
-          <div className="app-breadcrumb"><span>Workspace</span><Icon name="chevron" size={15} /><h1>Live console</h1></div>
+          <div className="app-breadcrumb"><span>Workspace</span><Icon name="chevron" size={15} /><h1>{currentPage}</h1></div>
           <div className="app-top-actions">
             <button type="button" className="command-trigger" onClick={() => setPaletteOpen(true)} aria-haspopup="dialog" aria-expanded={paletteOpen}>
               <Icon name="search" size={17} /><span>Search commands</span><kbd><Icon name="command" size={12} /> K</kbd>

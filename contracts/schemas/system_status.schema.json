@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/system_status.schema.json",
+  "title": "System status",
+  "type": "object",
+  "properties": {
+    "status": { "type": "string", "enum": ["ok"] },
+    "data_mode": { "type": "string", "enum": ["sample", "live"] },
+    "world_version": { "type": "integer", "minimum": 0 },
+    "hooks": { "type": "array", "items": { "type": "string" } },
+    "modules": { "type": "object", "additionalProperties": { "type": "string" } },
+    "versions": {
+      "type": "object",
+      "properties": {"python": {"type": "string"}, "flask": {"type": "string"}, "sqlite": {"type": "string"}},
+      "required": ["python", "flask", "sqlite"],
+      "additionalProperties": false
+    },
+    "checks": {
+      "type": "object",
+      "properties": {"contract_validation": {"type": "boolean"}, "audit_log_available": {"type": "boolean"}},
+      "required": ["contract_validation", "audit_log_available"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["status", "data_mode", "world_version", "hooks", "modules", "versions", "checks"],
+  "additionalProperties": false
+}
