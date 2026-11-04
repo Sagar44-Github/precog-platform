@@ -80,6 +80,7 @@ test('the timeline strip has a mark per alert and a forecast marker', () => {
   assert.match(out, /1 alerts on the timeline/)
   assert.match(out, /data-severity="HIGH"/)
   assert.match(out, /A forecast was made/)
+  assert.match(out, /class="c-timeline-track" aria-hidden="true">.*class="c-mark"/s)
   assert.match(html(<TimelineStrip alerts={[]} forecast={null} />), /Timeline populates as the simulation runs/)
 })
 

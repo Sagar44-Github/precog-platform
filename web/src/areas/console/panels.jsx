@@ -173,10 +173,11 @@ export function TimelineStrip({ alerts, forecast }) {
   return (
     <div className="c-timeline" role="img" aria-label={`${alerts.length} alerts on the timeline`}>
       <div className="c-timeline-label"><span className="c-eyebrow">EVENT TIMELINE</span><small>{alerts.length ? `${alerts.length} signals` : 'Awaiting replay signals'}</small></div>
-      <div className="c-timeline-track" aria-hidden="true" />
+      <div className="c-timeline-track" aria-hidden="true">
+        {marks.map((m) => <span key={m.id} className="c-mark" data-severity={m.severity} style={{ left: `${m.position * 100}%` }} title={m.severity} />)}
+        {forecast && forecast.status === 'pending' && <span className="c-forecast-mark" title="A forecast was made">◌</span>}
+      </div>
       {marks.length === 0 && <span className="c-timeline-empty">Timeline populates as the simulation runs.</span>}
-      {marks.map((m) => <span key={m.id} className="c-mark" data-severity={m.severity} style={{ left: `${m.position * 100}%` }} title={m.severity} />)}
-      {forecast && forecast.status === 'pending' && <span className="c-forecast-mark" title="A forecast was made" aria-hidden="true">◌</span>}
     </div>
   )
 }
