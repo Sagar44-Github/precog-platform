@@ -4,6 +4,7 @@ import { api } from '../../shared/api.js'
 import { EmptyState, LoadingState, useToast } from '../../shared/components.jsx'
 import { AlertVolumeChart, ForecastAccuracyChart } from '../charts/index.jsx'
 import { usePushRegistration } from '../push/index.jsx'
+import DemoStart from '../../shared/DemoStart.jsx'
 import { AccuracyCounter, AlertCard, AttackPath2D, ContainFlow, ForecastBars, OutcomeCard, SeverityBadge, StateChip, ThreatLevelCard, mitreUrl } from './components.jsx'
 import { filterAlerts, formatTime, hostName, hostState } from './logic.js'
 
@@ -19,6 +20,7 @@ export function HomeScreen({ state, stale }) {
   return (
     <div className="m-screen">
       <ThreatLevelCard state={state} stale={stale} />
+      {state.replay?.state === 'idle' && <DemoStart className="demo-launch-mobile" hostCount={state.graph.hosts.length} />}
       <section className="m-card">
         <ForecastBars state={state} />
         {state.forecast && <ContainFlow state={state} onDone={toast.show} />}

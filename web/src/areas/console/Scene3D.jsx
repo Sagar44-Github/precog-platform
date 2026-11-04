@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react'
 import * as THREE from 'three'
 import ForceGraph3D from '3d-force-graph'
 import { makeCone, makeHostObject, placeCone } from './objects3d.js'
+import { createSceneDecorations, disposeSceneDecorations } from './sceneDecorations.js'
 import { pulseScale } from './sceneModel.js'
 import { browserVar, prefersReducedMotion, readSceneColors } from './theme3d.js'
 
@@ -37,6 +38,8 @@ export default function Scene3D({ model, pendingForecast, onSelect }) {
     controls.autoRotate = !reduced
     controls.autoRotateSpeed = 0.67          // about one turn every 90 seconds
     graphRef.current = graph
+    const atmosphere = createSceneDecorations(colors)
+    graph.scene().add(atmosphere)
     const coneGroup = new THREE.Group()
     graph.scene().add(coneGroup)
 
@@ -80,6 +83,8 @@ export default function Scene3D({ model, pendingForecast, onSelect }) {
     return () => {
       cancelAnimationFrame(frame)
       window.removeEventListener('resize', resize)
+      graph.scene().remove(atmosphere)
+      disposeSceneDecorations(atmosphere)
       graph._destructor()
       graphRef.current = null
     }

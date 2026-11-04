@@ -38,9 +38,33 @@ export function makeHostObject(node, colors) {
   const group = new THREE.Group()
   group.name = node.id
   group.add(makeHostMesh(node, colors))
-  if (node.state === 'contained') group.add(makeRing(node.radius * 1.9, colors.contained, false))
+  if (node.state === 'compromised') {
+    const halo = new THREE.Mesh(
+      new THREE.SphereGeometry(node.radius * 2.25, 24, 16),
+      new THREE.MeshBasicMaterial({ color: colors.compromised, transparent: true, opacity: 0.12, side: THREE.BackSide, depthWrite: false }),
+    )
+    halo.name = 'compromised-halo'
+    group.add(halo)
+    const orbit = makeRing(node.radius * 2.5, colors.compromised, false)
+    orbit.rotation.x = Math.PI / 2
+    orbit.name = 'compromised-orbit'
+    group.add(orbit)
+  }
+  if (node.state === 'contained') {
+    group.add(makeRing(node.radius * 1.9, colors.contained, false))
+    const orbit = makeRing(node.radius * 2.35, colors.contained, false)
+    orbit.rotation.x = Math.PI / 2
+    orbit.name = 'contained-orbit'
+    group.add(orbit)
+  }
   if (node.predicted !== null) {
     group.add(makeRing(node.radius * 2.3, colors.forecast, true))
+    const glow = new THREE.Mesh(
+      new THREE.SphereGeometry(node.radius * 2.0, 20, 14),
+      new THREE.MeshBasicMaterial({ color: colors.forecast, transparent: true, opacity: 0.09, side: THREE.BackSide, depthWrite: false }),
+    )
+    glow.name = 'forecast-halo'
+    group.add(glow)
     const percentLabel = makeLabel(`${node.predicted} %`, colors.forecast, 4)
     if (percentLabel) { percentLabel.position.set(0, node.radius * 3.2, 0); group.add(percentLabel) }
   }

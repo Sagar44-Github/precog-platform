@@ -22,24 +22,24 @@ test('the top bar shows the name, the simulation badge, the threat level and the
   assert.match(out, /SIMULATION/)
   assert.match(out, /Threat: Under attack/)
   assert.match(out, /Connected/)
-  assert.match(html(<TopBar state={state} stale />), /Offline: showing old data/)
+  assert.match(html(<TopBar state={state} stale />), /Offline · stale data/)
 })
 
 test('replay controls say "Waiting for your decision" and enable only the useful buttons', () => {
   const out = html(<ReplayControls replay={state.replay} />)
   assert.match(out, /Waiting for your decision/)
   assert.match(out, /c-waiting/)
+  assert.match(out, /aria-label="Pause replay"[^>]*disabled/)
+  assert.doesNotMatch(out, /aria-label="Resume replay"[^>]*disabled/)
+  assert.doesNotMatch(out, /aria-label="Restart replay"[^>]*disabled/)
   assert.match(out, /<button[^>]*disabled[^>]*>Start/)
-  assert.match(out, /<button[^>]*disabled[^>]*>Pause/)
-  assert.doesNotMatch(out, /<button[^>]*disabled[^>]*>Resume/)
-  assert.doesNotMatch(out, /<button[^>]*disabled[^>]*>Restart/)
 })
 
 test('an idle replay can only be started', () => {
   const out = html(<ReplayControls replay={{ state: 'idle', scenario_id: null, speed: 1, position: 0 }} />)
   assert.match(out, /Idle/)
   assert.doesNotMatch(out, /<button[^>]*disabled[^>]*>Start/)
-  assert.match(out, /<button[^>]*disabled[^>]*>Restart/)
+  assert.match(out, /aria-label="Restart replay"[^>]*disabled/)
 })
 
 test('the left rail has Graph, Alerts and Reports with the selected one marked', () => {
@@ -80,7 +80,7 @@ test('the timeline strip has a mark per alert and a forecast marker', () => {
   assert.match(out, /1 alerts on the timeline/)
   assert.match(out, /data-severity="HIGH"/)
   assert.match(out, /A forecast was made/)
-  assert.match(html(<TimelineStrip alerts={[]} forecast={null} />), /Alerts appear here/)
+  assert.match(html(<TimelineStrip alerts={[]} forecast={null} />), /Timeline populates as the simulation runs/)
 })
 
 test('the scene summary is text for screen readers', () => {

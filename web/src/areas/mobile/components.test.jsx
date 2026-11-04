@@ -99,3 +99,9 @@ test('the home screen shows grey loading bars before the first reply', () => {
 test('the home screen has no contain button when no forecast is pending', () => {
   assert.doesNotMatch(html(<ToastProvider><HomeScreen state={{ ...state, forecast: null }} stale={false} /></ToastProvider>), /Contain /)
 })
+
+test('an idle phone home screen offers the Golden Path launcher', () => {
+  const out = html(<ToastProvider><HomeScreen state={{ ...state, replay: { state: 'idle' } }} stale={false} /></ToastProvider>)
+  assert.match(out, /Start Golden Path/)
+  assert.match(out, /SIMULATION ONLY/)
+})

@@ -902,6 +902,8 @@ The first start trains NIDS's model (about 10 seconds) and prints a long model r
 
 ### H2 — Look at it in the browser
 
+> These checks describe the early Part H checkpoint, before the React app is built. In the completed project, `GET /` redirects to the Precog SOC console at `/app/console/`; use the current [README quick start](../README.md#quick-start) for the finished demo flow.
+
 1. Open http://127.0.0.1:5000/api/x/health. **You should see** a line of JSON beginning `{"data_mode":"sample"` with `"status":"ok"`.
 2. Open http://127.0.0.1:5000/ . **You should see** NIDS's own login page. Sign in with username `admin` and **the `ADMIN_PASSWORD` from your `.env`**. **You should see** the NIDS dashboard.
 3. Open http://127.0.0.1:5000/app/ . **You should see** plain text saying the web app has not been built yet. That is correct for now (Part I builds it).

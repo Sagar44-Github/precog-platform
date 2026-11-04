@@ -16,6 +16,14 @@ NOT_BUILT_TEXT = (
 def register_webapp(app, config):
     dist = config.web_dist
 
+    @app.before_request
+    def precog_demo_home():
+        # The product demo is the main entry point. NIDS source stays untouched;
+        # its dashboard view is superseded here so a fresh visitor lands in Precog.
+        if request.path == "/" and request.method == "GET":
+            return redirect("/app/console/", code=302)
+        return None
+
     def _index():
 
         if not (dist / "index.html").is_file():

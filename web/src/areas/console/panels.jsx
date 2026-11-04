@@ -1,4 +1,5 @@
 import { useEffect, useReducer, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { api, apiGet } from '../../shared/api.js'
 import { SimulationBadge } from '../../shared/components.jsx'
 import { AccuracyCounter, AttackPath2D, ForecastBars, OutcomeCard, SeverityBadge, StateChip } from '../mobile/index.jsx'
@@ -19,17 +20,18 @@ export function ReplayControls({ replay, client = api }) {
   const waiting = replay && replay.state === 'waiting_for_decision'
   return (
     <div className="c-replay" role="group" aria-label="Replay controls">
-      <select aria-label="Scenario" value={scenario} onChange={(e) => setScenario(e.target.value)} disabled={!enabled.start}>
+      <span className="c-control-label">REPLAY CONTROL</span>
+      <select className="c-select-scenario" aria-label="Scenario" value={scenario} onChange={(e) => setScenario(e.target.value)} disabled={!enabled.start}>
         {(scenarios.length ? scenarios : [{ scenario_id: 'golden-path' }]).map((s) => <option key={s.scenario_id} value={s.scenario_id}>{s.scenario_id}</option>)}
       </select>
-      <button type="button" className="c-btn" disabled={!enabled.start} onClick={run(() => client.startReplay(scenario, speed))}>Start</button>
-      <button type="button" className="c-btn" disabled={!enabled.pause} onClick={run(() => client.pauseReplay())}>Pause</button>
-      <button type="button" className="c-btn" disabled={!enabled.resume} onClick={run(() => client.resumeReplay())}>Resume</button>
-      <button type="button" className="c-btn" disabled={!enabled.restart} onClick={run(() => client.restartReplay())}>Restart</button>
+      <button type="button" className="c-btn c-btn-start" disabled={!enabled.start} onClick={run(() => client.startReplay(scenario, speed))}>Start <span aria-hidden="true">▶</span></button>
+      <button type="button" className="c-btn c-btn-icon" aria-label="Pause replay" title="Pause replay" disabled={!enabled.pause} onClick={run(() => client.pauseReplay())}>Ⅱ</button>
+      <button type="button" className="c-btn c-btn-icon" aria-label="Resume replay" title="Resume replay" disabled={!enabled.resume} onClick={run(() => client.resumeReplay())}>▶</button>
+      <button type="button" className="c-btn c-btn-icon" aria-label="Restart replay" title="Restart replay" disabled={!enabled.restart} onClick={run(() => client.restartReplay())}>↺</button>
       <select aria-label="Speed" value={speed} onChange={(e) => setSpeed(Number(e.target.value))} disabled={!enabled.start}>
         {SPEEDS.map((s) => <option key={s} value={s}>{s}×</option>)}
       </select>
-      <span className={waiting ? 'c-replay-word c-waiting' : 'c-replay-word'}>{replayWord(replay)}</span>
+      <span className={waiting ? 'c-replay-word c-waiting' : 'c-replay-word'}><i aria-hidden="true" />{replayWord(replay)}</span>
       {problem && <span className="c-error" role="alert">{problem}</span>}
     </div>
   )
@@ -39,11 +41,10 @@ export function TopBar({ state, stale }) {
   const level = threatLevel(state)
   return (
     <header className="c-top">
-      <strong>Precog SOC</strong>
-      <SimulationBadge />
-      {level && <span className="c-threat" style={{ color: level.color }} aria-live="polite"><span aria-hidden="true">{level.icon} </span>Threat: {level.word}</span>}
+      <div className="c-brand-lockup"><span className="c-brand-glyph" aria-hidden="true">◈</span><div><strong aria-label="Precog SOC">PRECOG <em>SOC</em></strong><small>THREAT OPERATIONS CENTER</small></div></div>
+      <div className="c-top-state"><SimulationBadge />{level && <span className={`c-threat c-threat-${level.key}`} aria-label={`Threat: ${level.word}`} aria-live="polite"><span aria-hidden="true">{level.icon}</span><span><small>THREAT LEVEL</small><b>{level.word}</b></span></span>}</div>
       <ReplayControls replay={state ? state.replay : null} />
-      <span className="c-conn" role="status">{stale ? '◌ Offline: showing old data' : '● Connected'}</span>
+      <div className="c-top-actions"><Link to="/mobile" className="c-mobile-link"><span aria-hidden="true">▣</span> Phone view</Link><span className="c-conn" role="status"><i aria-hidden="true" />{stale ? 'Offline · stale data' : 'Connected'}</span></div>
     </header>
   )
 }
@@ -53,11 +54,14 @@ export const RAIL = [['graph', 'Graph', '◉'], ['alerts', 'Alerts', '≡'], ['r
 export function LeftRail({ view, onChange }) {
   return (
     <nav className="c-rail" aria-label="Console views">
+      <span className="c-rail-caption">VIEWS</span>
       {RAIL.map(([key, label, icon]) => (
         <button type="button" key={key} className="c-rail-btn" aria-pressed={view === key} aria-label={label} title={label} onClick={() => onChange(key)}>
-          <span aria-hidden="true">{icon}</span><span className="c-rail-label">{label}</span>
+          <span className="c-rail-icon" aria-hidden="true">{icon}</span><span className="c-rail-label">{label}</span>
         </button>
       ))}
+      <span className="c-rail-spacer" />
+      <span className="c-rail-footer" title="Simulation environment">SIM<br />LAB</span>
     </nav>
   )
 }
@@ -110,9 +114,10 @@ export function ConsoleContain({ state, client = api, onDone }) {
 export function ForecastPanel({ state, resolved, onDone }) {
   return (
     <div className="c-panel-body">
+      <div className="c-panel-heading"><span className="c-eyebrow">PREC0G ENGINE / NEXT MOVE</span><h2>Predicted targets</h2><p>Ranked from the current attack path</p></div>
       <ForecastBars state={state} />
       <ConsoleContain state={state} onDone={onDone} />
-      <h3>Attack path</h3>
+      <h3 className="c-section-title">Attack path</h3>
       <AttackPath2D state={state} />
       <OutcomeCard forecast={resolved} state={state} />
     </div>
@@ -141,7 +146,7 @@ export function NodeDetailPanel({ state, hostId, onClose, onDone }) {
 export function AlertsPanel({ state }) {
   return (
     <div className="c-panel-body">
-      <h2>Alerts</h2>
+      <div className="c-panel-heading"><span className="c-eyebrow">DETECTION STREAM</span><h2>Security events</h2><p>Prioritized signals from the replay pipeline</p></div>
       {state.alerts.length === 0 ? <p className="c-muted">No alerts yet. Start the replay to see activity.</p> : state.alerts.slice(0, 50).map((a) => (
         <div key={a.event_id} className="c-alert">
           <div className="c-row"><SeverityBadge severity={a.severity} /><span className="c-mono c-muted">{formatTime(a.ts)}</span></div>
@@ -154,7 +159,7 @@ export function AlertsPanel({ state }) {
 export function ReportsPanel({ state }) {
   return (
     <div className="c-panel-body">
-      <h2>Reports</h2>
+      <div className="c-panel-heading"><span className="c-eyebrow">SESSION INTELLIGENCE</span><h2>Model performance</h2><p>Session metrics and held-out detection results</p></div>
       <AccuracyCounter metrics={state.metrics} />
       <ForecastAccuracyChart metrics={state.metrics} />
       <h3>Alert volume</h3>
@@ -167,7 +172,9 @@ export function TimelineStrip({ alerts, forecast }) {
   const marks = timelineMarks(alerts)
   return (
     <div className="c-timeline" role="img" aria-label={`${alerts.length} alerts on the timeline`}>
-      {marks.length === 0 && <span className="c-muted">Alerts appear here as the replay runs.</span>}
+      <div className="c-timeline-label"><span className="c-eyebrow">EVENT TIMELINE</span><small>{alerts.length ? `${alerts.length} signals` : 'Awaiting replay signals'}</small></div>
+      <div className="c-timeline-track" aria-hidden="true" />
+      {marks.length === 0 && <span className="c-timeline-empty">Timeline populates as the simulation runs.</span>}
       {marks.map((m) => <span key={m.id} className="c-mark" data-severity={m.severity} style={{ left: `${m.position * 100}%` }} title={m.severity} />)}
       {forecast && forecast.status === 'pending' && <span className="c-forecast-mark" title="A forecast was made" aria-hidden="true">◌</span>}
     </div>

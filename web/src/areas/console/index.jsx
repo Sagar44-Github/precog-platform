@@ -3,6 +3,7 @@ import { Navigate } from 'react-router-dom'
 import { api } from '../../shared/api.js'
 import { LoadingState, StaleBanner, ToastProvider, useToast } from '../../shared/components.jsx'
 import { useWorldState } from '../../shared/usePolling.js'
+import DemoStart from '../../shared/DemoStart.jsx'
 import { AlertsPanel, ForecastPanel, LeftRail, NodeDetailPanel, ReportsPanel, SceneSummary, TimelineStrip, TopBar } from './panels.jsx'
 import Scene3D from './Scene3D.jsx'
 import { buildScene } from './sceneModel.js'
@@ -38,9 +39,10 @@ function Console({ state, stale }) {
       <StaleBanner stale={stale} />
       <LeftRail view={view} onChange={(v) => { setView(v); setSelected(null) }} />
       <main className="c-centre">
+        {state && <div className="c-map-heading"><div><span className="c-eyebrow">TACTICAL NETWORK VIEW / 01</span><h1>Attack surface</h1></div><div className="c-map-totals"><span><b>{state.graph.hosts.length.toString().padStart(2, '0')}</b> ASSETS</span><span><b>{Object.keys(state.graph.hosts.reduce((zones, host) => ({ ...zones, [host.zone]: true }), {})).length.toString().padStart(2, '0')}</b> ZONES</span><span><b>{state.alerts.length.toString().padStart(2, '0')}</b> EVENTS</span></div></div>}
         <Scene3D model={model} pendingForecast={pending} onSelect={(id) => { setSelected(id); if (id) setView('graph') }} />
         {state && <SceneSummary state={state} />}
-        {state && state.replay.state === 'idle' && <p className="c-hint">Start the replay to see an attack.</p>}
+        {state && state.replay.state === 'idle' && <DemoStart className="c-demo-launch" hostCount={state.graph.hosts.length} />}
       </main>
       <aside className="c-right" data-focus={pending ? 'true' : 'false'}>{panel}</aside>
       <TimelineStrip alerts={state ? state.alerts : []} forecast={state ? state.forecast : null} />

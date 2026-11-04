@@ -87,3 +87,9 @@ def test_the_hosted_checker_passes_against_the_real_app_routes(flask_app, client
     # with only Part 1 merged some role parts or the built web app may be missing: only the always-present checks are required here
     assert "sign in works" not in failed and "the backend answers /api/x/health" not in failed
     assert ok or failed
+
+
+def test_the_root_opens_the_precog_demo_instead_of_the_nids_dashboard(client):
+    reply = client.get("/", follow_redirects=False)
+    assert reply.status_code == 302
+    assert reply.headers["Location"].endswith("/app/console/")

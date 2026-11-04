@@ -48,7 +48,7 @@ export function LoginPage() {
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
 
-  if (username) return <Navigate to={location.state?.from || '/mobile'} replace />
+  if (username) return <Navigate to={location.state?.from || '/console'} replace />
 
   async function submit(event) {
     event.preventDefault()
@@ -64,15 +64,24 @@ export function LoginPage() {
   }
 
   return (
-    <div className="center-page">
-      <form className="card" style={{ width: 'min(360px, 100%)' }} onSubmit={submit}>
-        <h1 style={{ marginTop: 0 }}>Precog SOC</h1>
-        <p className="muted">Demo account sign-in</p>
-        <input className="field" aria-label="Username" value={name} onChange={(e) => setName(e.target.value)} autoComplete="username" />
-        <input className="field" aria-label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
+    <div className="login-shell">
+      <div className="login-ambient" aria-hidden="true"><i /><i /><i /></div>
+      <form className="login-card" onSubmit={submit}>
+        <div className="login-brand-mark" aria-hidden="true"><span>◈</span><i /></div>
+        <p className="login-kicker">THREAT OPERATIONS · REPLAY LAB</p>
+        <h1>Precog <span>SOC</span></h1>
+        <p className="login-copy">See the next move before it happens.</p>
+        <div className="login-sim-note"><span className="login-live-dot" /> SIMULATION ENVIRONMENT</div>
+        <label className="login-label" htmlFor="login-username">Operator ID</label>
+        <input id="login-username" className="field" aria-label="Username" value={name} onChange={(e) => setName(e.target.value)} autoComplete="username" />
+        <label className="login-label" htmlFor="login-password">Access key</label>
+        <input id="login-password" className="field" aria-label="Password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" />
         <div className="error-text" role="alert">{message}</div>
-        <button className="button" type="submit" disabled={busy}>{busy ? 'Signing in...' : 'Sign in'}</button>
+        <button className="button login-submit" type="submit" disabled={busy}>{busy ? 'Authenticating…' : <><span>Enter command center</span><b aria-hidden="true">↗</b></>}</button>
+        <p className="login-footer">Local replay mode <span>·</span> Human-confirmed containment</p>
       </form>
+      <div className="login-corner login-corner-left">PREC0G / SOC <span>v1.0</span></div>
+      <div className="login-corner login-corner-right">LOCAL NODE · SECURE SESSION</div>
     </div>
   )
 }
