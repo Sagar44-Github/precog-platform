@@ -25,6 +25,9 @@ function commandEvent(detail) {
 }
 
 function pageTitle(pathname) {
+  if (pathname.startsWith('/forecasts/')) return 'Forecast detail'
+  if (pathname === '/forecasts') return 'Forecast ledger'
+  if (pathname === '/analytics') return 'Model analytics'
   if (pathname.startsWith('/alerts/')) return 'Alert detail'
   if (pathname === '/alerts') return 'Alerts'
   if (pathname.startsWith('/incidents/')) return 'Incident detail'
@@ -53,6 +56,8 @@ export function CommandPalette({ open, onClose }) {
     { label: 'Open mobile SOC', detail: 'Open the phone PWA screens', icon: 'smartphone', keywords: 'phone pwa', run: () => navigate('/mobile') },
     { label: 'Open alerts workspace', detail: 'Search and review security events', icon: 'alerts', keywords: 'alerts incidents events', run: () => navigate('/alerts') },
     { label: 'Open incidents', detail: 'Review attack chains, notes, and status', icon: 'alerts', keywords: 'incident case triage', run: () => navigate('/incidents') },
+    { label: 'Open forecast ledger', detail: 'Review predictions and their outcomes', icon: 'activity', keywords: 'forecast predictions explainability', run: () => navigate('/forecasts') },
+    { label: 'Open model analytics', detail: 'Compare held-out results, baselines, and calibration', icon: 'audit', keywords: 'analytics model calibration baselines', run: () => navigate('/analytics') },
     { label: 'Open session reports', detail: 'Review and print replay reports', icon: 'audit', keywords: 'reports export print', run: () => navigate('/reports') },
     { label: 'Open hosts and assets', detail: 'Review the simulated network inventory', icon: 'hosts', keywords: 'assets inventory devices', run: () => navigate('/hosts') },
     { label: 'Open audit log', detail: 'Review detection and response records', icon: 'audit', keywords: 'audit history log', run: () => navigate('/audit') },
@@ -181,6 +186,8 @@ export default function AppShell({ children }) {
     { to: '/console', label: 'Live console', icon: 'activity', end: true },
     { to: '/alerts', label: 'Alerts', icon: 'alerts' },
     { to: '/incidents', label: 'Incidents', icon: 'alerts' },
+    { to: '/forecasts', label: 'Forecasts', icon: 'activity' },
+    { to: '/analytics', label: 'Analytics', icon: 'audit' },
     { to: '/reports', label: 'Reports', icon: 'audit' },
     { to: '/hosts', label: 'Hosts & assets', icon: 'hosts' },
     { to: '/audit', label: 'Audit log', icon: 'audit' },

@@ -1,0 +1,22 @@
+{
+  "from_host": "host-a",
+  "generated_at": "2026-10-03T10:00:03Z",
+  "targets": [
+    { "rank": 1, "host_id": "server-b", "confidence": 0.4475 },
+    { "rank": 2, "host_id": "file-server", "confidence": 0.3923 },
+    { "rank": 3, "host_id": "host-b", "confidence": 0.1603 }
+  ],
+  "technique_hint": { "technique_id": "T1021", "technique_name": "Remote Services", "probability": 0.41 },
+  "source": "repo",
+  "explanation": {
+    "model": { "name": "markov", "alpha": 0.01 },
+    "technique_hint_source": "repo",
+    "candidate_count": 3,
+    "candidate_set": [
+      { "host_id": "server-b", "transition_count": 81, "model_probability": 0.447495, "model_rank": 1, "rule_based_probability": 0.42, "rule_based_rank": 1, "uniform_probability": 0.333333, "uniform_rank": 3 },
+      { "host_id": "file-server", "transition_count": 71, "model_probability": 0.392255, "model_rank": 2, "rule_based_probability": 0.35, "rule_based_rank": 2, "uniform_probability": 0.333333, "uniform_rank": 1 },
+      { "host_id": "host-b", "transition_count": 29, "model_probability": 0.160250, "model_rank": 3, "rule_based_probability": 0.23, "rule_based_rank": 3, "uniform_probability": 0.333333, "uniform_rank": 2 }
+    ]
+  },
+  "note": "Read-only simulation preview; live replay state was not changed."
+}

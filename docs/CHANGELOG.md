@@ -29,3 +29,12 @@
 - Added current and archived session report pages with printable layout, JSON export, timeline CSV export, and session-only forecast counters with explicit accuracy limitations.
 - Added five contract schemas and samples, bringing the checker total to 21.
 - Added browser route and interaction coverage for incidents and reports; screenshots and rehearsal evidence are in `docs/phase-b3/`.
+
+## Phase B4 — Forecast intelligence and analytics (2026-11-04)
+
+- Added a forecast ledger across the bounded 20-session archive, with detail routes that show the prediction outcome and the exact candidate evidence stored at generation time.
+- Added model transition counts, smoothing alpha, technique-hint table source, and Markov, rule-based, and uniform ranks for each feasible candidate.
+- Added a read-only what-if endpoint and preview for currently compromised hosts; it does not mutate world state or replay counters.
+- Added model analytics for held-out evaluation, calibration, baselines, archived session tally, and the offline DETECT report with its limitations.
+- Added three schemas and samples; the contract checker reports 24 valid contracts.
+- Added B4 page tests and Chromium route/workflow evidence at 390, 820, and 1440 px under `docs/phase-b4/`.

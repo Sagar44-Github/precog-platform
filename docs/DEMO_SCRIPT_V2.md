@@ -1,6 +1,6 @@
 # Precog SOC Demo Script V2 — B3 cases, reports, and replay
 
-**Length:** about 8–10 minutes
+**Length:** about 10–12 minutes
 
 **Mode:** local replay simulation
 **Screen:** desktop browser at 1024 px or wider; phone view can be opened separately.
@@ -27,6 +27,10 @@
 12. **Record analyst review.** Add a short note, then change the case status. Point to the audit log entry. These case annotations live in memory during the demo and are not durable records.
 13. **Print a session report.** Open Reports and select the completed replay. Explain that its hit and precision counters describe this session, not overall model accuracy, and that precision@3 can be trivial with at most three reachable targets. Export JSON or the timeline CSV, then use Print Report.
 14. **Show the phone case view.** Open the PWA, select Cases, and open the same incident. Add a short note or update status from the phone to show both clients act on the same in-memory demo state.
+15. **Open the forecast ledger.** Review the prediction history, then open a record. Point to the captured candidate set, transition counts, smoothing alpha, hint-table source, and the model/rule/uniform ranks. Show a miss plainly if the replay produced one.
+16. **Run a what-if preview.** Choose a host that is currently compromised. Explain that the preview recomputes predicted rankings for this simulation and does not alter the graph, forecast history, or replay.
+17. **Compare evaluation and session counters.** Open Analytics. Contrast the held-out Markov result with both baselines, inspect the calibration curve, then show the separate session tally. State that precision@3 is 1.0 for all current methods because the topology has at most three candidates.
+18. **Review DETECT's offline report.** Point out that the CICIDS2017 metrics come from an offline public sample and are not comparable to the live Isolation Forest replay detector.
 
 ## If presenting on a narrow screen
 
@@ -37,5 +41,6 @@ At widths below 1024 px, `/app/console` directs the operator to `/app/mobile`; o
 - All events are scripted simulation data. The NIDS packet sniffer is not started.
 - Containment has no real network effect and requires proposal followed by confirmation.
 - A session hit rate is not the model’s overall accuracy. Precision@3 is trivial when at most three candidates are reachable.
-- Incident status and analyst notes are volatile annotations; session alert evidence is kept only within the bounded in-memory session history.
+- Incident status and analyst notes are volatile annotations; session evidence is kept only within the bounded in-memory archive of 20 sessions.
 - The forecast is a prediction; a miss is reported as a miss.
+- The what-if page is read-only. Held-out model-level metrics exclude replay rehearsals and session counters.

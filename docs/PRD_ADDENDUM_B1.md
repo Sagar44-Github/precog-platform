@@ -46,3 +46,15 @@ The new pages preserve the replay-only safety boundary and show the shared SIMUL
 | FR-REPORT-2 | An operator shall print a report or export the report as JSON and its timeline as CSV. | S | The print stylesheet hides workspace chrome, and CSV formula-like values are neutralized. |
 
 Incident cases are session groupings because the replay controller provides a stable session boundary for the scripted attack chain. Notes and case status are volatile demo annotations, not durable records. Report counters are calculated from the outcomes stored in that single session; they are not model-wide accuracy claims.
+
+## Phase B4 product requirements
+
+| ID | Requirement | Priority | Acceptance |
+|---|---|---:|---|
+| FR-PRE-1 | An operator shall review current and bounded archived forecasts, including whether each prediction hit, missed, or was superseded. | M | The ledger filters by status and opens a refresh-safe detail route; misses remain explicit. |
+| FR-PRE-2 | A forecast detail shall explain the exact candidate set and ranks captured when it was made. | M | The record exposes transition counts, smoothing alpha, hint-table source, model probability, and rule-based/uniform rankings. |
+| FR-PRE-3 | An operator shall request a what-if forecast from a currently compromised host. | M | The preview is read-only, validates host state, and leaves WorldState version, graph, forecast ledger, and replay unchanged. |
+| FR-AN-1 | An operator shall compare Precog against held-out rule-based and uniform baselines and inspect calibration. | M | The page separates static held-out results from live session counters, shows calibration bins/curve, and states the precision@3 limitation. |
+| FR-AN-2 | An operator shall inspect DETECT's offline model report and its dataset limitations beside, but distinct from, Precog results. | M | The page preserves report notes and explains that offline CICIDS2017 results are not comparable with the live Isolation Forest detector. |
+
+The forecast ledger spans the existing bounded replay archive. Session counters remain session-scoped; the held-out evaluation file remains the source of model-level numbers, and Golden Path rehearsals never contribute to those numbers.

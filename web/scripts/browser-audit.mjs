@@ -34,6 +34,9 @@ const routeSpecs = [
   ['incident-detail', null],
   ['reports', '/app/reports'],
   ['report-detail', null],
+  ['forecasts', '/app/forecasts'],
+  ['forecast-detail', null],
+  ['analytics', '/app/analytics'],
   ['hosts', '/app/hosts'],
   ['host-detail', null],
   ['audit', '/app/audit'],
@@ -219,10 +222,33 @@ async function runMode(browser, mode, port, dbDir, errors) {
       return response.ok ? response.json() : { error: `HTTP ${response.status}` }
     })
     const sessionId = reportReply.items?.[0]?.session_id
+    const forecastReply = await page.evaluate(async () => {
+      const response = await fetch('/api/x/forecasts?include_archived=1')
+      return response.ok ? response.json() : { error: `HTTP ${response.status}` }
+    })
+    let forecastId = forecastReply[0]?.forecast_id
     if (!incidentId) errors.push(`${mode} mode did not provide an incident id for the incident-detail route`)
     if (!sessionId) errors.push(`${mode} mode did not provide a session id for the report-detail route`)
+    let forecastLookupFailed = false
     for (const size of sizes) {
       for (const [routeName, path] of routeSpecs) {
+        if (routeName === 'forecast-detail' && !forecastId) {
+          await page.waitForFunction(async () => {
+            const response = await fetch('/api/x/forecasts?include_archived=1')
+            if (!response.ok) return false
+            const forecasts = await response.json()
+            return Array.isArray(forecasts) && forecasts.length > 0
+          }, null, { timeout: 90000 }).catch(() => {})
+          const latestForecasts = await page.evaluate(async () => {
+            const response = await fetch('/api/x/forecasts?include_archived=1')
+            return response.ok ? response.json() : { error: `HTTP ${response.status}` }
+          })
+          forecastId = latestForecasts[0]?.forecast_id
+          if (!forecastId && !forecastLookupFailed) {
+            forecastLookupFailed = true
+            errors.push(`${mode} mode did not provide a forecast id for the forecast-detail route (${JSON.stringify(latestForecasts).slice(0, 180)})`)
+          }
+        }
         const route = routeName === 'mobile-alert-detail'
           ? (alertId ? `/app/mobile/alerts/${encodeURIComponent(alertId)}` : '/app/mobile/alerts')
           : routeName === 'mobile-incident-detail'
@@ -233,6 +259,8 @@ async function runMode(browser, mode, port, dbDir, errors) {
               ? (incidentId ? `/app/incidents/${encodeURIComponent(incidentId)}` : '/app/incidents')
               : routeName === 'report-detail'
                 ? (sessionId ? `/app/reports/${encodeURIComponent(sessionId)}` : '/app/reports')
+            : routeName === 'forecast-detail'
+              ? (forecastId ? `/app/forecasts/${encodeURIComponent(forecastId)}` : '/app/forecasts')
             : routeName === 'host-detail'
               ? '/app/hosts/host-a'
           : path
@@ -338,6 +366,23 @@ async function runMode(browser, mode, port, dbDir, errors) {
         await page.getByRole('button', { name: 'Print report' }).click()
         await page.waitForFunction(() => window.__printCalled === true)
         report.printAction = 'print stylesheet entry point invoked'
+
+        await page.goto(`${base}/app/forecasts`, { waitUntil: 'domcontentloaded' })
+        await page.locator('.forecast-ledger-table').waitFor({ timeout: 10000 })
+        await page.getByLabel('Compromised host').selectOption('host-a')
+        await page.getByRole('button', { name: 'Preview forecast' }).click()
+        await page.locator('.what-if-result').waitFor({ timeout: 10000 })
+        await page.locator('.forecast-evidence-table tbody tr').first().waitFor({ timeout: 10000 })
+        report.whatIfWorkflow = 'read-only preview displayed model counts and baseline ranks for a compromised host'
+
+        await page.goto(`${base}/app/forecasts/${encodeURIComponent(forecastId)}`, { waitUntil: 'domcontentloaded' })
+        await page.locator('.forecast-detail-evidence .forecast-evidence-table').waitFor({ timeout: 10000 })
+        report.forecastExplainability = 'saved candidate set, transition counts, smoothing alpha, and baseline ranks displayed'
+
+        await page.goto(`${base}/app/analytics`, { waitUntil: 'domcontentloaded' })
+        await page.getByRole('heading', { name: 'Model and baseline results' }).waitFor({ timeout: 10000 })
+        await page.getByRole('heading', { name: 'Detection model report' }).waitFor({ timeout: 10000 })
+        report.analyticsWorkflow = 'held-out scores, calibration curve, session tally, and offline detection report displayed'
       } catch (error) {
         report.shellInteractions = {
           error: error.message,

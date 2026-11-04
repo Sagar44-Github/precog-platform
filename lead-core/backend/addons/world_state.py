@@ -113,10 +113,17 @@ class WorldState:
         return None
 
 
-    def forecasts(self, status=None):
+    def forecasts(self, status=None, include_archived=False):
         with self._lock:
-
-            items = [f for f in self._forecasts if status is None or f["status"] == status]
+            items = []
+            if include_archived:
+                active_id = self._session.get("session_id") if self._session is not None else None
+                for record in reversed(self._sessions):
+                    if active_id is not None and record.get("session_id") == active_id:
+                        continue
+                    items.extend(record.get("forecasts", []))
+            items.extend(self._forecasts)
+            items = [f for f in items if status is None or f["status"] == status]
             return copy.deepcopy(items)
 
     def current_forecast(self):
@@ -224,12 +231,15 @@ class WorldState:
     def set_forecast(self, forecast):
         """Store a new forecast. An older pending forecast becomes 'superseded'."""
         with self._lock:
+            forecast = copy.deepcopy(forecast)
+            if self._session is not None:
+                forecast.setdefault("session_id", self._session.get("session_id"))
             self._check("forecast", forecast)
             for old in self._forecasts:
                 if old["status"] == "pending" and old["forecast_id"] != forecast["forecast_id"]:
                     old["status"] = "superseded"
             self._forecasts = [f for f in self._forecasts if f["forecast_id"] != forecast["forecast_id"]]
-            self._forecasts.append(copy.deepcopy(forecast))
+            self._forecasts.append(forecast)
             return self._bump()
 
     def resolve_forecast(self, forecast_id, status, outcome):
@@ -280,6 +290,11 @@ class WorldState:
             if self._session is not None:
                 archived = copy.deepcopy(self._session)
                 archived["alerts"] = copy.deepcopy(self._session_alerts)
+                archived["forecasts"] = copy.deepcopy(self._forecasts)
+                archived["actions"] = copy.deepcopy(self._actions)
+                session_id = archived.get("session_id")
+                for forecast in archived["forecasts"]:
+                    forecast.setdefault("session_id", session_id)
                 self._check("session_record", archived)
                 self._sessions = [item for item in self._sessions if item["session_id"] != archived["session_id"]]
                 self._sessions.insert(0, archived)

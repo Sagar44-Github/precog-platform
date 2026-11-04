@@ -537,10 +537,24 @@ def graph():
 @auth.json_login_required
 def forecasts():
     status = request.args.get("status")
-    
     if status is not None and status not in FORECAST_STATUSES:
         raise ApiError("bad_request", "'status' must be one of: %s." % ", ".join(FORECAST_STATUSES), 400)
-    return jsonify(_ctx()["world"].forecasts(status))
+    source = request.args.get("source")
+    if source is not None and source not in ("repo", "lookup"):
+        raise ApiError("bad_request", "'source' must be 'repo' or 'lookup'.", 400)
+    include_archived = request.args.get("include_archived", "0")
+    if include_archived not in ("0", "1"):
+        raise ApiError("bad_request", "'include_archived' must be 0 or 1.", 400)
+    session_id = request.args.get("session_id")
+    from_host = request.args.get("from_host")
+    items = _ctx()["world"].forecasts(status, include_archived=include_archived == "1")
+    if source is not None:
+        items = [item for item in items if item.get("source") == source]
+    if session_id:
+        items = [item for item in items if item.get("session_id") == session_id]
+    if from_host:
+        items = [item for item in items if item.get("from_host") == from_host]
+    return jsonify(items)
 
 
 @bp.get("/forecasts/current")
@@ -554,6 +568,44 @@ def forecast_current():
     
         raise ApiError("no_forecast", "No forecast is pending.", 404)
     return jsonify(found)
+
+
+@bp.get("/forecasts/what-if")
+@auth.json_login_required
+def forecast_what_if():
+    ctx = _ctx()
+    from_host = _query_text("from_host", 128)
+    if not from_host:
+        raise ApiError("bad_request", "'from_host' is required.", 400)
+    graph = ctx["hooks"].get("graph")
+    engine = ctx["hooks"].get("precog")
+    if graph is None or engine is None:
+        raise ApiError("not_built", "The graph and Precog modules are required for a what-if forecast.", 501)
+    host = next((item for item in ctx["world"].graph().get("hosts", []) if item.get("host_id") == from_host), None)
+    if host is None:
+        raise ApiError("not_found", "No host with id %s." % from_host, 404)
+    if host.get("state") != "compromised":
+        raise ApiError("host_not_compromised", "Choose a host currently marked compromised in this simulation.", 409)
+    candidates = graph.feasible_targets(from_host)
+    if not candidates:
+        raise ApiError("no_candidates", "No feasible predicted targets remain for this host.", 409)
+    preview = engine.preview(from_host, candidates)
+    payload = {
+        "from_host": from_host,
+        "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        **preview,
+        "note": "Read-only simulation preview. This does not create a forecast, change host state, or affect the replay.",
+    }
+    return jsonify(_out("what_if_forecast", payload))
+
+
+@bp.get("/forecasts/<forecast_id>")
+@auth.json_login_required
+def forecast_detail(forecast_id):
+    found = next((item for item in _ctx()["world"].forecasts(include_archived=True) if item.get("forecast_id") == forecast_id), None)
+    if found is None:
+        raise ApiError("not_found", "No forecast with id %s." % forecast_id, 404)
+    return jsonify(_out("forecast", found))
 
 
 # ---------- containment (needs the VIZ module) ----------
@@ -626,6 +678,76 @@ def metrics_detection():
     if found is None:
         raise ApiError("no_report", "No detection report has been loaded.", 404)
     return jsonify(found)
+
+
+def _metric_summary(record):
+    return {key: record[key] for key in ("forecasts", "precision_at_1", "precision_at_1_std_error", "precision_at_3", "expected_calibration_error")}
+
+
+@bp.get("/analytics")
+@auth.json_login_required
+def forecast_analytics():
+    ctx = _ctx()
+    evaluation_path = ctx["config"].repo_root / "lead-core" / "precog" / "results" / "precog_evaluation.json"
+    try:
+        evaluated = json.loads(evaluation_path.read_text(encoding="utf-8"))
+        node = evaluated["node_model"]
+        split = evaluated["split"]
+        alpha = evaluated["alpha"]["chosen"]
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        current_app.logger.exception("Precog evaluation results could not be loaded")
+        raise ApiError("analytics_unavailable", "The held-out Precog evaluation results are unavailable.", 503) from exc
+
+    resolved = [item for item in ctx["world"].forecasts(include_archived=True) if item.get("status") in ("hit", "miss") and item.get("outcome")]
+    tally_counts = {"model": 0, "rule_based": 0, "uniform": 0}
+    tally_samples = {"model": 0, "rule_based": 0, "uniform": 0}
+    for forecast in resolved:
+        attempted = forecast["outcome"].get("attempted_host")
+        model_hit = forecast["outcome"].get("rank_hit") == 1
+        if forecast.get("explanation"):
+            tally_samples["model"] += 1
+            tally_counts["model"] += int(model_hit)
+            row = next((candidate for candidate in forecast["explanation"].get("candidate_set", []) if candidate.get("host_id") == attempted), None)
+            if row is not None:
+                for name, rank_field in (("rule_based", "rule_based_rank"), ("uniform", "uniform_rank")):
+                    tally_samples[name] += 1
+                    tally_counts[name] += int(row.get(rank_field) == 1)
+
+    def tally(name):
+        sample_size = tally_samples[name]
+        return {"rank1_hits": tally_counts[name], "precision_at_1": round(tally_counts[name] / sample_size, 4) if sample_size else None}
+
+    payload = {
+        "evaluation": {
+            "source": "Held-out route evaluation from lead-core/precog/results/precog_evaluation.json; Golden Path runs are excluded.",
+            "training_sequences": split["training_sequences"],
+            "test_sequences": split["test_sequences"],
+            "alpha": alpha,
+            "node_model": _metric_summary(node),
+            "calibration_bins": node["calibration_bins"],
+            "baselines": [
+                {"name": "Rule-based (simulated edge likelihood)", "metrics": _metric_summary(evaluated["baseline_rule_based"])},
+                {"name": "Uniform (equal candidate probability)", "metrics": _metric_summary(evaluated["baseline_uniform"])},
+            ],
+        },
+        "session": ctx["world"].metrics(),
+        "live_tally": {
+            "forecasts_resolved": len(resolved),
+            "honesty_note": "Session counter, not the model's overall accuracy. Baselines use each forecast's captured candidate ranking.",
+            "model": tally("model"),
+            "rule_based": tally("rule_based"),
+            "uniform": tally("uniform"),
+        },
+        "detection_report": ctx["world"].detection_report(),
+        "honesty_notes": [
+            "Forecast metrics come from held-out training sequences; Golden Path rehearsals are not part of the evaluation.",
+            "Precision@3 is 1.0 for all methods because at most three hosts are reachable in the current topology; it does not separate the methods.",
+            "The Markov model's precision@1 is only slightly above the rule-based baseline in this evaluation.",
+            "The CICIDS2017 detection report describes an offline public sample and is not comparable with the live Isolation Forest detector.",
+            "Any hit rate shown for the current replay is a session counter, not the model's overall accuracy.",
+        ],
+    }
+    return jsonify(_out("forecast_analytics", payload))
 
 
 # ---------- replay (needs the GRAPH module) ----------

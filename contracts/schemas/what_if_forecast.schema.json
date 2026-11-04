@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/what_if_forecast.schema.json",
+  "title": "What-if forecast",
+  "description": "A read-only forecast preview for a currently compromised host; it never changes live replay state.",
+  "type": "object",
+  "properties": {
+    "from_host": { "type": "string", "minLength": 1 },
+    "generated_at": { "type": "string", "minLength": 1 },
+    "targets": {
+      "type": "array",
+      "maxItems": 3,
+      "items": {
+        "type": "object",
+        "properties": {
+          "rank": { "type": "integer", "minimum": 1, "maximum": 3 },
+          "host_id": { "type": "string", "minLength": 1 },
+          "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+        },
+        "required": ["rank", "host_id", "confidence"],
+        "additionalProperties": false
+      }
+    },
+    "technique_hint": {
+      "type": ["object", "null"],
+      "properties": {
+        "technique_id": { "type": "string", "minLength": 1 },
+        "technique_name": { "type": "string", "minLength": 1 },
+        "probability": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "required": ["technique_id", "technique_name", "probability"],
+      "additionalProperties": false
+    },
+    "source": { "type": "string", "enum": ["repo", "lookup"] },
+    "explanation": { "$ref": "https://precog.local/contracts/forecast_explanation.schema.json" },
+    "note": { "type": "string", "minLength": 1 }
+  },
+  "required": ["from_host", "generated_at", "targets", "technique_hint", "source", "explanation", "note"],
+  "additionalProperties": false
+}

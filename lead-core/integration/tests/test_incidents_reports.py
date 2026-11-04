@@ -67,6 +67,7 @@ def test_incident_notes_status_and_audit_survive_session_archive(logged_in, worl
     audit = logged_in.get("/api/x/audit?type=incident").get_json()
     assert audit["total"] == 2
     assert all(item["type"] == "incident" for item in audit["items"])
+    world._sessions.clear()
 
 
 def test_report_calculates_session_only_forecast_metrics(logged_in, world):

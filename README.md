@@ -38,6 +38,8 @@ A closed-loop security console that predicts where an attacker will move next an
 
 > **Phase B3 casework and reports:** `/app/incidents` and `/app/mobile/incidents` group each replay session's alert, forecast, and action evidence into an incident, with status, analyst notes, and an audit trail. `/app/reports` provides per-session printable reports plus JSON and timeline CSV export. Incident annotations live in memory for the running demo. The contract set now has 21 checked schemas. See [B3 evidence](docs/phase-b3/) and the [B3 technical addendum](docs/TRD_ADDENDUM_B1.md#phase-b3-incidents-and-session-reports).
 
+> **Phase B4 forecast intelligence:** `/app/forecasts` is a ledger across the bounded replay archive; each record opens `/app/forecasts/:id` with its captured candidate set, transition counts, smoothing value, baseline ranks, and hit/miss outcome. A read-only what-if preview recalculates candidates for a currently compromised host. `/app/analytics` compares held-out results, calibration, baselines, session counters, and DETECT's offline report. The contract set now has 24 checked schemas. See [B4 evidence](docs/phase-b4/) and the [B4 technical addendum](docs/TRD_ADDENDUM_B1.md#phase-b4-forecast-ledger-and-analytics).
+
 <a id="choose-your-path"></a>
 
 ### Choose your path
@@ -878,7 +880,7 @@ Nothing changes in the world state until `confirm` succeeds with the action id t
 The product's own screens use the add-on endpoints under **`/api/x`**, so they never meet NIDS's redirect-style login. Every add-on endpoint except `health` and `login` returns a **JSON 401** when you are not signed in. Errors share one JSON shape with a short code and a plain-English message.
 
 <details>
-<summary><b>Add-on endpoints</b> (35 routes, click to expand)</summary>
+<summary><b>Add-on endpoints</b> (38 routes, click to expand)</summary>
 
 <br>
 
@@ -902,8 +904,11 @@ The product's own screens use the add-on endpoints under **`/api/x`**, so they n
 | `GET` | `/api/x/reports/{session_id}` | Session alerts, forecasts, actions, timeline, and honest counters |
 | `GET` | `/api/x/system` | Runtime versions, hooks, modules, data mode and readiness checks |
 | `GET` | `/api/x/graph` | Current graph snapshot |
-| `GET` | `/api/x/forecasts` | Forecasts, filterable by status |
+| `GET` | `/api/x/forecasts` | Current forecasts; add `include_archived=1` for bounded history, with status, hint source, session, and starting-host filters |
 | `GET` | `/api/x/forecasts/current` | The pending forecast |
+| `GET` | `/api/x/forecasts/{forecast_id}` | One saved forecast with its candidate counts, probabilities, and baseline rankings |
+| `GET` | `/api/x/forecasts/what-if?from_host=...` | Read-only preview for a currently compromised host; does not change replay state |
+| `GET` | `/api/x/analytics` | Held-out Precog evaluation, calibration, baselines, session tally, and offline detection report |
 | `POST` | `/api/x/containment/propose` | Step 1: propose containing a target (target host, forecast id) |
 | `POST` | `/api/x/containment/confirm` | Step 2: confirm with the action id |
 | `POST` | `/api/x/containment/cancel` | Cancel a pending action |
@@ -946,7 +951,10 @@ Data passed between roles is agreed **first**, in writing. `contracts/schemas/` 
 | `packet_record` | NIDS's native packet row plus the detector's result fields |
 | `security_event` | Id, time, host, severity, risk score, explanation, ATT&CK technique, source |
 | `graph_snapshot` | Hosts with state, observed edges, the ordered compromised path |
-| `forecast` | Up to three targets with confidence, a technique hint, status and outcome |
+| `forecast` | Up to three targets, technique hint, status/outcome, and captured explanation when available |
+| `forecast_explanation` | Candidate transitions, model probabilities, smoothing value, and model/rule/uniform ranks |
+| `what_if_forecast` | Read-only forecast preview and explanation for a compromised source host |
+| `forecast_analytics` | Held-out results, calibration bins, baselines, session tally, and detection report |
 | `containment_action` | Target, requesting client, status, proposed and confirmed times |
 | `reeval_result` | Whether the attack progressed and whether the chain ended early |
 | `audit_entry` | One line per detection, forecast, containment, or incident case change |

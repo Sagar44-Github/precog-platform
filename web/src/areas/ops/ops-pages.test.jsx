@@ -18,6 +18,9 @@ import IncidentsPage from './incidents.jsx'
 import IncidentDetailPage from './incident-detail.jsx'
 import ReportsPage from './reports.jsx'
 import ReportDetailPage from './report-detail.jsx'
+import ForecastsPage from './forecasts.jsx'
+import ForecastDetailPage from './forecast-detail.jsx'
+import AnalyticsPage from './analytics.jsx'
 
 function render(path) {
   return renderToStaticMarkup(<StaticRouter location={path}><AuthProvider><ThemeProvider><UiPreferencesProvider><AppShell><Routes>
@@ -27,6 +30,9 @@ function render(path) {
     <Route path="/incidents/:incidentId" element={<IncidentDetailPage />} />
     <Route path="/reports" element={<ReportsPage />} />
     <Route path="/reports/:sessionId" element={<ReportDetailPage />} />
+    <Route path="/forecasts" element={<ForecastsPage />} />
+    <Route path="/forecasts/:forecastId" element={<ForecastDetailPage />} />
+    <Route path="/analytics" element={<AnalyticsPage />} />
     <Route path="/hosts" element={<HostsPage />} />
     <Route path="/hosts/:hostId" element={<HostDetailPage />} />
     <Route path="/audit" element={<AuditPage />} />
@@ -87,4 +93,23 @@ test('report routes offer printable session summaries and explicit metric scope'
   assert.match(detail, /PRINTABLE REPORT/)
   assert.match(detail, /Print report/)
   assert.match(detail, /Export timeline CSV/)
+})
+
+test('forecast routes expose the replay ledger, read-only what-if, and explainability detail', () => {
+  const ledger = render('/forecasts')
+  const detail = render('/forecasts/fc-000001')
+  assert.match(ledger, /Every recorded prediction keeps its original candidate set/)
+  assert.match(ledger, /Read-only what-if/)
+  assert.match(ledger, /Model analytics/)
+  assert.match(detail, /Review the prediction as it was captured/)
+  assert.match(detail, /Back to forecasts/)
+})
+
+test('analytics route starts with a scoped loading view and shell navigation entries', () => {
+  const html = render('/analytics')
+  assert.match(html, /Held-out model evaluation, calibration, baselines/)
+  assert.match(html, /Loading workspace data/)
+  assert.match(html, /Forecasts/)
+  assert.match(html, /Analytics/)
+  assert.match(html, /SIMULATION/)
 })

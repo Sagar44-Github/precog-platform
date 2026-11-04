@@ -74,8 +74,11 @@ export const api = {
   report: (sessionId) => apiGet(`/api/x/reports/${encodeURIComponent(sessionId)}`),
   system: () => apiGet('/api/x/system'),
   graph: () => apiGet('/api/x/graph'),
-  forecasts: (status) => apiGet(status ? `/api/x/forecasts?status=${status}` : '/api/x/forecasts'),
+  forecasts: (filters = {}) => apiGet(withQuery('/api/x/forecasts', filters)),
   currentForecast: () => apiGet('/api/x/forecasts/current'),
+  forecast: (id) => apiGet(`/api/x/forecasts/${encodeURIComponent(id)}`),
+  whatIfForecast: (fromHost) => apiGet(withQuery('/api/x/forecasts/what-if', { from_host: fromHost })),
+  analytics: () => apiGet('/api/x/analytics'),
   proposeContainment: (targetHost, forecastId, requestedBy) =>
     apiPost('/api/x/containment/propose', { target_host: targetHost, forecast_id: forecastId, requested_by: requestedBy }),
   confirmContainment: (actionId) => apiPost('/api/x/containment/confirm', { action_id: actionId }),

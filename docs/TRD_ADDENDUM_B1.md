@@ -92,8 +92,33 @@ Four contracts were added, each with a sample and checker coverage: `alert_page`
 
 `WorldState` now keeps up to 200 alert records with the active session and stores those records in the existing bounded session history when a replay completes. Incident annotations are keyed by incident id and remain volatile in-memory state. The active session takes precedence over an archive record with the same id, which keeps the view correct when the sample loader reuses its demonstration id.
 
-Five contracts were added: `incident_detail`, `incident_note`, `incident_page`, `report_page`, and `session_report`. The existing `session_record` allows archived alert evidence, and `audit_entry`/`audit_page` now include incident records. `python contracts/check_contracts.py` reports **21 contracts OK**. Every add-on route retains the common JSON error shape and JSON 401 behavior.
+Five contracts were added: `incident_detail`, `incident_note`, `incident_page`, `report_page`, and `session_report`. The existing `session_record` allows archived alert evidence, and `audit_entry`/`audit_page` now include incident records. At the B3 gate, `python contracts/check_contracts.py` reported **21 contracts OK**. Every add-on route retains the common JSON error shape and JSON 401 behavior.
 
 Forecast counters use resolved outcomes from that report's session. The report explicitly says that the counters are session scoped and that precision@3 may be trivial with at most three reachable candidates. Print CSS removes the desktop shell from the printed document; CSV values are quoted and formula-like cells are prefixed safely.
 
 The B2 browser audit includes all existing routes and the seven new routes at 390x844, 820x1180, and 1440x900 in sample and live modes. It also checks table filters, both export downloads, saved settings, and the existing two-step live simulation containment flow. Evidence is stored in `docs/phase-b2/`.
+
+## Phase B4 forecast ledger and analytics
+
+### Routes
+
+| React route | Page |
+|---|---|
+| `/forecasts` | Forecast ledger across current and bounded archived sessions, with read-only what-if preview |
+| `/forecasts/:forecastId` | Captured prediction, Top-3 outcome, candidate transition counts, smoothing alpha, and baseline ranks |
+| `/analytics` | Held-out Markov and baseline scores, calibration curve, session tally, and DETECT offline report |
+
+### API
+
+| Method and endpoint | Auth | Behavior |
+|---|---|---|
+| `GET /api/x/forecasts` | Required | Returns current-session forecasts by default; `include_archived=1` includes the bounded archive. Filters by status, source, session id, and starting host. |
+| `GET /api/x/forecasts/{forecast_id}` | Required | Returns the recorded forecast including its captured candidate explanation. |
+| `GET /api/x/forecasts/what-if?from_host=...` | Required | Requires a currently compromised host and returns a forecast preview without publishing it or mutating WorldState. |
+| `GET /api/x/analytics` | Required | Reads held-out evaluation results and combines them with current session metrics, archived forecast tallies, and the offline detection report. |
+
+`PrecogEngine.preview()` is shared by forecast creation and the read-only what-if endpoint. It captures every feasible candidate's training transition count, Markov probability/rank, rule-based edge-likelihood probability/rank, and uniform probability/rank. The explanation records alpha and technique-hint source so a later detail view does not reconstruct evidence from a changed graph. The what-if endpoint checks the selected host against the current graph snapshot and does not write a forecast, increment a model counter, or bump the world version.
+
+When a replay session is archived, `WorldState` retains its forecasts and actions with the existing bounded session record. The ledger and analytics tally aggregate these records up to the existing 20-session limit. Session counters are clearly labelled as session counters; only the checked held-out evaluation artifact supplies model-level performance.
+
+Three contracts were added: `forecast_explanation`, `what_if_forecast`, and `forecast_analytics`. `forecast` now allows an optional saved explanation and session id; archived `session_record` values retain the complete forecast/action lists. The checker reports **24 contracts OK**. Browser audit evidence and screenshots are stored in `docs/phase-b4/`.
