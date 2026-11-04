@@ -1,6 +1,9 @@
 # Keep text files consistent across Windows and Unix checkouts.
 * text=auto eol=lf
 
+# Preserve the pinned NIDS checkout's CRLF worktree on Windows; its files stay untouched.
+lead-core/backend/nids/** text=auto eol=crlf
+
 # Preserve binary assets exactly.
 *.png binary
 *.jpg binary
