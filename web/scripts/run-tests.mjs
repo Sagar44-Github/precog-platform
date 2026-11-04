@@ -4,10 +4,9 @@ import { build } from 'esbuild'
 import { spawnSync } from 'node:child_process'
 import { mkdirSync, readdirSync, rmSync, statSync } from 'node:fs'
 import { join, relative } from 'node:path'
-import { fileURLToPath } from "node:url";
-import path from "node:path";
+import { resolveProjectRoot } from './path-utils.mjs'
 
-const root = fileURLToPath(new URL('..', import.meta.url))
+const root = resolveProjectRoot(import.meta.url)
 const src = join(root, 'src')
 const out = join(root, '.test-build')
 
