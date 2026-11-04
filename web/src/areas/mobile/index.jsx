@@ -1,8 +1,9 @@
-import { NavLink, Navigate, Route, Routes } from 'react-router-dom'
+import { NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { useEffect } from 'react'
 import { SimulationBadge, StaleBanner, ToastProvider } from '../../shared/components.jsx'
 import { ThemeToggle } from '../../shared/theme-context.jsx'
 import { useWorldState } from '../../shared/usePolling.js'
-import { AlertDetailScreen, AlertsScreen, ForecastScreen, HistoryScreen, HomeScreen } from './screens.jsx'
+import { AlertDetailScreen, AlertsScreen, ForecastScreen, HistoryScreen, HomeScreen, IncidentDetailScreen, IncidentsScreen } from './screens.jsx'
 import { highAlertCount } from './logic.js'
 import './mobile.css'
 
@@ -12,7 +13,7 @@ export { AccuracyCounter, AttackPath2D, ForecastBars, OutcomeCard, SeverityBadge
 export function TabBar({ state }) {
   const high = state ? highAlertCount(state.alerts) : 0
   const pending = Boolean(state && state.forecast)
-  const tabs = [['/mobile', 'Home', '⌂', true], ['/mobile/alerts', 'Alerts', '△', false], ['/mobile/forecast', 'Forecast', '◌', false], ['/mobile/history', 'History', '◷', false]]
+  const tabs = [['/mobile', 'Home', '⌂', true], ['/mobile/alerts', 'Alerts', '△', false], ['/mobile/incidents', 'Cases', '▤', false], ['/mobile/forecast', 'Forecast', '◌', false], ['/mobile/history', 'History', '◷', false]]
   return (
     <nav className="m-tabs" aria-label="Main">
       {tabs.map(([to, label, icon, end]) => (
@@ -28,6 +29,8 @@ export function TabBar({ state }) {
 
 export default function MobileApp() {
   const { state, stale, loggedOut } = useWorldState()
+  const location = useLocation()
+  useEffect(() => { window.scrollTo(0, 0) }, [location.pathname])
   if (loggedOut) return <Navigate to="/login" replace />
   return (
     <ToastProvider>
@@ -38,6 +41,8 @@ export default function MobileApp() {
           <Route index element={<HomeScreen state={state} stale={stale} />} />
           <Route path="alerts" element={<AlertsScreen state={state} />} />
           <Route path="alerts/:id" element={<AlertDetailScreen state={state} />} />
+          <Route path="incidents" element={<IncidentsScreen />} />
+          <Route path="incidents/:id" element={<IncidentDetailScreen />} />
           <Route path="forecast" element={<ForecastScreen state={state} />} />
           <Route path="history" element={<HistoryScreen state={state} />} />
           <Route path="*" element={<Navigate to="/mobile" replace />} />

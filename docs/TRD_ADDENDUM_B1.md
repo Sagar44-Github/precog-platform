@@ -64,6 +64,36 @@ Alert CSV/JSON generation runs client-side against the same filtered search API.
 
 ## Phase B2 contracts and verification
 
-Four contracts were added, each with a sample and checker coverage: `alert_page`, `audit_page`, `host_inventory`, and `system_status`. The contract checker now reports **16 contracts OK**. State history is retained in the in-memory `WorldState` as a bounded 20-entry list per host and resets with the current replay state. Audit reads use the existing scrubbed audit log and do not mutate it.
+Four contracts were added, each with a sample and checker coverage: `alert_page`, `audit_page`, `host_inventory`, and `system_status`. The contract checker then reported **16 contracts OK**. State history is retained in the in-memory `WorldState` as a bounded 20-entry list per host and resets with the current replay state. Audit reads use the existing scrubbed audit log and do not mutate it.
+
+## Phase B3 incidents and session reports
+
+### Routes
+
+| React route | Page |
+|---|---|
+| `/incidents` | Searchable replay-session case list |
+| `/incidents/:incidentId` | Session evidence, timeline, status control, and analyst notes |
+| `/reports` | Current and archived session report index |
+| `/reports/:sessionId` | Printable report with JSON and timeline CSV export |
+| `/mobile/incidents` | PWA session case list |
+| `/mobile/incidents/:id` | PWA case timeline, status, evidence, and analyst notes |
+
+### API
+
+| Method and endpoint | Auth | Behavior |
+|---|---|---|
+| `GET /api/x/incidents` | Required | Filters session cases by query, status, and severity; returns contract-validated pages. |
+| `GET /api/x/incidents/{incident_id}` | Required | Returns timeline, involved hosts, techniques, alert records, forecasts/outcomes, actions, notes, and status. |
+| `POST /api/x/incidents/{incident_id}/notes` | Required | Adds a 1–2000 character in-memory note attributed to the signed-in operator; writes a scrubbed incident audit record. |
+| `PATCH /api/x/incidents/{incident_id}/status` | Required | Sets `open`, `contained`, or `closed`; writes a scrubbed incident audit record. |
+| `GET /api/x/reports` | Required | Lists current and bounded archived replay-session summaries. |
+| `GET /api/x/reports/{session_id}` | Required | Returns session-specific alerts, forecasts, outcomes, actions, timeline, and computed session counters. |
+
+`WorldState` now keeps up to 200 alert records with the active session and stores those records in the existing bounded session history when a replay completes. Incident annotations are keyed by incident id and remain volatile in-memory state. The active session takes precedence over an archive record with the same id, which keeps the view correct when the sample loader reuses its demonstration id.
+
+Five contracts were added: `incident_detail`, `incident_note`, `incident_page`, `report_page`, and `session_report`. The existing `session_record` allows archived alert evidence, and `audit_entry`/`audit_page` now include incident records. `python contracts/check_contracts.py` reports **21 contracts OK**. Every add-on route retains the common JSON error shape and JSON 401 behavior.
+
+Forecast counters use resolved outcomes from that report's session. The report explicitly says that the counters are session scoped and that precision@3 may be trivial with at most three reachable candidates. Print CSS removes the desktop shell from the printed document; CSV values are quoted and formula-like cells are prefixed safely.
 
 The B2 browser audit includes all existing routes and the seven new routes at 390x844, 820x1180, and 1440x900 in sample and live modes. It also checks table filters, both export downloads, saved settings, and the existing two-step live simulation containment flow. Evidence is stored in `docs/phase-b2/`.

@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/report_page.schema.json",
+  "title": "Session report index",
+  "type": "object",
+  "properties": {
+    "items": {"type": "array", "items": {"type": "object", "required": ["session_id", "scenario_id", "started_at", "ended_at", "alert_count", "severity", "forecasts_resolved", "hit_rate"], "properties": {"session_id": {"type": "string", "minLength": 1}, "scenario_id": {"type": ["string", "null"]}, "started_at": {"type": "string", "minLength": 1}, "ended_at": {"type": ["string", "null"]}, "alert_count": {"type": "integer", "minimum": 0}, "severity": {"type": "string", "enum": ["HIGH", "MEDIUM", "LOW", "NORMAL"]}, "forecasts_resolved": {"type": "integer", "minimum": 0}, "hit_rate": {"type": ["number", "null"], "minimum": 0, "maximum": 1}}, "additionalProperties": false}},
+    "total": {"type": "integer", "minimum": 0}
+  },
+  "required": ["items", "total"],
+  "additionalProperties": false
+}

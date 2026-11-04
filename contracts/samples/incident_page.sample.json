@@ -1,0 +1,7 @@
+{
+  "items": [],
+  "total": 0,
+  "next_cursor": null,
+  "limit": 50,
+  "filters": {"q": "", "status": "", "severity": ""}
+}

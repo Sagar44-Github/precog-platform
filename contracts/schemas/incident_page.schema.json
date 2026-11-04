@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/incident_page.schema.json",
+  "title": "Incident search page",
+  "type": "object",
+  "properties": {
+    "items": {"type": "array", "items": {"$ref": "https://precog.local/contracts/incident_detail.schema.json"}},
+    "total": {"type": "integer", "minimum": 0},
+    "next_cursor": {"type": ["string", "null"]},
+    "limit": {"type": "integer", "minimum": 1, "maximum": 200},
+    "filters": {"type": "object", "required": ["q", "status", "severity"], "properties": {"q": {"type": "string"}, "status": {"type": "string"}, "severity": {"type": "string"}}, "additionalProperties": false}
+  },
+  "required": ["items", "total", "next_cursor", "limit", "filters"],
+  "additionalProperties": false
+}

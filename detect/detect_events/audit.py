@@ -1,4 +1,4 @@
-"""The audit log: one JSON line per detection, forecast and containment.
+"""The audit log: one JSON line per detection, forecast, containment, and incident case change.
 
 Nothing secret or personal may be written. scrub() removes anything that looks like a password,
 token, key or email address before a line is saved.
@@ -9,7 +9,7 @@ import threading
 from datetime import datetime, timezone
 from pathlib import Path
 
-ENTRY_TYPES = ("detection", "forecast", "containment")
+ENTRY_TYPES = ("detection", "forecast", "containment", "incident")
 
 _SECRET_WORDS = re.compile(r"(?i)\b(password|passwd|pwd|secret|token|api[_-]?key|authorization)\b(\s*[:=]\s*)\S+")
 _BEARER = re.compile(r"(?i)\bbearer\s+[A-Za-z0-9._~+/=-]+")

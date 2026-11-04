@@ -36,6 +36,8 @@ A closed-loop security console that predicts where an attacker will move next an
 
 > **Phase B2 workspaces:** authenticated routes now include `/app/alerts`, `/app/hosts`, `/app/audit`, `/app/system`, and `/app/settings`, with deep-linkable alert and host details. Alerts support filtering, sorting, paging, CSV/JSON export; asset records include explicitly simulated `DEMO-` weaknesses and replay state history. The contract set now has 16 checked schemas. See [B2 browser evidence](docs/phase-b2/) and [B2 requirements/technical addenda](docs/PRD_ADDENDUM_B1.md#phase-b2-product-requirements), [TRD addendum](docs/TRD_ADDENDUM_B1.md#phase-b2-route-and-api-additions).
 
+> **Phase B3 casework and reports:** `/app/incidents` and `/app/mobile/incidents` group each replay session's alert, forecast, and action evidence into an incident, with status, analyst notes, and an audit trail. `/app/reports` provides per-session printable reports plus JSON and timeline CSV export. Incident annotations live in memory for the running demo. The contract set now has 21 checked schemas. See [B3 evidence](docs/phase-b3/) and the [B3 technical addendum](docs/TRD_ADDENDUM_B1.md#phase-b3-incidents-and-session-reports).
+
 <a id="choose-your-path"></a>
 
 ### Choose your path
@@ -876,7 +878,7 @@ Nothing changes in the world state until `confirm` succeeds with the action id t
 The product's own screens use the add-on endpoints under **`/api/x`**, so they never meet NIDS's redirect-style login. Every add-on endpoint except `health` and `login` returns a **JSON 401** when you are not signed in. Errors share one JSON shape with a short code and a plain-English message.
 
 <details>
-<summary><b>Add-on endpoints</b> (29 routes, click to expand)</summary>
+<summary><b>Add-on endpoints</b> (35 routes, click to expand)</summary>
 
 <br>
 
@@ -892,6 +894,12 @@ The product's own screens use the add-on endpoints under **`/api/x`**, so they n
 | `GET` | `/api/x/alerts/{id}` | One alert with its explanation |
 | `GET` | `/api/x/assets` | Demo host inventory with topology, synthetic weaknesses, risk, state and history |
 | `GET` | `/api/x/audit` | Filtered, read-only audit log (`type`, reference, summary and time range) |
+| `GET` | `/api/x/incidents` | Search and page replay-session cases by text, status, and severity |
+| `GET` | `/api/x/incidents/{id}` | One session-grouped case with its timeline and linked evidence |
+| `POST` | `/api/x/incidents/{id}/notes` | Add a bounded in-memory analyst note; writes a scrubbed audit record |
+| `PATCH` | `/api/x/incidents/{id}/status` | Set incident status to open, contained, or closed; writes a scrubbed audit record |
+| `GET` | `/api/x/reports` | List current and archived replay session report summaries |
+| `GET` | `/api/x/reports/{session_id}` | Session alerts, forecasts, actions, timeline, and honest counters |
 | `GET` | `/api/x/system` | Runtime versions, hooks, modules, data mode and readiness checks |
 | `GET` | `/api/x/graph` | Current graph snapshot |
 | `GET` | `/api/x/forecasts` | Forecasts, filterable by status |
@@ -941,7 +949,12 @@ Data passed between roles is agreed **first**, in writing. `contracts/schemas/` 
 | `forecast` | Up to three targets with confidence, a technique hint, status and outcome |
 | `containment_action` | Target, requesting client, status, proposed and confirmed times |
 | `reeval_result` | Whether the attack progressed and whether the chain ended early |
-| `audit_entry` | One line per detection, forecast or containment |
+| `audit_entry` | One line per detection, forecast, containment, or incident case change |
+| `incident_detail` | Session-grouped case evidence, timeline, status, and notes |
+| `incident_note` | Author, timestamp, and bounded analyst note text |
+| `incident_page` | Filtered, paged incident records |
+| `report_page` | Current and archived replay report summaries |
+| `session_report` | Per-session alert, forecast, action, timeline, and metric record |
 | `world_state` | `version`, `changed`, graph, alerts, forecast, actions, replay, metrics |
 | `session_record` | Every forecast with its outcome, plus containment actions |
 | `session_metrics` | Hit-rate, precision@1, precision@3, calibration bins, containment success rate |

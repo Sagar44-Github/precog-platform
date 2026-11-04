@@ -1,6 +1,6 @@
-# Precog SOC Demo Script V2 — B2 operations workspaces and replay
+# Precog SOC Demo Script V2 — B3 cases, reports, and replay
 
-**Length:** about 6–8 minutes
+**Length:** about 8–10 minutes
 
 **Mode:** local replay simulation
 **Screen:** desktop browser at 1024 px or wider; phone view can be opened separately.
@@ -23,6 +23,10 @@
 8. **Explain the forecast.** At the decision point, show the ranked targets and confidence values. Say “Precog predicts”; show the honest session-counter label when discussing results.
 9. **Contain with confirmation.** Choose Contain, review the confirmation dialog, and confirm. The action changes only simulated in-memory host state and records a log entry.
 10. **Close the loop.** Show the blocked next move, resolved forecast outcome, timeline, and updated graph state. State plainly whether the forecast was a hit or miss.
+11. **Open the incident case.** Select Incidents. Show how the replay session joins alerts, predicted targets, and simulated containment records. Open the case and review involved hosts, technique labels, and the ordered timeline.
+12. **Record analyst review.** Add a short note, then change the case status. Point to the audit log entry. These case annotations live in memory during the demo and are not durable records.
+13. **Print a session report.** Open Reports and select the completed replay. Explain that its hit and precision counters describe this session, not overall model accuracy, and that precision@3 can be trivial with at most three reachable targets. Export JSON or the timeline CSV, then use Print Report.
+14. **Show the phone case view.** Open the PWA, select Cases, and open the same incident. Add a short note or update status from the phone to show both clients act on the same in-memory demo state.
 
 ## If presenting on a narrow screen
 
@@ -33,4 +37,5 @@ At widths below 1024 px, `/app/console` directs the operator to `/app/mobile`; o
 - All events are scripted simulation data. The NIDS packet sniffer is not started.
 - Containment has no real network effect and requires proposal followed by confirmation.
 - A session hit rate is not the model’s overall accuracy. Precision@3 is trivial when at most three candidates are reachable.
+- Incident status and analyst notes are volatile annotations; session alert evidence is kept only within the bounded in-memory session history.
 - The forecast is a prediction; a miss is reported as a miss.

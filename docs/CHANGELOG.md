@@ -20,3 +20,12 @@
 - Added four JSON contracts and their samples, bringing the checked contract count from 12 to 16.
 - Added responsive stacked records for tablet/phone widths and expanded the shared navigation and command palette.
 - Phase B2 routes and screenshots are documented under `docs/phase-b2/`.
+
+## Phase B3 — Incidents and session reports (2026-11-04)
+
+- Added incident cases grouped by replay session, combining the session's alerts, predictions, and simulated containment actions into one timeline.
+- Added authenticated desktop and PWA incident filtering/detail, analyst notes, open/contained/closed status, and audit records for case changes.
+- Preserved session alert evidence in bounded in-memory history so archived incident details remain available after a later replay reset.
+- Added current and archived session report pages with printable layout, JSON export, timeline CSV export, and session-only forecast counters with explicit accuracy limitations.
+- Added five contract schemas and samples, bringing the checker total to 21.
+- Added browser route and interaction coverage for incidents and reports; screenshots and rehearsal evidence are in `docs/phase-b3/`.

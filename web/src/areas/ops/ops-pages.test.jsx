@@ -14,11 +14,19 @@ import HostDetailPage from './host-detail.jsx'
 import HostsPage from './hosts.jsx'
 import SettingsPage from './settings.jsx'
 import SystemPage from './system.jsx'
+import IncidentsPage from './incidents.jsx'
+import IncidentDetailPage from './incident-detail.jsx'
+import ReportsPage from './reports.jsx'
+import ReportDetailPage from './report-detail.jsx'
 
 function render(path) {
   return renderToStaticMarkup(<StaticRouter location={path}><AuthProvider><ThemeProvider><UiPreferencesProvider><AppShell><Routes>
     <Route path="/alerts" element={<AlertsPage />} />
     <Route path="/alerts/:alertId" element={<AlertDetailPage />} />
+    <Route path="/incidents" element={<IncidentsPage />} />
+    <Route path="/incidents/:incidentId" element={<IncidentDetailPage />} />
+    <Route path="/reports" element={<ReportsPage />} />
+    <Route path="/reports/:sessionId" element={<ReportDetailPage />} />
     <Route path="/hosts" element={<HostsPage />} />
     <Route path="/hosts/:hostId" element={<HostDetailPage />} />
     <Route path="/audit" element={<AuditPage />} />
@@ -59,4 +67,24 @@ test('settings provide persisted display preference controls', () => {
   assert.match(html, /Data density/)
   assert.match(html, /Default severity/)
   assert.match(html, /presentation only/)
+})
+
+test('incident routes expose case search and refresh-safe detail loading', () => {
+  const list = render('/incidents')
+  const detail = render('/incidents/inc-ses-000001')
+  assert.match(list, /Replay sessions are grouped into incident cases/)
+  assert.match(list, /All statuses/)
+  assert.match(list, /SIMULATION/)
+  assert.match(detail, /Incident detail/)
+  assert.match(detail, /Loading workspace data/)
+})
+
+test('report routes offer printable session summaries and explicit metric scope', () => {
+  const list = render('/reports')
+  const detail = render('/reports/ses-000001')
+  assert.match(list, /Printable, exportable summaries/)
+  assert.match(list, /not overall model accuracy/)
+  assert.match(detail, /PRINTABLE REPORT/)
+  assert.match(detail, /Print report/)
+  assert.match(detail, /Export timeline CSV/)
 })

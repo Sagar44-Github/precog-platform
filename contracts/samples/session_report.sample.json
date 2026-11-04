@@ -1,0 +1,20 @@
+{
+  "session_id": "ses-000001",
+  "scenario_id": "golden-path",
+  "started_at": "2026-10-03T10:00:00Z",
+  "ended_at": null,
+  "alert_count": 0,
+  "severity": "NORMAL",
+  "alerts": [],
+  "forecasts": [],
+  "actions": [],
+  "metrics": {
+    "forecasts_resolved": 0,
+    "hits": 0,
+    "hit_rate": null,
+    "precision_at_1": null,
+    "precision_at_3": null,
+    "honesty_note": "Session counter, not the model's overall accuracy. Precision@3 can be trivial when at most three hosts are reachable."
+  },
+  "timeline": []
+}

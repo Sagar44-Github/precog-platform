@@ -24,10 +24,16 @@ const routeSpecs = [
   ['mobile-alerts', '/app/mobile/alerts'],
   ['mobile-alert-detail', null],
   ['mobile-forecast', '/app/mobile/forecast'],
+  ['mobile-incidents', '/app/mobile/incidents'],
+  ['mobile-incident-detail', null],
   ['mobile-history', '/app/mobile/history'],
   ['console', '/app/console'],
   ['alerts', '/app/alerts'],
   ['alert-detail', null],
+  ['incidents', '/app/incidents'],
+  ['incident-detail', null],
+  ['reports', '/app/reports'],
+  ['report-detail', null],
   ['hosts', '/app/hosts'],
   ['host-detail', null],
   ['audit', '/app/audit'],
@@ -109,6 +115,12 @@ async function checkViewport(page, mode, routeName, path, size) {
     canvasCount: document.querySelectorAll('canvas').length,
     hasConsoleHandoff: Boolean(document.querySelector('.console-handoff')),
     hasCommandTrigger: Boolean(document.querySelector('.command-trigger')),
+    mobileHeaderVisible: (() => {
+      const header = document.querySelector('.m-top')
+      if (!header) return false
+      const rect = header.getBoundingClientRect()
+      return rect.top >= -1 && rect.top < window.innerHeight && rect.bottom > 0
+    })(),
     overflowElements: Array.from(document.querySelectorAll('body *')).map((element) => {
       const rect = element.getBoundingClientRect()
       return { tag: element.tagName.toLowerCase(), className: typeof element.className === 'string' ? element.className : '', left: Math.round(rect.left), right: Math.round(rect.right), width: Math.round(rect.width) }
@@ -118,6 +130,7 @@ async function checkViewport(page, mode, routeName, path, size) {
   const failures = []
   if (state.scrollWidth > state.width) failures.push(`horizontal overflow ${state.scrollWidth}px > ${state.width}px`)
   if (!state.hasSimulationLabel) failures.push('SIMULATION label missing')
+  if (routeName.startsWith('mobile') && !state.mobileHeaderVisible) failures.push('phone SOC header is outside the visible viewport')
   if (routeName === 'console' && size.width < 1024 && !state.hasConsoleHandoff) failures.push('narrow console handoff is missing')
   if (routeName === 'console' && size.width >= 1024 && !state.hasCommandTrigger) failures.push('desktop command palette trigger is missing')
   if (failures.length) check.failure = failures.join('; ')
@@ -196,12 +209,30 @@ async function runMode(browser, mode, port, dbDir, errors) {
     })
     const alertId = alerts[0]?.event_id
     if (!alertId) errors.push(`${mode} mode did not provide an alert id for the alert-detail route (${JSON.stringify(alerts).slice(0, 180)})`)
+    const incidentReply = await page.evaluate(async () => {
+      const response = await fetch('/api/x/incidents?limit=1')
+      return response.ok ? response.json() : { error: `HTTP ${response.status}` }
+    })
+    const incidentId = incidentReply.items?.[0]?.incident_id
+    const reportReply = await page.evaluate(async () => {
+      const response = await fetch('/api/x/reports')
+      return response.ok ? response.json() : { error: `HTTP ${response.status}` }
+    })
+    const sessionId = reportReply.items?.[0]?.session_id
+    if (!incidentId) errors.push(`${mode} mode did not provide an incident id for the incident-detail route`)
+    if (!sessionId) errors.push(`${mode} mode did not provide a session id for the report-detail route`)
     for (const size of sizes) {
       for (const [routeName, path] of routeSpecs) {
         const route = routeName === 'mobile-alert-detail'
           ? (alertId ? `/app/mobile/alerts/${encodeURIComponent(alertId)}` : '/app/mobile/alerts')
+          : routeName === 'mobile-incident-detail'
+            ? (incidentId ? `/app/mobile/incidents/${encodeURIComponent(incidentId)}` : '/app/mobile/incidents')
           : routeName === 'alert-detail'
             ? (alertId ? `/app/alerts/${encodeURIComponent(alertId)}` : '/app/alerts')
+            : routeName === 'incident-detail'
+              ? (incidentId ? `/app/incidents/${encodeURIComponent(incidentId)}` : '/app/incidents')
+              : routeName === 'report-detail'
+                ? (sessionId ? `/app/reports/${encodeURIComponent(sessionId)}` : '/app/reports')
             : routeName === 'host-detail'
               ? '/app/hosts/host-a'
           : path
@@ -279,6 +310,34 @@ async function runMode(browser, mode, port, dbDir, errors) {
         const jsonDownload = page.waitForEvent('download')
         await page.getByRole('button', { name: 'Export JSON' }).click()
         report.shellInteractions.jsonExport = `downloaded ${(await jsonDownload).suggestedFilename()}`
+
+        await page.goto(`${base}/app/incidents/${encodeURIComponent(incidentId)}`, { waitUntil: 'domcontentloaded' })
+        await page.getByLabel('Incident status').selectOption('closed')
+        await page.locator('.incident-note-form textarea').fill('Reviewed during the browser rehearsal.')
+        await page.getByRole('button', { name: 'Add note' }).click()
+        await page.getByText('Reviewed during the browser rehearsal.').waitFor({ timeout: 10000 })
+        report.incidentWorkflow = 'status changed and analyst note persisted in the incident case'
+
+        await page.goto(`${base}/app/mobile/incidents`, { waitUntil: 'domcontentloaded' })
+        await page.locator('.m-case-link').first().click()
+        await page.waitForURL('**/app/mobile/incidents/**')
+        await page.getByLabel('Incident case status').selectOption('contained')
+        await page.locator('.m-case-note-form textarea').fill('Reviewed in the phone PWA.')
+        await page.getByRole('button', { name: 'Add note' }).click()
+        await page.getByText('Reviewed in the phone PWA.').waitFor({ timeout: 10000 })
+        report.mobileIncidentWorkflow = 'case navigation, status update, and note verified in the phone PWA'
+
+        await page.goto(`${base}/app/reports/${encodeURIComponent(sessionId)}`, { waitUntil: 'domcontentloaded' })
+        const reportJson = page.waitForEvent('download')
+        await page.getByRole('button', { name: 'Export JSON' }).click()
+        report.reportJsonExport = `downloaded ${(await reportJson).suggestedFilename()}`
+        const reportCsv = page.waitForEvent('download')
+        await page.getByRole('button', { name: 'Export timeline CSV' }).click()
+        report.reportCsvExport = `downloaded ${(await reportCsv).suggestedFilename()}`
+        await page.evaluate(() => { window.print = () => { window.__printCalled = true } })
+        await page.getByRole('button', { name: 'Print report' }).click()
+        await page.waitForFunction(() => window.__printCalled === true)
+        report.printAction = 'print stylesheet entry point invoked'
       } catch (error) {
         report.shellInteractions = {
           error: error.message,

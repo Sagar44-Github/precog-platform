@@ -1,0 +1,23 @@
+{
+  "incident_id": "inc-ses-000001",
+  "session_id": "ses-000001",
+  "scenario_id": "golden-path",
+  "title": "Golden Path replay",
+  "summary": "A simulated attack chain was observed across 1 host.",
+  "started_at": "2026-10-03T10:00:00Z",
+  "ended_at": null,
+  "status": "open",
+  "severity": "HIGH",
+  "alert_count": 1,
+  "hosts": ["host-a"],
+  "techniques": [{"technique_id": "T1078", "technique_name": "Valid Accounts"}],
+  "alerts": [{
+    "event_id": "evt-demo-001", "ts": "2026-10-03T10:00:01Z", "host": "host-a", "packet_id": null,
+    "anomaly": true, "risk_score": 90, "severity": "HIGH", "explanation": "Simulated access event.",
+    "technique_id": "T1078", "technique_name": "Valid Accounts", "source": "scripted"
+  }],
+  "forecasts": [],
+  "actions": [],
+  "timeline": [{"kind": "detection", "ts": "2026-10-03T10:00:01Z", "label": "HIGH alert on host-a", "ref_id": "evt-demo-001", "host": "host-a"}],
+  "notes": []
+}

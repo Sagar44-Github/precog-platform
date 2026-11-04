@@ -15,7 +15,8 @@
       "enum": [
         "detection",
         "forecast",
-        "containment"
+        "containment",
+        "incident"
       ]
     },
     "ref_id": {

@@ -5,6 +5,7 @@ Every error answers JSON like {"error": {"code": "...", "message": "..."}}.
 import json
 import platform
 import sqlite3
+import uuid
 from datetime import datetime, time, timedelta, timezone
 from importlib.metadata import version as package_version
 
@@ -22,8 +23,9 @@ FORECAST_STATUSES = ("pending", "hit", "miss", "superseded")
 REQUESTERS = ("console", "mobile")
 MAX_ALERT_LIMIT = 200
 ALERT_SEVERITIES = ("HIGH", "MEDIUM", "LOW", "NORMAL")
-AUDIT_TYPES = ("detection", "forecast", "containment")
+AUDIT_TYPES = ("detection", "forecast", "containment", "incident")
 PAGE_SORTS = ("ts", "risk_score", "severity")
+INCIDENT_STATUSES = ("open", "contained", "closed")
 
 
 def _ctx():
@@ -101,6 +103,97 @@ def _query_text(name, max_length=256):
     if len(value) > max_length:
         raise ApiError("bad_request", "'%s' is too long." % name, 400)
     return value
+
+
+def _severity_rollup(alerts):
+    rank = {"NORMAL": 0, "LOW": 1, "MEDIUM": 2, "HIGH": 3}
+    return max((alert.get("severity", "NORMAL") for alert in alerts), key=lambda value: rank.get(value, 0), default="NORMAL")
+
+
+def _timeline(alerts, forecasts, actions):
+    rows = []
+    for alert in alerts:
+        rows.append({"kind": "detection", "ts": alert["ts"], "label": "%s alert on %s" % (alert["severity"], alert["host"]), "ref_id": alert["event_id"], "host": alert["host"]})
+    for forecast in forecasts:
+        target = forecast.get("targets", [{}])[0].get("host_id") if forecast.get("targets") else None
+        label = "Predicted target: %s" % target if target else "Forecast recorded"
+        rows.append({"kind": "forecast", "ts": forecast["ts"], "label": label, "ref_id": forecast["forecast_id"], "host": target})
+    for action in actions:
+        host = action["target_host"]
+        rows.append({"kind": "containment", "ts": action["proposed_at"], "label": "Containment proposed for %s" % host, "ref_id": action["action_id"], "host": host})
+        if action.get("confirmed_at"):
+            rows.append({"kind": "containment", "ts": action["confirmed_at"], "label": "Simulated containment %s for %s" % (action["status"], host), "ref_id": action["action_id"], "host": host})
+    rows.sort(key=lambda row: (_entry_time(row["ts"]), row["ref_id"], row["kind"]))
+    return rows
+
+
+def _incident_from_session(record):
+    alerts = record.get("alerts", [])
+    forecasts = record.get("forecasts", [])
+    actions = record.get("actions", [])
+    incident_id = "inc-" + record["session_id"]
+    severity = _severity_rollup(alerts)
+    hosts = []
+    observed_targets = [forecast.get("outcome", {}).get("attempted_host") for forecast in forecasts if forecast.get("outcome")]
+    for host in [alert.get("host") for alert in alerts] + [forecast.get("from_host") for forecast in forecasts] + observed_targets + [action.get("target_host") for action in actions]:
+        if host and host not in hosts:
+            hosts.append(host)
+    techniques = []
+    seen_techniques = set()
+    for alert in alerts:
+        technique_id, technique_name = alert.get("technique_id"), alert.get("technique_name")
+        if technique_id and technique_id not in seen_techniques:
+            techniques.append({"technique_id": technique_id, "technique_name": technique_name or technique_id})
+            seen_techniques.add(technique_id)
+    if record.get("status") in INCIDENT_STATUSES:
+        status = record["status"]
+    elif any(action.get("status") == "executed" for action in actions):
+        status = "contained"
+    else:
+        status = "open"
+    title = "%s replay" % (record.get("scenario_id") or "Replay session")
+    return {
+        "incident_id": incident_id, "session_id": record["session_id"], "scenario_id": record.get("scenario_id"),
+        "title": title, "summary": "A simulated attack chain recorded %d alert%s across %d host%s." % (
+            len(alerts), "" if len(alerts) == 1 else "s", len(hosts), "" if len(hosts) == 1 else "s"),
+        "started_at": record["started_at"], "ended_at": record.get("ended_at"), "status": status,
+        "severity": severity, "alert_count": len(alerts), "hosts": hosts, "techniques": techniques,
+        "alerts": alerts, "forecasts": forecasts, "actions": actions,
+        "timeline": _timeline(alerts, forecasts, actions), "notes": record.get("notes", []),
+    }
+
+
+def _session_report(record):
+    alerts = record.get("alerts", [])
+    forecasts = record.get("forecasts", [])
+    actions = record.get("actions", [])
+    resolved = [forecast for forecast in forecasts if forecast.get("status") in ("hit", "miss")]
+    hits = [forecast for forecast in resolved if forecast.get("status") == "hit"]
+    top_one = [forecast for forecast in resolved if forecast.get("outcome") and forecast["outcome"].get("rank_hit") == 1]
+    top_three = [forecast for forecast in resolved if forecast.get("outcome") and forecast["outcome"].get("rank_hit") is not None]
+    count = len(resolved)
+    return {
+        "session_id": record["session_id"], "scenario_id": record.get("scenario_id"),
+        "started_at": record["started_at"], "ended_at": record.get("ended_at"),
+        "alert_count": len(alerts), "severity": _severity_rollup(alerts), "alerts": alerts,
+        "forecasts": forecasts, "actions": actions,
+        "metrics": {
+            "forecasts_resolved": count, "hits": len(hits), "hit_rate": len(hits) / count if count else None,
+            "precision_at_1": len(top_one) / count if count else None,
+            "precision_at_3": len(top_three) / count if count else None,
+            "honesty_note": "Session counter, not the model's overall accuracy. Precision@3 can be trivial when at most three hosts are reachable.",
+        },
+        "timeline": _timeline(alerts, forecasts, actions),
+    }
+
+
+def _incident_records(ctx):
+    records = []
+    for session_record in ctx["world"].incident_sessions():
+        if session_record.get("alerts") or session_record.get("forecasts") or session_record.get("actions"):
+            records.append(_incident_from_session(session_record))
+    records.sort(key=lambda item: (_entry_time(item["started_at"]), item["incident_id"]), reverse=True)
+    return records
 
 
 @bp.errorhandler(Exception)
@@ -313,6 +406,108 @@ def audit_entries():
     total = len(rows)
     page, next_cursor = _page_window(rows, limit, request.args.get("cursor", ""))
     return jsonify(_out("audit_page", {"items": page, "total": total, "next_cursor": next_cursor, "limit": limit, "filters": filters}))
+
+
+@bp.get("/incidents")
+@auth.json_login_required
+def incidents():
+    try:
+        limit = int(request.args.get("limit", 50))
+    except ValueError:
+        raise ApiError("bad_request", "'limit' must be a whole number.", 400)
+    limit = max(1, min(limit, MAX_ALERT_LIMIT))
+    status = request.args.get("status", "")
+    severity = request.args.get("severity", "").upper()
+    if status and status not in INCIDENT_STATUSES:
+        raise ApiError("bad_request", "'status' must be one of: %s." % ", ".join(INCIDENT_STATUSES), 400)
+    if severity and severity not in ALERT_SEVERITIES:
+        raise ApiError("bad_request", "'severity' must be one of: %s." % ", ".join(ALERT_SEVERITIES), 400)
+    filters = {"q": _query_text("q"), "status": status, "severity": severity}
+    query = filters["q"].casefold()
+    rows = []
+    for incident in _incident_records(_ctx()):
+        searchable = " ".join((incident["incident_id"], incident["title"], incident["summary"], " ".join(incident["hosts"]), " ".join(item["technique_id"] for item in incident["techniques"]))).casefold()
+        if status and incident["status"] != status:
+            continue
+        if severity and incident["severity"] != severity:
+            continue
+        if query and query not in searchable:
+            continue
+        rows.append(incident)
+    page, next_cursor = _page_window(rows, limit, request.args.get("cursor", ""))
+    payload = {"items": page, "total": len(rows), "next_cursor": next_cursor, "limit": limit, "filters": filters}
+    return jsonify(_out("incident_page", payload))
+
+
+def _find_incident(incident_id):
+    return next((item for item in _incident_records(_ctx()) if item["incident_id"] == incident_id), None)
+
+
+def _audit_incident(incident_id, summary):
+    events = _ctx()["hooks"].get("events")
+    recorder = getattr(events, "audit_record", None) if events is not None else None
+    if recorder is not None:
+        recorder("incident", incident_id, summary)
+
+
+@bp.get("/incidents/<incident_id>")
+@auth.json_login_required
+def incident_detail(incident_id):
+    found = _find_incident(incident_id)
+    if found is None:
+        raise ApiError("not_found", "No incident with id %s." % incident_id, 404)
+    return jsonify(_out("incident_detail", found))
+
+
+@bp.post("/incidents/<incident_id>/notes")
+@auth.json_login_required
+def incident_add_note(incident_id):
+    if _find_incident(incident_id) is None:
+        raise ApiError("not_found", "No incident with id %s." % incident_id, 404)
+    text = _text(_body(), "text")
+    if len(text) > 2000:
+        raise ApiError("bad_request", "Incident notes must be 2000 characters or fewer.", 400)
+    note = {"note_id": "note-%s" % uuid.uuid4().hex, "created_at": datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"), "author": current_user.username, "text": text}
+    _out("incident_note", note)
+    _ctx()["world"].add_incident_note(incident_id, note)
+    _audit_incident(incident_id, "Analyst note added to simulated incident.")
+    return jsonify(note), 201
+
+
+@bp.patch("/incidents/<incident_id>/status")
+@auth.json_login_required
+def incident_set_status(incident_id):
+    if _find_incident(incident_id) is None:
+        raise ApiError("not_found", "No incident with id %s." % incident_id, 404)
+    status = _text(_body(), "status")
+    if status not in INCIDENT_STATUSES:
+        raise ApiError("bad_request", "'status' must be one of: %s." % ", ".join(INCIDENT_STATUSES), 400)
+    _ctx()["world"].set_incident_status(incident_id, status)
+    _audit_incident(incident_id, "Incident status updated to %s." % status)
+    found = _find_incident(incident_id)
+    return jsonify(_out("incident_detail", found))
+
+
+@bp.get("/reports")
+@auth.json_login_required
+def reports():
+    records = _ctx()["world"].incident_sessions()
+    items = []
+    for record in records:
+        report = _session_report(record)
+        items.append({key: report[key] for key in ("session_id", "scenario_id", "started_at", "ended_at", "alert_count", "severity")}
+                      | {"forecasts_resolved": report["metrics"]["forecasts_resolved"], "hit_rate": report["metrics"]["hit_rate"]})
+    payload = {"items": items, "total": len(items)}
+    return jsonify(_out("report_page", payload))
+
+
+@bp.get("/reports/<session_id>")
+@auth.json_login_required
+def report_detail(session_id):
+    record = next((item for item in _ctx()["world"].incident_sessions() if item["session_id"] == session_id), None)
+    if record is None:
+        raise ApiError("not_found", "No replay session with id %s." % session_id, 404)
+    return jsonify(_out("session_report", _session_report(record)))
 
 
 @bp.get("/system")

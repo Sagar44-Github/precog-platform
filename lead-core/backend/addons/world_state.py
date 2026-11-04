@@ -40,6 +40,7 @@ class WorldState:
         self._reset_locked()
 
         self._sessions = []
+        self._incident_annotations = {}
 
         self._push_tokens = []
         self._detection_report = None
@@ -58,6 +59,7 @@ class WorldState:
         self._graph = _empty_graph()
         self._host_history = {}
         self._alerts = []
+        self._session_alerts = []
 
         self._forecasts = []
         self._actions = []
@@ -152,6 +154,39 @@ class WorldState:
         with self._lock:
             return copy.deepcopy(self._sessions)
 
+    def incident_sessions(self):
+        """Return the bounded session history plus the live session with its alert evidence."""
+        with self._lock:
+            records = copy.deepcopy(self._sessions)
+            if self._session is not None:
+                current = copy.deepcopy(self._session)
+                current["alerts"] = copy.deepcopy(self._session_alerts)
+                current["forecasts"] = copy.deepcopy(self._forecasts)
+                current["actions"] = copy.deepcopy(self._actions)
+                records = [item for item in records if item.get("session_id") != current.get("session_id")]
+                records.insert(0, current)
+            for record in records:
+                incident_id = "inc-" + record["session_id"]
+                annotation = self._incident_annotations.get(incident_id, {})
+                record["status"] = annotation.get("status")
+                record["notes"] = copy.deepcopy(annotation.get("notes", []))
+            return records
+
+    def add_incident_note(self, incident_id, note):
+        with self._lock:
+            annotation = self._incident_annotations.setdefault(incident_id, {"status": None, "notes": []})
+            annotation["notes"].append(copy.deepcopy(note))
+            del annotation["notes"][:-100]
+            self._bump()
+            return copy.deepcopy(note)
+
+    def set_incident_status(self, incident_id, status):
+        with self._lock:
+            annotation = self._incident_annotations.setdefault(incident_id, {"status": None, "notes": []})
+            annotation["status"] = status
+            self._bump()
+            return status
+
     def detection_report(self):
         with self._lock:
             return copy.deepcopy(self._detection_report)
@@ -181,6 +216,9 @@ class WorldState:
             self._check("security_event", alert)
             self._alerts.insert(0, copy.deepcopy(alert))
             del self._alerts[MAX_ALERTS:]
+            if self._session is not None:
+                self._session_alerts.append(copy.deepcopy(alert))
+                del self._session_alerts[:-MAX_ALERTS]
             return self._bump()
 
     def set_forecast(self, forecast):
@@ -230,14 +268,21 @@ class WorldState:
 
     def set_session(self, record):
         with self._lock:
+            prior_id = self._session.get("session_id") if self._session else None
             self._session = copy.deepcopy(self._check("session_record", record))
+            if prior_id != record["session_id"]:
+                self._session_alerts = copy.deepcopy(record.get("alerts", self._alerts))
             return self._bump()
 
     def archive_session(self):
         """Move the current session into the history list (used when a replay ends)."""
         with self._lock:
             if self._session is not None:
-                self._sessions.insert(0, copy.deepcopy(self._session))
+                archived = copy.deepcopy(self._session)
+                archived["alerts"] = copy.deepcopy(self._session_alerts)
+                self._check("session_record", archived)
+                self._sessions = [item for item in self._sessions if item["session_id"] != archived["session_id"]]
+                self._sessions.insert(0, archived)
                 del self._sessions[MAX_SESSIONS:]
             return self._bump()
 

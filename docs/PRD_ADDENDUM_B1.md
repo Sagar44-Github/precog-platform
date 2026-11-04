@@ -35,3 +35,14 @@ Incident, asset, forecast-ledger, playbook, analytics, and scenario-builder page
 | FR-OPS-6 | An operator may persist display density and default alert severity locally, alongside the existing theme. | S | Preferences survive reload in the same browser and do not alter model or detection behavior. |
 
 The new pages preserve the replay-only safety boundary and show the shared SIMULATION label from the authenticated application shell. The audit and system workspaces are read-only.
+
+## Phase B3 product requirements
+
+| ID | Requirement | Priority | Acceptance |
+|---|---|---:|---|
+| FR-CASE-1 | An operator shall review one incident case per replay session, combining alerts, predicted targets, simulated actions, hosts, and ATT&CK labels into a time-ordered view on desktop and phone. | M | Desktop and PWA case lists/detail are deep-linkable; the desktop list is filtered by text, severity, and status. |
+| FR-CASE-2 | An operator shall add bounded analyst notes and set case status to open, contained, or closed. | M | Mutations require login, are validated, remain in-memory, and create scrubbed audit records. |
+| FR-REPORT-1 | An operator shall open a report for the current or an archived replay session. | M | The report contains session alerts, forecasts and outcomes, simulated actions, a timeline, and per-session counters. |
+| FR-REPORT-2 | An operator shall print a report or export the report as JSON and its timeline as CSV. | S | The print stylesheet hides workspace chrome, and CSV formula-like values are neutralized. |
+
+Incident cases are session groupings because the replay controller provides a stable session boundary for the scripted attack chain. Notes and case status are volatile demo annotations, not durable records. Report counters are calculated from the outcomes stored in that single session; they are not model-wide accuracy claims.

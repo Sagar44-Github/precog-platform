@@ -27,6 +27,10 @@ function commandEvent(detail) {
 function pageTitle(pathname) {
   if (pathname.startsWith('/alerts/')) return 'Alert detail'
   if (pathname === '/alerts') return 'Alerts'
+  if (pathname.startsWith('/incidents/')) return 'Incident detail'
+  if (pathname === '/incidents') return 'Incidents'
+  if (pathname.startsWith('/reports/')) return 'Session report'
+  if (pathname === '/reports') return 'Reports'
   if (pathname.startsWith('/hosts/')) return 'Asset detail'
   if (pathname === '/hosts') return 'Hosts & assets'
   if (pathname === '/audit') return 'Audit log'
@@ -48,6 +52,8 @@ export function CommandPalette({ open, onClose }) {
     { label: 'Open live console', detail: 'Go to the 3D replay console', icon: 'activity', keywords: 'workspace desktop', run: () => navigate('/console') },
     { label: 'Open mobile SOC', detail: 'Open the phone PWA screens', icon: 'smartphone', keywords: 'phone pwa', run: () => navigate('/mobile') },
     { label: 'Open alerts workspace', detail: 'Search and review security events', icon: 'alerts', keywords: 'alerts incidents events', run: () => navigate('/alerts') },
+    { label: 'Open incidents', detail: 'Review attack chains, notes, and status', icon: 'alerts', keywords: 'incident case triage', run: () => navigate('/incidents') },
+    { label: 'Open session reports', detail: 'Review and print replay reports', icon: 'audit', keywords: 'reports export print', run: () => navigate('/reports') },
     { label: 'Open hosts and assets', detail: 'Review the simulated network inventory', icon: 'hosts', keywords: 'assets inventory devices', run: () => navigate('/hosts') },
     { label: 'Open audit log', detail: 'Review detection and response records', icon: 'audit', keywords: 'audit history log', run: () => navigate('/audit') },
     { label: 'Open system health', detail: 'Inspect backend modules and runtime', icon: 'system', keywords: 'health status modules', run: () => navigate('/system') },
@@ -174,6 +180,8 @@ export default function AppShell({ children }) {
   const navigation = [
     { to: '/console', label: 'Live console', icon: 'activity', end: true },
     { to: '/alerts', label: 'Alerts', icon: 'alerts' },
+    { to: '/incidents', label: 'Incidents', icon: 'alerts' },
+    { to: '/reports', label: 'Reports', icon: 'audit' },
     { to: '/hosts', label: 'Hosts & assets', icon: 'hosts' },
     { to: '/audit', label: 'Audit log', icon: 'audit' },
     { to: '/system', label: 'System health', icon: 'system' },

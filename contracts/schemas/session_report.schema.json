@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/session_report.schema.json",
+  "title": "Session report",
+  "type": "object",
+  "properties": {
+    "session_id": {"type": "string", "minLength": 1},
+    "scenario_id": {"type": ["string", "null"]},
+    "started_at": {"type": "string", "minLength": 1},
+    "ended_at": {"type": ["string", "null"]},
+    "alert_count": {"type": "integer", "minimum": 0},
+    "severity": {"type": "string", "enum": ["HIGH", "MEDIUM", "LOW", "NORMAL"]},
+    "alerts": {"type": "array", "items": {"$ref": "https://precog.local/contracts/security_event.schema.json"}},
+    "forecasts": {"type": "array", "items": {"$ref": "https://precog.local/contracts/forecast.schema.json"}},
+    "actions": {"type": "array", "items": {"$ref": "https://precog.local/contracts/containment_action.schema.json"}},
+    "metrics": {"type": "object", "required": ["forecasts_resolved", "hits", "hit_rate", "precision_at_1", "precision_at_3", "honesty_note"], "properties": {"forecasts_resolved": {"type": "integer", "minimum": 0}, "hits": {"type": "integer", "minimum": 0}, "hit_rate": {"type": ["number", "null"], "minimum": 0, "maximum": 1}, "precision_at_1": {"type": ["number", "null"], "minimum": 0, "maximum": 1}, "precision_at_3": {"type": ["number", "null"], "minimum": 0, "maximum": 1}, "honesty_note": {"type": "string", "minLength": 1}}, "additionalProperties": false},
+    "timeline": {"type": "array", "items": {"type": "object", "required": ["kind", "ts", "label", "ref_id", "host"], "properties": {"kind": {"type": "string", "enum": ["detection", "forecast", "containment"]}, "ts": {"type": "string", "minLength": 1}, "label": {"type": "string", "minLength": 1}, "ref_id": {"type": "string", "minLength": 1}, "host": {"type": ["string", "null"]}}, "additionalProperties": false}}
+  },
+  "required": ["session_id", "scenario_id", "started_at", "ended_at", "alert_count", "severity", "alerts", "forecasts", "actions", "metrics", "timeline"],
+  "additionalProperties": false
+}
