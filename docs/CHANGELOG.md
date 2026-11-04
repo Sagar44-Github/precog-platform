@@ -64,3 +64,11 @@
 - Normalized modern CSS HSL theme values before passing colors to Three.js; added automatic pixel-ratio reduction below 40 fps.
 - Added pure scene/camera tests and Chromium checks for desktop WebGL pixels, Lite rendering, no horizontal overflow, camera/overlay controls, and PNG exports.
 - Phase evidence is stored under `docs/phase-b7/`.
+
+## Phase B8 — Onboarding, Help, and accessibility (2026-11-05)
+
+- Added `/app/help` with a six-step route tour, Golden Path quickstart, keyboard reference, and glossary; added `/app/about` with architecture, simulation limits, and credits/licensing.
+- Added a skip link, focus-managed tour dialog, keyboard dismissal/navigation, permission-aware replay start, and persisted tour completion. The tour never confirms containment.
+- Added browser coverage for both pages and the full tour flow, plus responsive screenshots across all routes in sample and live modes.
+- Rebuilt the Flask-served production bundle. No API route or data contract was added.
+- Phase evidence and five consecutive rehearsal results are stored under `docs/phase-b8/`.

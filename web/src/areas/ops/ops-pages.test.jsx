@@ -25,6 +25,8 @@ import ContainmentPage from './containment.jsx'
 import ReplayStudioPage from './replay-studio.jsx'
 import ScenarioBuilderPage from './scenario-builder.jsx'
 import TopologyExplorerPage from '../console/topology-explorer.jsx'
+import HelpPage from './help.jsx'
+import AboutPage from './about.jsx'
 
 function render(path) {
   return renderToStaticMarkup(<StaticRouter location={path}><AuthProvider><ThemeProvider><UiPreferencesProvider><AppShell><Routes>
@@ -41,6 +43,8 @@ function render(path) {
     <Route path="/replay" element={<ReplayStudioPage />} />
     <Route path="/scenarios" element={<ScenarioBuilderPage />} />
     <Route path="/console/topology" element={<TopologyExplorerPage />} />
+    <Route path="/help" element={<HelpPage />} />
+    <Route path="/about" element={<AboutPage />} />
     <Route path="/hosts" element={<HostsPage />} />
     <Route path="/hosts/:hostId" element={<HostDetailPage />} />
     <Route path="/audit" element={<AuditPage />} />
@@ -156,4 +160,30 @@ test('topology explorer is refresh-safe and keeps its simulation header while lo
   assert.match(html, /Topology explorer/)
   assert.match(html, /SIMULATION ONLY/)
   assert.match(html, /topology-loading/)
+})
+
+test('help page includes the walkthrough, shortcuts, glossary, and simulation quickstart', () => {
+  const html = render('/help')
+  assert.match(html, /Help &amp; walkthrough/)
+  assert.match(html, /Start guided tour/)
+  assert.match(html, /Golden Path quickstart/)
+  assert.match(html, /Precision@1 \/ @3/)
+  assert.match(html, /SIMULATION/)
+})
+
+test('about page states the simulation scope, architecture, limitations, and credits', () => {
+  const html = render('/about')
+  assert.match(html, /About Precog SOC/)
+  assert.match(html, /Simulation environment/)
+  assert.match(html, /Limitations/)
+  assert.match(html, /Credits and licensing/)
+  assert.match(html, /no vulnerability scan is run/i)
+})
+
+test('guided tour deep links render a keyboard-operated dialog at the requested step', () => {
+  const html = render('/console/topology?tour=golden-path&step=0')
+  assert.match(html, /role="dialog" aria-modal="true"/)
+  assert.match(html, /Start with the network/)
+  assert.match(html, /STEP 1 OF 6/)
+  assert.match(html, /Close tour/)
 })

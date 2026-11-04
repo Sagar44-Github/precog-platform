@@ -26,6 +26,7 @@ test('the desktop shell provides workspace navigation and a permanent simulation
   assert.match(html, /Mobile SOC/)
   assert.match(html, /SIMULATION/)
   assert.match(html, /console content/)
+  assert.ok(html.indexOf('Skip to main content') < html.indexOf('app-brand'))
 })
 
 test('the command palette exposes replay, navigation, and theme actions', () => {

@@ -184,3 +184,14 @@ The scene model remains plain data and can be tested without a GPU. The shared 3
 Auto view selects the Lite SVG when the viewport is under 1024 px, reduced motion is requested, or WebGL is unavailable. Lite mode keeps host selection, state labels, forecast confidence, keyboard interaction, time travel, and PNG export. The 3D view also provides isometric, top, and side cameras, selection and forecast focus, and bounded orbit/zoom controls. The Chromium browser audit runs with SwiftShader; it verifies canvas pixels and layout but does not establish performance on a physical mid-range laptop.
 
 No backend schema or route was added in B7. The explorer consumes the existing world-state, asset, and time-travel APIs; all weakness/risk values are synthetic simulation data. Current browser and test evidence is stored in `docs/phase-b7/`.
+
+## Phase B8 onboarding and accessibility
+
+### Routes
+
+| React route | Page |
+|---|---|
+| `/help` | Golden Path quickstart, keyboard shortcuts, operator links, glossary, and guided tour entry point. |
+| `/about` | Simulation disclosure, architecture, limitations, and upstream credits/licensing. |
+
+Tour state is carried by `?tour=golden-path&step=N`, so the dialog can move between lazy-loaded routes. It reads replay capability from the authenticated operator profile before offering replay start. Closing or completing the tour never calls a containment endpoint; only the optional first-step replay start mutates replay state. Completion is stored as a local display preference. The dialog provides an accessible name, initial focus, Tab wrapping, Escape dismissal, and a visible close action. AppShell provides a skip link targeting the main content region. No backend route or contract was added in B8; evidence is stored in `docs/phase-b8/`.

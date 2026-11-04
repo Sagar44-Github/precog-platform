@@ -86,3 +86,7 @@ All B6 capabilities remain replay-only. Custom scenario files are runtime data; 
 ## Phase B7: Topology explorer and Lite mode
 
 Operators can open `/console/topology` to explore the same simulated network in 3D or a 2D isometric SVG fallback. Host selection reveals its state, simulated risk and synthetic weaknesses. The explorer provides forecast and risk overlays, camera presets, mini-map selection, time travel, and PNG export. Auto mode uses Lite for narrow viewports, reduced-motion preferences, or missing WebGL. The 3D renderer reads the shared theme tokens and reduces resolution when frame rate falls below 40 fps. No real vulnerability scan or network action is performed.
+
+## Phase B8 onboarding and accessibility
+
+The operator shall have a Help page with a beginner-friendly demo sequence, glossary, keyboard guidance, and a guided tour across the main workspaces. The tour may offer to start the deterministic Golden Path when the authenticated role permits replay; it shall never perform or confirm containment. An About page shall disclose the simulation boundary, data limitations, architecture, and third-party credits. Core navigation shall provide a skip-to-content link, and the tour dialog shall support keyboard focus, Escape dismissal, and sequential navigation. Help and About shall remain usable on phone and desktop widths while preserving the simulation label.

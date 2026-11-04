@@ -47,6 +47,8 @@ const routeSpecs = [
   ['audit', '/app/audit'],
   ['system', '/app/system'],
   ['settings', '/app/settings'],
+  ['help', '/app/help'],
+  ['about', '/app/about'],
 ]
 const report = { browser: 'Playwright Chromium (SwiftShader)', modes: {} }
 const expectedEvents = []
@@ -472,6 +474,15 @@ async function runMode(browser, mode, port, dbDir, errors) {
         await page.getByRole('button', { name: 'Export PNG' }).click()
         await liteDownload
         report.topologyWorkflow = 'selected a host, switched heat overlays and camera presets, and exported both 3D and Lite PNG snapshots'
+
+        await page.goto(`${base}/app/console/topology?tour=golden-path&step=0`, { waitUntil: 'domcontentloaded' })
+        await page.getByRole('dialog', { name: 'Start with the network' }).waitFor({ timeout: 10000 })
+        await page.getByRole('button', { name: 'Start Golden Path' }).click()
+        await page.getByRole('status').filter({ hasText: 'Golden Path started' }).waitFor({ timeout: 10000 })
+        for (let step = 0; step < 5; step += 1) await page.getByRole('button', { name: 'Next step' }).click()
+        await page.getByRole('button', { name: 'Finish tour' }).click()
+        await page.waitForURL('**/app/help')
+        report.guidedTourWorkflow = 'started Golden Path, followed all six route steps, and finished on Help'
       } catch (error) {
         report.shellInteractions = {
           error: error.message,

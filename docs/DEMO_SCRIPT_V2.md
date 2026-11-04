@@ -67,3 +67,12 @@ The replay controls remain server-guarded: viewers can inspect; analysts can con
 3. Change the overlay from **Simulated risk** to **Forecast probability** and **Simulated weaknesses**. Use the camera presets and select a mini-map marker to focus the scene.
 4. Scrub the time-travel control to inspect a prior network state, then return to **Live state**.
 5. Switch to **Lite** and export a PNG. On a desktop, export the 3D view too. Explain that Lite mode is the accessible 2D fallback and that PNGs capture only the simulated network.
+
+## Phase B8: Onboarding and project disclosures (2 minutes)
+
+1. Open **Help & walkthrough** and show the six Golden Path steps, keyboard shortcuts, and glossary.
+2. Start the guided tour. On its first step, start the deterministic Golden Path if the signed-in role has replay permission. Move through the route explanations and finish on Help.
+3. Open **About Precog SOC**. State that traffic is scripted, host weaknesses are synthetic, and containment changes only simulated state after an explicit proposal and confirmation.
+4. For a phone demonstration, install the PWA from its browser menu over HTTPS. Use the Help links to move among the phone workspaces.
+
+The tour starts replay only when explicitly selected and permitted. It never confirms containment. Five consecutive Golden Path rehearsals passed at 1× speed; durations and detailed checks are recorded in `docs/phase-b8/rehearsals.csv`.

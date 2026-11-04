@@ -46,6 +46,8 @@ A closed-loop security console that predicts where an attacker will move next an
 
 > **Phase B7 topology explorer:** `/app/console/topology` adds a shared, selectable 3D network scene and an isometric SVG Lite view for narrow screens, reduced-motion preferences, or unavailable WebGL. The explorer includes risk, forecast, and synthetic-weakness overlays; camera presets; host selection and focus; a mini-map; read-only time travel; and PNG export. Colors are read from theme tokens and normalized for Three.js. See [B7 evidence](docs/phase-b7/) and the [B7 technical addendum](docs/TRD_ADDENDUM_B1.md#phase-b7-topology-explorer-and-lite-mode).
 
+> **Phase B8 onboarding and accessibility:** `/app/help` provides a six-step guided tour, Golden Path quickstart, keyboard reference, and glossary; `/app/about` documents the simulation boundary, architecture, limits, and licensing. A skip link and keyboard-operated tour dialog make the expanded workspace easier to navigate. The tour can start a replay when permitted, but never confirms containment. See [B8 evidence](docs/phase-b8/) and the [B8 requirements](docs/PRD_ADDENDUM_B1.md#phase-b8-onboarding-and-accessibility), [technical notes](docs/TRD_ADDENDUM_B1.md#phase-b8-onboarding-and-accessibility).
+
 <a id="choose-your-path"></a>
 
 ### Choose your path

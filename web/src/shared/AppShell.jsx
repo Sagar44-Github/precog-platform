@@ -4,6 +4,7 @@ import { useAuth } from './AuthContext.jsx'
 import { SimulationBadge } from './components.jsx'
 import { Icon } from './icons.jsx'
 import { ThemeToggle, useTheme } from './theme-context.jsx'
+import GuidedTour from './GuidedTour.jsx'
 import './app-shell.css'
 
 const CONSOLE_WIDTH = 1024
@@ -26,6 +27,8 @@ function commandEvent(detail) {
 
 function pageTitle(pathname) {
   if (pathname === '/console/topology') return 'Topology explorer'
+  if (pathname === '/help') return 'Help & walkthrough'
+  if (pathname === '/about') return 'About Precog SOC'
   if (pathname.startsWith('/forecasts/')) return 'Forecast detail'
   if (pathname === '/forecasts') return 'Forecast ledger'
   if (pathname === '/analytics') return 'Model analytics'
@@ -58,6 +61,8 @@ export function CommandPalette({ open, onClose, permissions }) {
   const commands = useMemo(() => [
     { label: 'Open live console', detail: 'Go to the 3D replay console', icon: 'activity', keywords: 'workspace desktop', run: () => navigate('/console') },
     { label: 'Open topology explorer', detail: 'Explore the 3D network map, overlays, and history', icon: 'hosts', keywords: 'topology network map 3d lite', run: () => navigate('/console/topology') },
+    { label: 'Open operator help', detail: 'Start the Golden Path walkthrough and review SOC terms', icon: 'help', keywords: 'help tour guide walkthrough glossary shortcuts', run: () => navigate('/help') },
+    { label: 'About Precog SOC', detail: 'Review the simulation notice, architecture, and limits', icon: 'info', keywords: 'about ethics limitations architecture license credits', run: () => navigate('/about') },
     { label: 'Open mobile SOC', detail: 'Open the phone PWA screens', icon: 'smartphone', keywords: 'phone pwa', run: () => navigate('/mobile') },
     { label: 'Open alerts workspace', detail: 'Search and review security events', icon: 'alerts', keywords: 'alerts incidents events', run: () => navigate('/alerts') },
     { label: 'Open incidents', detail: 'Review attack chains, notes, and status', icon: 'alerts', keywords: 'incident case triage', run: () => navigate('/incidents') },
@@ -206,10 +211,13 @@ export default function AppShell({ children }) {
     { to: '/system', label: 'System health', icon: 'system' },
     { to: '/settings', label: 'Settings', icon: 'settings' },
     { to: '/mobile', label: 'Mobile SOC', icon: 'smartphone' },
+    { to: '/help', label: 'Help & walkthrough', icon: 'help' },
+    { to: '/about', label: 'About Precog SOC', icon: 'info' },
   ]
 
   return (
     <div className="app-shell">
+      <a className="app-skip-link" href="#main-content">Skip to main content</a>
       <aside className="app-sidebar" aria-label="Workspace navigation">
         <Link to="/console" className="app-brand" aria-label="Precog SOC home">
           <span className="brand-mark"><Icon name="activity" size={21} /></span>
@@ -240,9 +248,10 @@ export default function AppShell({ children }) {
             <SimulationBadge />
           </div>
         </header>
-        <div className="app-shell-content">{children}</div>
+        <div className="app-shell-content" id="main-content" tabIndex="-1">{children}</div>
       </div>
       <CommandPalette open={paletteOpen} onClose={closePalette} permissions={permissions} />
+      <GuidedTour />
     </div>
   )
 }
