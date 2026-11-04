@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/operator_profile.schema.json",
+  "title": "Authenticated demo operator",
+  "description": "The server-resolved demo role and its effective capabilities.",
+  "type": "object",
+  "properties": {
+    "status": { "type": "string", "const": "ok" },
+    "username": { "type": "string", "minLength": 1 },
+    "role": { "type": "string", "enum": ["viewer", "analyst", "admin"] },
+    "role_name": { "type": "string", "minLength": 1 },
+    "permissions": {
+      "type": "object",
+      "properties": {
+        "can_contain": { "type": "boolean" },
+        "can_run_replay": { "type": "boolean" },
+        "can_release": { "type": "boolean" },
+        "can_restart_replay": { "type": "boolean" }
+      },
+      "required": ["can_contain", "can_run_replay", "can_release", "can_restart_replay"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["status", "username", "role", "role_name", "permissions"],
+  "additionalProperties": false
+}

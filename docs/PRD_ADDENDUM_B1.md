@@ -58,3 +58,16 @@ Incident cases are session groupings because the replay controller provides a st
 | FR-AN-2 | An operator shall inspect DETECT's offline model report and its dataset limitations beside, but distinct from, Precog results. | M | The page preserves report notes and explains that offline CICIDS2017 results are not comparable with the live Isolation Forest detector. |
 
 The forecast ledger spans the existing bounded replay archive. Session counters remain session-scoped; the held-out evaluation file remains the source of model-level numbers, and Golden Path rehearsals never contribute to those numbers.
+
+## Phase B5 product requirements
+
+| ID | Requirement | Priority | Acceptance |
+|---|---|---:|---|
+| FR-RESP-1 | An operator shall propose simulated containment for one host, a zone, the known compromised path plus predicted candidates, or the forecast Top-3. | M | The action records every resolved target and prior state; no graph state changes until a permitted operator confirms. |
+| FR-RESP-2 | An administrator shall propose and confirm release of an executed containment. | M | Release restores saved pre-containment states, creates its own audited action, and cannot bypass confirmation. |
+| FR-RESP-3 | Operators shall inspect current and bounded archived containment history. | M | The page distinguishes contain/release actions, pending/confirmed outcomes, target scope, replay session, and re-evaluation text. |
+| FR-ROLE-1 | The platform shall expose viewer, analyst, and admin demo roles layered over authenticated NIDS accounts. | M | `/api/x/me` returns the server-resolved role and permissions; no request field can select or raise a role. |
+| FR-ROLE-2 | Viewers shall be prevented from containing hosts or starting, pausing, resuming, or restarting replay. | M | Mutating API calls return the common JSON 403 error for a viewer, even when called without the UI. |
+| FR-ROLE-3 | Analysts may propose/confirm/cancel containment and control a replay; only admins may release containment or restart replay. | S | Capability response and server guards agree; the UI hides unavailable controls and displays the signed-in role. |
+
+Containment playbooks remain fully simulated. The service publishes one explicit multi-target proposal and applies its targets together only after confirmation. Release stores the original state for each host, then restores those values after a second confirmation. Optional local passwords provision analyst and viewer NIDS accounts without changing NIDS source.

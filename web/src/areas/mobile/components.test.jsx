@@ -2,7 +2,7 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { MemoryRouter } from 'react-router-dom'
-import { AccuracyCounter, AlertCard, AttackPath2D, ForecastBars, OutcomeCard, SeverityBadge, StateChip, ThreatLevelCard } from './components.jsx'
+import { AccuracyCounter, AlertCard, AttackPath2D, ContainFlow, ForecastBars, OutcomeCard, SeverityBadge, StateChip, ThreatLevelCard } from './components.jsx'
 import { TabBar } from './index.jsx'
 import { HomeScreen, IncidentsScreen, IncidentDetailScreen } from './screens.jsx'
 import { ToastProvider } from '../../shared/components.jsx'
@@ -16,6 +16,10 @@ const state = {
   metrics: { forecasts_resolved: 1, hits: 1, hit_rate: 1, calibration_bins: [] },
 }
 const html = (el) => renderToStaticMarkup(<MemoryRouter>{el}</MemoryRouter>)
+
+test('viewer mobile access does not render a containment action', () => {
+  assert.equal(html(<ContainFlow state={state} canContain={false} />), '')
+})
 
 test('severity badge shows icon and word, not colour alone', () => {
   const out = html(<SeverityBadge severity="HIGH" />)

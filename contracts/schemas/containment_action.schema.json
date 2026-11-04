@@ -13,6 +13,38 @@
       "type": "string",
       "minLength": 1
     },
+    "target_hosts": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "operation": {
+      "type": "string",
+      "enum": ["contain", "release"]
+    },
+    "playbook": {
+      "type": ["string", "null"],
+      "enum": ["host", "zone", "predicted_path", "top_three", "release", null]
+    },
+    "related_action_id": {
+      "type": ["string", "null"]
+    },
+    "session_id": {
+      "type": ["string", "null"]
+    },
+    "previous_states": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "host_id": { "type": "string", "minLength": 1 },
+          "state": { "type": "string", "enum": ["normal", "compromised"] }
+        },
+        "required": ["host_id", "state"],
+        "additionalProperties": false
+      }
+    },
     "forecast_id": {
       "type": [
         "string",

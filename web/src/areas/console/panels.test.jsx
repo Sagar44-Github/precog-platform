@@ -40,6 +40,16 @@ test('an idle replay can only be started', () => {
   assert.match(out, /aria-label="Restart replay"[^>]*disabled/)
 })
 
+test('viewer replay controls are read-only and analysts cannot restart', () => {
+  const viewer = html(<ReplayControls replay={state.replay} permissions={{ can_run_replay: false, can_restart_replay: false }} />)
+  assert.match(viewer, /Viewer access · read only/)
+  assert.doesNotMatch(viewer, /aria-label="Scenario"/)
+  assert.doesNotMatch(viewer, /Start/)
+  const analyst = html(<ReplayControls replay={state.replay} permissions={{ can_run_replay: true, can_restart_replay: false }} />)
+  assert.match(analyst, /aria-label="Scenario"/)
+  assert.doesNotMatch(analyst, /aria-label="Restart replay"/)
+})
+
 test('the left rail has Graph, Alerts and Reports with the selected one marked', () => {
   const out = html(<LeftRail view="alerts" onChange={() => {}} />)
   for (const word of ['Graph', 'Alerts', 'Reports']) assert.match(out, new RegExp(word))
@@ -49,6 +59,7 @@ test('the left rail has Graph, Alerts and Reports with the selected one marked',
 test('the contain button names the top predicted host, and is absent without a forecast', () => {
   assert.match(html(<ConsoleContain state={state} />), /Contain Web Server B/)
   assert.equal(html(<ConsoleContain state={{ ...state, forecast: null }} />), '')
+  assert.equal(html(<ConsoleContain state={state} allowed={false} />), '')
 })
 
 test('the forecast panel shows the forecast bars, the contain button and the attack path', () => {

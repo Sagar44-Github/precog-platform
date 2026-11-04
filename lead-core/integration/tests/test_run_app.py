@@ -43,3 +43,37 @@ def test_ensure_admin_replaces_an_old_password(flask_app):
     assert session.query(User).filter_by(username="admin").count() == 1
     session.close()
     run_app.ensure_admin(nids_app, os.environ["ADMIN_PASSWORD"])  # put the test password back for the other tests
+
+
+def test_optional_demo_accounts_are_created_and_refreshed(flask_app):
+    import app as nids_app
+    from database.models import SessionLocal, User
+
+    assert run_app.ensure_demo_account(nids_app, "analyst", "analyst-test-password") is True
+    assert run_app.ensure_demo_account(nids_app, "analyst", "analyst-next-password") is True
+    session = SessionLocal()
+    try:
+        user = session.query(User).filter_by(username="analyst").one()
+        assert nids_app.bcrypt.check_password_hash(user.password_hash, "analyst-next-password")
+        assert session.query(User).filter_by(username="analyst").count() == 1
+    finally:
+        session.close()
+
+
+def test_optional_demo_accounts_stay_absent_without_a_password(flask_app):
+    import app as nids_app
+    from database.models import SessionLocal, User
+
+    assert run_app.ensure_demo_account(nids_app, "viewer-optional-test", "") is False
+    session = SessionLocal()
+    try:
+        assert session.query(User).filter_by(username="viewer-optional-test").count() == 0
+    finally:
+        session.close()
+
+
+def test_optional_demo_account_password_must_be_long_enough(flask_app):
+    import app as nids_app
+
+    with pytest.raises(SystemExit, match="ANALYST_PASSWORD must be at least 8"):
+        run_app.ensure_demo_account(nids_app, "analyst", "short")

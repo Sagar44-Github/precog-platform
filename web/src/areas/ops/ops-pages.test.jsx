@@ -21,6 +21,7 @@ import ReportDetailPage from './report-detail.jsx'
 import ForecastsPage from './forecasts.jsx'
 import ForecastDetailPage from './forecast-detail.jsx'
 import AnalyticsPage from './analytics.jsx'
+import ContainmentPage from './containment.jsx'
 
 function render(path) {
   return renderToStaticMarkup(<StaticRouter location={path}><AuthProvider><ThemeProvider><UiPreferencesProvider><AppShell><Routes>
@@ -33,6 +34,7 @@ function render(path) {
     <Route path="/forecasts" element={<ForecastsPage />} />
     <Route path="/forecasts/:forecastId" element={<ForecastDetailPage />} />
     <Route path="/analytics" element={<AnalyticsPage />} />
+    <Route path="/containment" element={<ContainmentPage />} />
     <Route path="/hosts" element={<HostsPage />} />
     <Route path="/hosts/:hostId" element={<HostDetailPage />} />
     <Route path="/audit" element={<AuditPage />} />
@@ -111,5 +113,15 @@ test('analytics route starts with a scoped loading view and shell navigation ent
   assert.match(html, /Loading workspace data/)
   assert.match(html, /Forecasts/)
   assert.match(html, /Analytics/)
+  assert.match(html, /SIMULATION/)
+})
+
+test('containment route shows simulation guardrails, action history, and read-only viewer access', () => {
+  const html = render('/containment')
+  assert.match(html, /Containment/)
+  assert.match(html, /do not change a real network/)
+  assert.match(html, /Action history/)
+  assert.match(html, /Read-only role/)
+  assert.match(html, /Containment/)
   assert.match(html, /SIMULATION/)
 })

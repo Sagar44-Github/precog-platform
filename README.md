@@ -40,6 +40,8 @@ A closed-loop security console that predicts where an attacker will move next an
 
 > **Phase B4 forecast intelligence:** `/app/forecasts` is a ledger across the bounded replay archive; each record opens `/app/forecasts/:id` with its captured candidate set, transition counts, smoothing value, baseline ranks, and hit/miss outcome. A read-only what-if preview recalculates candidates for a currently compromised host. `/app/analytics` compares held-out results, calibration, baselines, session counters, and DETECT's offline report. The contract set now has 24 checked schemas. See [B4 evidence](docs/phase-b4/) and the [B4 technical addendum](docs/TRD_ADDENDUM_B1.md#phase-b4-forecast-ledger-and-analytics).
 
+> **Phase B5 containment and access roles:** `/app/containment` adds host, zone, predicted-path, and Top-3 playbooks; release restores each host's prior simulated state and still requires proposal plus confirmation. The server assigns `viewer`, `analyst`, or `admin` from the authenticated account: viewers are read-only, analysts can respond and run replay, and admins can release and restart. Optional `ANALYST_PASSWORD` and `VIEWER_PASSWORD` settings create those demo accounts. The contract set now has 26 checked schemas. See [B5 evidence](docs/phase-b5/) and the [B5 technical addendum](docs/TRD_ADDENDUM_B1.md#phase-b5-containment-and-demo-roles).
+
 <a id="choose-your-path"></a>
 
 ### Choose your path
@@ -102,7 +104,7 @@ flowchart LR
     <td align="center"><b>6</b><br>demo hosts in 3 zones</td>
     <td align="center"><b>Top-3</b><br>forecast, with confidence</td>
     <td align="center"><b>2 steps</b><br>propose, then confirm</td>
-    <td align="center"><b>29</b><br>add-on API routes</td>
+    <td align="center"><b>40</b><br>add-on API routes</td>
   </tr>
   <tr>
     <td align="center"><b>26</b><br>ATT&amp;CK techniques mapped</td>
@@ -691,6 +693,9 @@ Open `.env` and set at least these two:
 ```dotenv
 SECRET_KEY=paste-the-long-random-string-here
 ADMIN_PASSWORD=choose-a-password-you-do-not-use-anywhere-else
+# Optional demo accounts. Set unique passwords to enable role walkthroughs.
+ANALYST_PASSWORD=
+VIEWER_PASSWORD=
 ```
 
 NIDS ships with a published default admin login and a hardcoded secret key. `run_app.py` replaces both from the outside at start-up, so **NIDS's default password never works**.
@@ -732,6 +737,7 @@ The launcher starts the backend in live replay mode, waits for its health check,
 | Mobile app (resize the window to phone width) | <http://localhost:5000/app/mobile/> |
 
 1. **Sign in** as `admin` with the `ADMIN_PASSWORD` you set.
+   Optional `analyst` and `viewer` accounts are created only when their password variables are set. Role permissions are resolved from the authenticated account on the server.
 2. Press **Start Golden Path** on the welcome card, or use **Start** in the replay controls.
 3. Watch Workstation A turn red and the violet cones appear. The replay stops at **Waiting for your decision**.
 4. Press **Contain Web Server B** on the console (or on the phone view) and confirm.
@@ -912,7 +918,9 @@ The product's own screens use the add-on endpoints under **`/api/x`**, so they n
 | `POST` | `/api/x/containment/propose` | Step 1: propose containing a target (target host, forecast id) |
 | `POST` | `/api/x/containment/confirm` | Step 2: confirm with the action id |
 | `POST` | `/api/x/containment/cancel` | Cancel a pending action |
-| `GET` | `/api/x/containment/actions` | List actions |
+| `GET` | `/api/x/containment/actions` | List current actions; `include_archived=1` adds bounded session history |
+| `POST` | `/api/x/containment/playbooks/propose` | Resolve a host, zone, predicted path, or Top-3 playbook into one explicit target list; still requires `/confirm` |
+| `POST` | `/api/x/containment/release/propose` | Propose a release of an executed containment; `/confirm` restores the saved prior states |
 | `GET` | `/api/x/session` | Current session record |
 | `GET` | `/api/x/sessions` | Past sessions |
 | `GET` | `/api/x/metrics/precog` | precision@k, calibration bins, hit-rate |
@@ -955,7 +963,9 @@ Data passed between roles is agreed **first**, in writing. `contracts/schemas/` 
 | `forecast_explanation` | Candidate transitions, model probabilities, smoothing value, and model/rule/uniform ranks |
 | `what_if_forecast` | Read-only forecast preview and explanation for a compromised source host |
 | `forecast_analytics` | Held-out results, calibration bins, baselines, session tally, and detection report |
-| `containment_action` | Target, requesting client, status, proposed and confirmed times |
+| `containment_action` | Target list, operation, playbook, prior states, requesting client, status, and timestamps |
+| `containment_playbook_request` | Validated host, zone, predicted-path, or Top-3 selector |
+| `operator_profile` | Authenticated demo role and server-resolved permissions |
 | `reeval_result` | Whether the attack progressed and whether the chain ended early |
 | `audit_entry` | One line per detection, forecast, containment, or incident case change |
 | `incident_detail` | Session-grouped case evidence, timeline, status, and notes |

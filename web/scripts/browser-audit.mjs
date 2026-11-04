@@ -37,6 +37,7 @@ const routeSpecs = [
   ['forecasts', '/app/forecasts'],
   ['forecast-detail', null],
   ['analytics', '/app/analytics'],
+  ['containment', '/app/containment'],
   ['hosts', '/app/hosts'],
   ['host-detail', null],
   ['audit', '/app/audit'],
@@ -57,6 +58,8 @@ function startBackend(mode, port, dbDir) {
     ...process.env,
     SECRET_KEY: randomBytes(32).toString('hex'),
     ADMIN_PASSWORD: password,
+    ANALYST_PASSWORD: password,
+    VIEWER_PASSWORD: password,
     DATABASE_URL: `sqlite:///${db}`,
     DATA_MODE: mode,
     HOST: '127.0.0.1',
@@ -152,7 +155,7 @@ function capturePageErrors(page, mode, errors) {
   })
   page.on('requestfailed', (request) => errors.push(`${mode} request failed: ${request.url()} (${request.failure()?.errorText || 'unknown'})`))
   page.on('response', (response) => {
-    if (response.status() >= 400 && !(response.status() === 401 && response.url().includes('/api/x/me'))) {
+    if (response.status() >= 400 && !(response.status() === 401 && response.url().includes('/api/x/me')) && !(response.status() === 403 && response.url().includes('/api/x/'))) {
       errors.push(`${mode} HTTP ${response.status()}: ${response.url()}`)
     }
   })
@@ -163,6 +166,7 @@ async function runMode(browser, mode, port, dbDir, errors) {
   const processInfo = startBackend(mode, port, dbDir)
   const checks = []
   let context
+  let roleContext
   let health
   let liveReplayStarted = false
   try {
@@ -405,7 +409,53 @@ async function runMode(browser, mode, port, dbDir, errors) {
       }, null, { timeout: 15000 })
       report.containmentFlow = 'propose and confirm completed in live replay; host state changed to contained (simulation)'
     }
+
+    roleContext = await browser.newContext({ serviceWorkers: 'block' })
+    const rolePage = await roleContext.newPage()
+    await rolePage.goto(`${base}/app/login`, { waitUntil: 'domcontentloaded' })
+    report.roleChecks = await rolePage.evaluate(async (rolePassword) => {
+      const post = async (path, body = {}) => fetch(path, {
+        method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+      })
+      await post('/api/x/logout')
+      await post('/api/x/login', { username: 'analyst', password: rolePassword })
+      const analyst = await (await fetch('/api/x/me')).json()
+      const analystPropose = await post('/api/x/containment/playbooks/propose', { playbook: 'host', target_host: 'host-a' })
+      if (analystPropose.ok) await post('/api/x/containment/cancel', { action_id: (await analystPropose.json()).action_id })
+      const analystRestart = await post('/api/x/replay/restart')
+      await post('/api/x/logout')
+      const viewerLogin = await post('/api/x/login', { username: 'viewer', password: rolePassword })
+      const viewer = await (await fetch('/api/x/me')).json()
+      const viewerReplay = await post('/api/x/replay/start', { scenario_id: 'golden-path' })
+      const viewerContainment = await post('/api/x/containment/propose', { target_host: 'server-b' })
+      return {
+        analystRole: analyst.role,
+        analystCanPropose: analystPropose.status === 200,
+        analystRestartDenied: analystRestart.status === 403,
+        viewerLogin: viewerLogin.status,
+        viewerRole: viewer.role,
+        viewerReplayDenied: viewerReplay.status === 403,
+        viewerContainmentDenied: viewerContainment.status === 403,
+      }
+    }, password)
+    if (report.roleChecks.analystRole !== 'analyst' || !report.roleChecks.analystCanPropose || !report.roleChecks.analystRestartDenied || report.roleChecks.viewerLogin !== 200 || report.roleChecks.viewerRole !== 'viewer' || !report.roleChecks.viewerReplayDenied || !report.roleChecks.viewerContainmentDenied) {
+      errors.push(`${mode} demo-role access checks failed: ${JSON.stringify(report.roleChecks)}`)
+    }
+    await rolePage.setViewportSize({ width: 1440, height: 900 })
+    await rolePage.goto(`${base}/app/containment`, { waitUntil: 'domcontentloaded' })
+    await rolePage.locator('.containment-readonly').waitFor({ timeout: 10000 })
+    report.roleChecks.viewerUiReadOnly = await rolePage.locator('.containment-playbook-form').count() === 0
+    await rolePage.screenshot({ path: join(screenshots, `${mode}-containment-viewer-1440x900.png`), animations: 'disabled' })
+    await rolePage.goto(`${base}/app/console`, { waitUntil: 'domcontentloaded' })
+    await rolePage.locator('.c-replay').waitFor({ timeout: 10000 })
+    report.roleChecks.viewerReplayControlsHidden = (await rolePage.locator('.c-replay .c-btn-start').count()) === 0 && (await rolePage.locator('.c-replay').innerText()).includes('Viewer access')
+    await rolePage.getByRole('button', { name: /Search commands/ }).click()
+    report.roleChecks.viewerDemoCommandHidden = !(await rolePage.getByText('Start Golden Path replay', { exact: true }).count())
+    if (!report.roleChecks.viewerUiReadOnly || !report.roleChecks.viewerReplayControlsHidden || !report.roleChecks.viewerDemoCommandHidden) {
+      errors.push(`${mode} viewer controls remain visible in the UI: ${JSON.stringify(report.roleChecks)}`)
+    }
   } finally {
+    if (roleContext) await roleContext.close()
     if (context) await context.close()
     await stopBackend(processInfo.child)
   }

@@ -38,3 +38,12 @@
 - Added model analytics for held-out evaluation, calibration, baselines, archived session tally, and the offline DETECT report with its limitations.
 - Added three schemas and samples; the contract checker reports 24 valid contracts.
 - Added B4 page tests and Chromium route/workflow evidence at 390, 820, and 1440 px under `docs/phase-b4/`.
+
+## Phase B5 — Containment playbooks and demo roles (2026-11-04)
+
+- Added `/app/containment` with host, zone, predicted-path, and Top-3 playbooks, an explicit target preview, action history, and a two-step administrator release flow.
+- Extended containment actions to retain target lists, per-host previous states, operation/playbook metadata, linked release actions, and session ids. History can include the bounded archive.
+- Added authenticated role profiles for viewer, analyst, and admin. Server guards deny viewers response/replay mutations, limit release and replay restart to admins, and expose effective permissions to the UI.
+- Added optional `ANALYST_PASSWORD` and `VIEWER_PASSWORD` account seeding without modifying NIDS files.
+- Added `operator_profile` and `containment_playbook_request` schemas/samples; expanded `containment_action`; the checker reports 26 contracts.
+- Added API, service, startup, and page tests. Chromium evidence and screenshots are stored under `docs/phase-b5/`.

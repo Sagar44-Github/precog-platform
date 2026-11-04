@@ -28,6 +28,7 @@ function pageTitle(pathname) {
   if (pathname.startsWith('/forecasts/')) return 'Forecast detail'
   if (pathname === '/forecasts') return 'Forecast ledger'
   if (pathname === '/analytics') return 'Model analytics'
+  if (pathname === '/containment') return 'Containment'
   if (pathname.startsWith('/alerts/')) return 'Alert detail'
   if (pathname === '/alerts') return 'Alerts'
   if (pathname.startsWith('/incidents/')) return 'Incident detail'
@@ -43,7 +44,7 @@ function pageTitle(pathname) {
   return 'Live console'
 }
 
-export function CommandPalette({ open, onClose }) {
+export function CommandPalette({ open, onClose, permissions }) {
   const navigate = useNavigate()
   const { theme, toggleTheme } = useTheme()
   const [query, setQuery] = useState('')
@@ -58,6 +59,7 @@ export function CommandPalette({ open, onClose }) {
     { label: 'Open incidents', detail: 'Review attack chains, notes, and status', icon: 'alerts', keywords: 'incident case triage', run: () => navigate('/incidents') },
     { label: 'Open forecast ledger', detail: 'Review predictions and their outcomes', icon: 'activity', keywords: 'forecast predictions explainability', run: () => navigate('/forecasts') },
     { label: 'Open model analytics', detail: 'Compare held-out results, baselines, and calibration', icon: 'audit', keywords: 'analytics model calibration baselines', run: () => navigate('/analytics') },
+    { label: 'Open containment', detail: 'Review simulated playbooks and response history', icon: 'shield', keywords: 'containment response release playbook', run: () => navigate('/containment') },
     { label: 'Open session reports', detail: 'Review and print replay reports', icon: 'audit', keywords: 'reports export print', run: () => navigate('/reports') },
     { label: 'Open hosts and assets', detail: 'Review the simulated network inventory', icon: 'hosts', keywords: 'assets inventory devices', run: () => navigate('/hosts') },
     { label: 'Open audit log', detail: 'Review detection and response records', icon: 'audit', keywords: 'audit history log', run: () => navigate('/audit') },
@@ -65,9 +67,9 @@ export function CommandPalette({ open, onClose }) {
     { label: 'Open settings', detail: 'Set theme, density, and alert defaults', icon: 'settings', keywords: 'preferences appearance', run: () => navigate('/settings') },
     { label: 'Show alert stream', detail: 'Open alerts in the console panel', icon: 'activity', keywords: 'alerts events', run: () => commandEvent({ type: 'view', view: 'alerts' }) },
     { label: 'Show session report', detail: 'Open the current session report panel', icon: 'sliders', keywords: 'reports metrics', run: () => commandEvent({ type: 'view', view: 'reports' }) },
-    { label: 'Start Golden Path replay', detail: 'Start the deterministic simulation', icon: 'play', keywords: 'demo replay simulation', run: () => commandEvent({ type: 'start-demo' }) },
+    ...(permissions?.can_run_replay ? [{ label: 'Start Golden Path replay', detail: 'Start the deterministic simulation', icon: 'play', keywords: 'demo replay simulation', run: () => commandEvent({ type: 'start-demo' }) }] : []),
     { label: `Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`, detail: 'Change the display theme', icon: theme === 'dark' ? 'sun' : 'moon', keywords: 'appearance color', run: toggleTheme },
-  ], [navigate, theme, toggleTheme])
+  ], [navigate, theme, toggleTheme, permissions?.can_run_replay])
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase()
     if (!needle) return commands
@@ -157,7 +159,7 @@ export function ConsoleHandoff() {
 }
 
 export default function AppShell({ children }) {
-  const { username, logout } = useAuth()
+  const { username, roleName, permissions, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [paletteOpen, setPaletteOpen] = useState(false)
@@ -188,6 +190,7 @@ export default function AppShell({ children }) {
     { to: '/incidents', label: 'Incidents', icon: 'alerts' },
     { to: '/forecasts', label: 'Forecasts', icon: 'activity' },
     { to: '/analytics', label: 'Analytics', icon: 'audit' },
+    { to: '/containment', label: 'Containment', icon: 'shield' },
     { to: '/reports', label: 'Reports', icon: 'audit' },
     { to: '/hosts', label: 'Hosts & assets', icon: 'hosts' },
     { to: '/audit', label: 'Audit log', icon: 'audit' },
@@ -213,7 +216,7 @@ export default function AppShell({ children }) {
         <div className="app-simulation-note"><span className="status-square" /> SIMULATED ENVIRONMENT</div>
         <div className="app-account">
           <span className="account-avatar" aria-hidden="true">{(username || 'A').slice(0, 1).toUpperCase()}</span>
-          <span className="account-copy"><b>{username || 'Operator'}</b><small>DEMO OPERATOR</small></span>
+          <span className="account-copy"><b>{username || 'Operator'}</b><small>{roleName.toUpperCase()}</small></span>
           <button type="button" className="icon-button account-logout" onClick={signOut} aria-label="Sign out" title="Sign out"><Icon name="logout" size={17} /></button>
         </div>
       </aside>
@@ -230,7 +233,7 @@ export default function AppShell({ children }) {
         </header>
         <div className="app-shell-content">{children}</div>
       </div>
-      <CommandPalette open={paletteOpen} onClose={closePalette} />
+      <CommandPalette open={paletteOpen} onClose={closePalette} permissions={permissions} />
     </div>
   )
 }

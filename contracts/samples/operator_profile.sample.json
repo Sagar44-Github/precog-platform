@@ -1,0 +1,12 @@
+{
+  "status": "ok",
+  "username": "analyst",
+  "role": "analyst",
+  "role_name": "Analyst",
+  "permissions": {
+    "can_contain": true,
+    "can_run_replay": true,
+    "can_release": false,
+    "can_restart_replay": false
+  }
+}

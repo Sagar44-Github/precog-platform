@@ -31,6 +31,9 @@
 16. **Run a what-if preview.** Choose a host that is currently compromised. Explain that the preview recomputes predicted rankings for this simulation and does not alter the graph, forecast history, or replay.
 17. **Compare evaluation and session counters.** Open Analytics. Contrast the held-out Markov result with both baselines, inspect the calibration curve, then show the separate session tally. State that precision@3 is 1.0 for all current methods because the topology has at most three candidates.
 18. **Review DETECT's offline report.** Point out that the CICIDS2017 metrics come from an offline public sample and are not comparable to the live Isolation Forest replay detector.
+19. **Show response playbooks.** Open Containment and select a host, zone, predicted path, or Top-3 playbook. Review the exact simulated host list, propose it, then confirm it from the action history. Explain that the graph changes only after confirmation.
+20. **Release with an administrator.** From the same page, select an active containment and propose release. Confirm the second action and show that the recorded pre-containment states are restored in the simulation.
+21. **Demonstrate role enforcement.** Sign out and sign in as `viewer` (when optional role accounts are configured). Show that history remains visible while response and replay controls are unavailable; direct API requests are denied by the backend. Use `analyst` to show containment and replay access, then `admin` for release and replay restart.
 
 ## If presenting on a narrow screen
 
@@ -44,3 +47,4 @@ At widths below 1024 px, `/app/console` directs the operator to `/app/mobile`; o
 - Incident status and analyst notes are volatile annotations; session evidence is kept only within the bounded in-memory archive of 20 sessions.
 - The forecast is a prediction; a miss is reported as a miss.
 - The what-if page is read-only. Held-out model-level metrics exclude replay rehearsals and session counters.
+- Viewer, analyst, and admin privileges are resolved from the authenticated account and enforced at the API; role changes cannot be submitted in a request body.

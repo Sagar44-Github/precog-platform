@@ -64,6 +64,15 @@ def _out(contract_name, data):
     return data
 
 
+def _validate_input(contract_name, data):
+    contracts = _ctx()["contracts"]
+    if contracts is not None:
+        try:
+            contracts.validate(contract_name, data)
+        except ContractError as exc:
+            raise ApiError("bad_request", str(exc), 400) from exc
+
+
 def _date_filter(value, name, end_of_day=False):
     if not value:
         return None
@@ -229,7 +238,7 @@ def login():
     if user is None:
         raise ApiError("invalid_credentials", "Wrong username or password.", 401)
     auth.do_login(user)
-    return jsonify({"status": "ok", "username": user.username})
+    return jsonify(_out("operator_profile", auth.operator_profile(user)))
 
 
 @bp.post("/logout")
@@ -241,7 +250,7 @@ def logout():
 @bp.get("/me")
 @auth.json_login_required
 def me():
-    return jsonify({"status": "ok", "username": current_user.username})
+    return jsonify(_out("operator_profile", auth.operator_profile(current_user)))
 
 
 # ---------- reading the state ----------
@@ -610,7 +619,7 @@ def forecast_detail(forecast_id):
 
 # ---------- containment (needs the VIZ module) ----------
 @bp.post("/containment/propose")
-@auth.json_login_required
+@auth.demo_role_required("analyst", "admin")
 
 def containment_propose():
     ctx = _ctx()
@@ -627,7 +636,7 @@ def containment_propose():
 
 
 @bp.post("/containment/confirm")
-@auth.json_login_required
+@auth.demo_role_required("analyst", "admin")
 def containment_confirm():
     ctx = _ctx()
     action = ctx["hooks"].require("containment").confirm(ctx["world"], _text(_body(), "action_id"))
@@ -636,7 +645,7 @@ def containment_confirm():
 
 
 @bp.post("/containment/cancel")
-@auth.json_login_required
+@auth.demo_role_required("analyst", "admin")
 def containment_cancel():
     ctx = _ctx()
     action = ctx["hooks"].require("containment").cancel(ctx["world"], _text(_body(), "action_id"))
@@ -646,7 +655,57 @@ def containment_cancel():
 @bp.get("/containment/actions")
 @auth.json_login_required
 def containment_actions():
-    return jsonify(_ctx()["world"].actions())
+    include_archived = request.args.get("include_archived", "0")
+    if include_archived not in ("0", "1"):
+        raise ApiError("bad_request", "'include_archived' must be 0 or 1.", 400)
+    return jsonify(_ctx()["world"].actions(include_archived=include_archived == "1"))
+
+
+@bp.post("/containment/playbooks/propose")
+@auth.demo_role_required("analyst", "admin")
+def containment_playbook_propose():
+    ctx = _ctx()
+    data = _body()
+    _validate_input("containment_playbook_request", data)
+    playbook = data["playbook"]
+    graph = ctx["hooks"].require("graph")
+    snapshot = graph.snapshot()
+    hosts = snapshot.get("hosts", [])
+    host_by_id = {host["host_id"]: host for host in hosts}
+    forecast_id = _text(data, "forecast_id", required=False)
+
+    if playbook == "host":
+        targets = [_text(data, "target_host")]
+    elif playbook == "zone":
+        zone = _text(data, "zone")
+        if zone not in {host.get("zone") for host in hosts}:
+            raise ApiError("unknown_zone", "Choose a zone that exists in the simulated topology.", 404)
+        targets = [host["host_id"] for host in hosts if host.get("zone") == zone and host.get("state") != "contained"]
+    else:
+        forecast = next((item for item in ctx["world"].forecasts() if item.get("forecast_id") == forecast_id), None) if forecast_id else ctx["world"].current_forecast()
+        if forecast is None or forecast.get("status") != "pending":
+            raise ApiError("forecast_unavailable", "Choose a pending forecast from the current replay.", 409)
+        forecast_id = forecast["forecast_id"]
+        predicted = [item["host_id"] for item in forecast.get("targets", [])]
+        if playbook == "top_three":
+            targets = predicted[:3]
+        else:
+            path = snapshot.get("compromised_path", [])
+            targets = list(dict.fromkeys(path + predicted))
+        targets = [host_id for host_id in targets if host_by_id.get(host_id, {}).get("state") != "contained"]
+
+    action = ctx["hooks"].require("containment").propose_many(ctx["world"], targets, forecast_id, "console", playbook)
+    return jsonify(_out("containment_action", action))
+
+
+@bp.post("/containment/release/propose")
+@auth.demo_role_required("admin")
+def containment_release_propose():
+    data = _body()
+    action = _ctx()["hooks"].require("containment").propose_release(
+        _ctx()["world"], _text(data, "containment_action_id"), "console"
+    )
+    return jsonify(_out("containment_action", action))
 
 
 # ---------- session and metrics ----------
@@ -766,7 +825,7 @@ def replay_status():
 
 
 @bp.post("/replay/start")
-@auth.json_login_required
+@auth.demo_role_required("analyst", "admin")
 def replay_start():
     data = _body()
     scenario_id = _text(data, "scenario_id")
@@ -782,19 +841,19 @@ def _replay_action(name):
 
 
 @bp.post("/replay/pause")
-@auth.json_login_required
+@auth.demo_role_required("analyst", "admin")
 def replay_pause():
     return _replay_action("pause")
 
 
 @bp.post("/replay/resume")
-@auth.json_login_required
+@auth.demo_role_required("analyst", "admin")
 def replay_resume():
     return _replay_action("resume")
 
 
 @bp.post("/replay/restart")
-@auth.json_login_required
+@auth.demo_role_required("admin")
 def replay_restart():
     return _replay_action("restart")
 

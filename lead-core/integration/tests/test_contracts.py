@@ -12,7 +12,7 @@ CONTRACTS_DIR = Path(__file__).resolve().parents[3] / "contracts"
 EXPECTED = {
     "packet_record", "security_event", "graph_snapshot", "forecast", "containment_action", "reeval_result",
     "audit_entry", "world_state", "session_record", "session_metrics", "replay_status", "detection_report",
-    "forecast_explanation", "what_if_forecast", "forecast_analytics",
+    "forecast_explanation", "what_if_forecast", "forecast_analytics", "operator_profile", "containment_playbook_request",
 }
 
 

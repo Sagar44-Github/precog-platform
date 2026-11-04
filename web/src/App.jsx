@@ -21,6 +21,7 @@ const ReportDetailPage = lazy(() => import('./areas/ops/report-detail.jsx'))
 const ForecastsPage = lazy(() => import('./areas/ops/forecasts.jsx'))
 const ForecastDetailPage = lazy(() => import('./areas/ops/forecast-detail.jsx'))
 const AnalyticsPage = lazy(() => import('./areas/ops/analytics.jsx'))
+const ContainmentPage = lazy(() => import('./areas/ops/containment.jsx'))
 import { UiPreferencesProvider } from './shared/ui-preferences.jsx'
 
 function WorkspacePage({ children }) {
@@ -46,6 +47,7 @@ export default function App() {
           <Route path="/forecasts" element={<WorkspacePage><ForecastsPage /></WorkspacePage>} />
           <Route path="/forecasts/:forecastId" element={<WorkspacePage><ForecastDetailPage /></WorkspacePage>} />
           <Route path="/analytics" element={<WorkspacePage><AnalyticsPage /></WorkspacePage>} />
+          <Route path="/containment" element={<WorkspacePage><ContainmentPage /></WorkspacePage>} />
           <Route path="/hosts" element={<WorkspacePage><HostsPage /></WorkspacePage>} />
           <Route path="/hosts/:hostId" element={<WorkspacePage><HostDetailPage /></WorkspacePage>} />
           <Route path="/audit" element={<WorkspacePage><AuditPage /></WorkspacePage>} />

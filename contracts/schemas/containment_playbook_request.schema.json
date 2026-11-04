@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/containment_playbook_request.schema.json",
+  "title": "Containment playbook request",
+  "description": "A simulated playbook selector; the backend resolves its targets against the current graph and forecast.",
+  "type": "object",
+  "properties": {
+    "playbook": { "type": "string", "enum": ["host", "zone", "predicted_path", "top_three"] },
+    "target_host": { "type": "string", "minLength": 1 },
+    "zone": { "type": "string", "minLength": 1 },
+    "forecast_id": { "type": ["string", "null"] }
+  },
+  "required": ["playbook"],
+  "additionalProperties": false
+}

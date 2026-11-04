@@ -1,6 +1,7 @@
 const paths = {
   activity: <><path d="M3 12h4l3-8 4 16 3-8h4" /></>,
   alerts: <><path d="M12 3 2.8 20h18.4L12 3Z" /><path d="M12 9v4m0 3h.01" /></>,
+  shield: <><path d="M12 3 20 6v5.5c0 4.6-3.1 7.8-8 9.5-4.9-1.7-8-4.9-8-9.5V6l8-3Z" /><path d="m9 12 2 2 4-4" /></>,
   hosts: <><rect x="3" y="4" width="8" height="6" rx="1" /><rect x="13" y="4" width="8" height="6" rx="1" /><rect x="8" y="14" width="8" height="6" rx="1" /><path d="M7 10v2h10v2m0-4v2" /></>,
   audit: <><path d="M7 3h7l4 4v14H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z" /><path d="M14 3v5h5M9 12h6m-6 4h6" /></>,
   system: <><rect x="3" y="4" width="18" height="13" rx="2" /><path d="M8 21h8m-4-4v4M7 9h4m2 0h4m-10 4h8" /></>,

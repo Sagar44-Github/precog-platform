@@ -6,26 +6,30 @@ import { ThemeToggle } from './theme-context.jsx'
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
-  const [username, setUsername] = useState(null)
+  const [operator, setOperator] = useState(null)
   const [checking, setChecking] = useState(true)
 
   useEffect(() => {
     api.me()
-      .then((reply) => setUsername(reply.username))
-      .catch(() => setUsername(null))
+      .then((reply) => setOperator(reply))
+      .catch(() => setOperator(null))
       .finally(() => setChecking(false))
   }, [])
 
   const value = {
-    username,
+    operator,
+    username: operator?.username || null,
+    role: operator?.role || 'viewer',
+    roleName: operator?.role_name || 'Viewer',
+    permissions: operator?.permissions || {},
     checking,
     async login(name, password) {
       const reply = await api.login(name, password)
-      setUsername(reply.username)
+      setOperator(reply)
     },
     async logout() {
       await api.logout()
-      setUsername(null)
+      setOperator(null)
     },
   }
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
@@ -81,6 +85,7 @@ export function LoginPage() {
         <div className="error-text" role="alert">{message}</div>
         <button className="button login-submit" type="submit" disabled={busy}>{busy ? 'Authenticating…' : <><span>Enter command center</span><b aria-hidden="true">↗</b></>}</button>
         <p className="login-footer">Local replay mode <span>·</span> Human-confirmed containment</p>
+        <p className="login-role-note">Access level comes from the signed-in demo account.</p>
       </form>
       <div className="login-corner login-corner-left">PREC0G / SOC <span>v1.0</span></div>
       <div className="login-corner login-corner-right">LOCAL NODE · SECURE SESSION</div>

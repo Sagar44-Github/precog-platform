@@ -122,3 +122,26 @@ The B2 browser audit includes all existing routes and the seven new routes at 39
 When a replay session is archived, `WorldState` retains its forecasts and actions with the existing bounded session record. The ledger and analytics tally aggregate these records up to the existing 20-session limit. Session counters are clearly labelled as session counters; only the checked held-out evaluation artifact supplies model-level performance.
 
 Three contracts were added: `forecast_explanation`, `what_if_forecast`, and `forecast_analytics`. `forecast` now allows an optional saved explanation and session id; archived `session_record` values retain the complete forecast/action lists. The checker reports **24 contracts OK**. Browser audit evidence and screenshots are stored in `docs/phase-b4/`.
+
+## Phase B5 containment and demo roles
+
+### Route
+
+| React route | Page |
+|---|---|
+| `/containment` | Simulated playbooks, pending confirmations, current/archive action history, and administrator release flow |
+
+### API additions and role gates
+
+| Method and endpoint | Access | Behavior |
+|---|---|---|
+| `GET /api/x/me` | Signed in | Returns the authenticated username, resolved demo role, display label, and effective capabilities. |
+| `POST /api/x/containment/playbooks/propose` | Analyst, admin | Validates a playbook selector, resolves a server-side target list from the current graph/forecast, and records a pending action. |
+| `POST /api/x/containment/release/propose` | Admin | Creates a pending release action linked to an executed containment; the existing `/containment/confirm` endpoint completes it. |
+| `GET /api/x/containment/actions?include_archived=1` | Signed in | Lists current actions and bounded archived session actions; the default remains current-session-only. |
+
+The built-in demo accounts are `admin` (required), with optional `analyst` and `viewer` accounts seeded at startup when `ANALYST_PASSWORD` and `VIEWER_PASSWORD` are set. Role resolution uses only the authenticated NIDS username; the client cannot submit a role. Unknown usernames resolve to the least-privileged viewer role. Viewers cannot propose, confirm, or cancel containment, or start/pause/resume/restart replay. Analysts can propose/confirm/cancel containment and control replay. Admins can do all of those, plus release containment and restart replay.
+
+The `ContainmentService` resolves host, zone, predicted-path, and Top-3 requests into a unique bounded host list, captures each target's previous state, and leaves the graph untouched while pending. Confirmation applies a contain action to all targets. A release is a separate pending action that restores saved states only after confirmation; it is rejected if any target is no longer contained or the source action was not executed. Contain and release proposals, confirmations, cancellation, expiry, and re-evaluation remain in the audit log. Session archives retain action metadata and the existing bounded retention limit.
+
+Two contracts were added: `operator_profile` and `containment_playbook_request`; `containment_action` now permits the operation, playbook, target list, linked release, prior states, and replay session. The checker reports **26 contracts OK**. Browser screenshots cover `/containment` at 390x844, 820x1180, and 1440x900 in sample and live modes; API role checks prove viewer denial and analyst allowance. Evidence is stored in `docs/phase-b5/`.

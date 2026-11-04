@@ -9,6 +9,44 @@ from flask_login import current_user, login_user, logout_user
 
 from .errors import ApiError
 
+ROLE_NAMES = {"viewer": "Viewer", "analyst": "Analyst", "admin": "Administrator"}
+ROLE_PERMISSIONS = {
+    "viewer": {"can_contain": False, "can_run_replay": False, "can_release": False, "can_restart_replay": False},
+    "analyst": {"can_contain": True, "can_run_replay": True, "can_release": False, "can_restart_replay": False},
+    "admin": {"can_contain": True, "can_run_replay": True, "can_release": True, "can_restart_replay": True},
+}
+
+
+def role_for_user(user):
+    """Resolve privileges from the authenticated NIDS account, never from request data."""
+    username = getattr(user, "username", "")
+    return username if username in ROLE_PERMISSIONS else "viewer"
+
+
+def operator_profile(user):
+    role = role_for_user(user)
+    return {
+        "status": "ok",
+        "username": user.username,
+        "role": role,
+        "role_name": ROLE_NAMES[role],
+        "permissions": dict(ROLE_PERMISSIONS[role]),
+    }
+
+
+def demo_role_required(*allowed_roles):
+    """Require a signed-in demo operator with one of the named server-side roles."""
+    def decorate(view):
+        @wraps(view)
+        def wrapper(*args, **kwargs):
+            if not current_user.is_authenticated:
+                raise ApiError("not_logged_in", "Please log in first.", 401)
+            if role_for_user(current_user) not in allowed_roles:
+                raise ApiError("forbidden", "Your demo role cannot perform this action.", 403)
+            return view(*args, **kwargs)
+        return wrapper
+    return decorate
+
 
 def json_login_required(view):
     """Like NIDS's login_required, but answers 401 JSON instead of redirecting to a page."""

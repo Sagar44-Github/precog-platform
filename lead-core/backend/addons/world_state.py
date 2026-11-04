@@ -131,10 +131,17 @@ class WorldState:
         with self._lock:
             return copy.deepcopy(self._current_forecast_locked())
 
-    def actions(self):
-
+    def actions(self, include_archived=False):
         with self._lock:
-            return copy.deepcopy(self._actions)
+            items = []
+            if include_archived:
+                active_id = self._session.get("session_id") if self._session is not None else None
+                for record in reversed(self._sessions):
+                    if active_id is not None and record.get("session_id") == active_id:
+                        continue
+                    items.extend(record.get("actions", []))
+            items.extend(self._actions)
+            return copy.deepcopy(items)
 
     def get_action(self, action_id):
 
@@ -257,6 +264,9 @@ class WorldState:
 
     def upsert_action(self, action):
         with self._lock:
+            action = copy.deepcopy(action)
+            if self._session is not None:
+                action.setdefault("session_id", self._session.get("session_id"))
             self._check("containment_action", action)
             for index, existing in enumerate(self._actions):
                 if existing["action_id"] == action["action_id"]:

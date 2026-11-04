@@ -79,8 +79,13 @@ export const api = {
   forecast: (id) => apiGet(`/api/x/forecasts/${encodeURIComponent(id)}`),
   whatIfForecast: (fromHost) => apiGet(withQuery('/api/x/forecasts/what-if', { from_host: fromHost })),
   analytics: () => apiGet('/api/x/analytics'),
+  containmentActions: (filters = {}) => apiGet(withQuery('/api/x/containment/actions', filters)),
   proposeContainment: (targetHost, forecastId, requestedBy) =>
     apiPost('/api/x/containment/propose', { target_host: targetHost, forecast_id: forecastId, requested_by: requestedBy }),
+  proposeContainmentPlaybook: (playbook, options = {}) =>
+    apiPost('/api/x/containment/playbooks/propose', { playbook, ...options }),
+  proposeContainmentRelease: (containmentActionId) =>
+    apiPost('/api/x/containment/release/propose', { containment_action_id: containmentActionId }),
   confirmContainment: (actionId) => apiPost('/api/x/containment/confirm', { action_id: actionId }),
   cancelContainment: (actionId) => apiPost('/api/x/containment/cancel', { action_id: actionId }),
   session: () => apiGet('/api/x/session'),
