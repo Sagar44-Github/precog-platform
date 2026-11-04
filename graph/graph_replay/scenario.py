@@ -1,5 +1,6 @@
 """Reading and checking scenario files (graph_replay/scenarios/*.json)."""
 import json
+import uuid
 from pathlib import Path
 
 from jsonschema import Draft202012Validator
@@ -61,18 +62,27 @@ def load_scenario(path, known_hosts=None):
 
 
 class ScenarioLibrary:
-    """All the scenario files in one folder."""
+    """Shipped scenarios plus validated, locally saved demo scenarios."""
 
-    def __init__(self, folder=SCENARIOS_DIR, known_hosts=None):
+    def __init__(self, folder=SCENARIOS_DIR, known_hosts=None, custom_folder=None):
         self.folder = Path(folder)
+        self.custom_folder = Path(custom_folder) if custom_folder is not None else None
+        self.known_hosts = set(known_hosts) if known_hosts is not None else None
         self._scenarios = {}
-        for path in sorted(self.folder.glob("*.json")):
-            scenario = load_scenario(path, known_hosts)
-            if scenario["scenario_id"] in self._scenarios:
-                raise ScenarioError("Two files use the scenario_id '%s'" % scenario["scenario_id"])
-            if path.stem != scenario["scenario_id"]:
-                raise ScenarioError("%s: the file name must match its scenario_id ('%s')" % (path.name, scenario["scenario_id"]))
-            self._scenarios[scenario["scenario_id"]] = scenario
+        self._custom_ids = set()
+        folders = [(self.folder, False)]
+        if self.custom_folder is not None:
+            folders.append((self.custom_folder, True))
+        for source_folder, is_custom in folders:
+            for path in sorted(source_folder.glob("*.json")):
+                scenario = load_scenario(path, self.known_hosts)
+                if scenario["scenario_id"] in self._scenarios:
+                    raise ScenarioError("Two files use the scenario_id '%s'" % scenario["scenario_id"])
+                if path.stem != scenario["scenario_id"]:
+                    raise ScenarioError("%s: the file name must match its scenario_id ('%s')" % (path.name, scenario["scenario_id"]))
+                self._scenarios[scenario["scenario_id"]] = scenario
+                if is_custom:
+                    self._custom_ids.add(scenario["scenario_id"])
 
     def ids(self):
         return list(self._scenarios)
@@ -82,4 +92,26 @@ class ScenarioLibrary:
 
     def summaries(self):
         return [{"scenario_id": s["scenario_id"], "description": s["description"], "events": len(s["events"]),
-                 "has_decision_point": any(e.get("pause_for_decision") for e in s["events"])} for s in self._scenarios.values()]
+                 "has_decision_point": any(e.get("pause_for_decision") for e in s["events"]),
+                 "custom": s["scenario_id"] in self._custom_ids} for s in self._scenarios.values()]
+
+    def save_custom(self, data):
+        """Validate and atomically save a new scenario in the runtime-only custom folder."""
+        if self.custom_folder is None:
+            raise ScenarioError("Custom scenario saving is not configured")
+        scenario = check_scenario(data, self.known_hosts, "submitted scenario")
+        scenario_id = scenario["scenario_id"]
+        if scenario_id in self._scenarios:
+            raise ScenarioError("A scenario called '%s' already exists" % scenario_id)
+        self.custom_folder.mkdir(parents=True, exist_ok=True)
+        destination = self.custom_folder / (scenario_id + ".json")
+        temporary = self.custom_folder / (".%s.%s.tmp" % (scenario_id, uuid.uuid4().hex))
+        try:
+            temporary.write_text(json.dumps(scenario, indent=2) + "\n", encoding="utf-8")
+            temporary.replace(destination)
+        finally:
+            if temporary.exists():
+                temporary.unlink()
+        self._scenarios[scenario_id] = scenario
+        self._custom_ids.add(scenario_id)
+        return scenario

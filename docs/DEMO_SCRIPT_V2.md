@@ -48,3 +48,14 @@ At widths below 1024 px, `/app/console` directs the operator to `/app/mobile`; o
 - The forecast is a prediction; a miss is reported as a miss.
 - The what-if page is read-only. Held-out model-level metrics exclude replay rehearsals and session counters.
 - Viewer, analyst, and admin privileges are resolved from the authenticated account and enforced at the API; role changes cannot be submitted in a request body.
+
+## Phase B6: Replay Studio (3 minutes)
+
+1. Open **Scenario Builder**, select a shipped scenario, and inspect its ordered event preview.
+2. Add a technique event and a host attempt using the six simulated hosts. Set the first event to mark its host compromised and enable a decision pause where useful.
+3. Save the scenario. Point out the server validation result and that custom scenario files stay in the local runtime data folder.
+4. Open **Replay Studio**, select the custom scenario, and set the speed between 1× and 8×. Start, pause, and use **Step one event** to advance a single event.
+5. Scrub the time-travel slider. Show the historical host states, forecast and alert summary; explain that this view is read-only and does not rewind the active replay.
+6. Complete a second replay and compare two finished sessions. Describe the hit, miss, precision, and containment values as per-session counters, not overall model accuracy.
+
+The replay controls remain server-guarded: viewers can inspect; analysts can control and author; admins can also restart. All scenario events and state changes are simulated.

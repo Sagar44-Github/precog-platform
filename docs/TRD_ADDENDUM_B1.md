@@ -145,3 +145,28 @@ The built-in demo accounts are `admin` (required), with optional `analyst` and `
 The `ContainmentService` resolves host, zone, predicted-path, and Top-3 requests into a unique bounded host list, captures each target's previous state, and leaves the graph untouched while pending. Confirmation applies a contain action to all targets. A release is a separate pending action that restores saved states only after confirmation; it is rejected if any target is no longer contained or the source action was not executed. Contain and release proposals, confirmations, cancellation, expiry, and re-evaluation remain in the audit log. Session archives retain action metadata and the existing bounded retention limit.
 
 Two contracts were added: `operator_profile` and `containment_playbook_request`; `containment_action` now permits the operation, playbook, target list, linked release, prior states, and replay session. The checker reports **26 contracts OK**. Browser screenshots cover `/containment` at 390x844, 820x1180, and 1440x900 in sample and live modes; API role checks prove viewer denial and analyst allowance. Evidence is stored in `docs/phase-b5/`.
+
+## Phase B6 replay studio, time travel, and scenario builder
+
+### Routes
+
+| React route | Page |
+|---|---|
+| `/replay` | Replay controls, event timeline, time travel scrubber, and finished-session comparison |
+| `/scenarios` | Shipped/custom scenario library and schema-validated event builder |
+
+### API additions
+
+| Method and endpoint | Access | Behavior |
+|---|---|---|
+| `POST /api/x/replay/step` | Analyst, admin | Advances a paused replay by one event, then pauses again. |
+| `GET /api/x/replay/scenarios/{scenario_id}` | Signed in | Returns the validated event sequence for inspection. |
+| `POST /api/x/replay/scenarios` | Analyst, admin | Validates a bounded scenario against GRAPH's schema and known hosts, then atomically saves it to the local scenario library. |
+| `GET /api/x/time-travel?limit=...&session_id=...` | Signed in | Returns up to 200 read-only snapshots, newest bounded history in chronological order. |
+| `GET /api/x/sessions/compare?left=...&right=...` | Signed in | Compares two finished archived sessions; rejects missing, duplicate, or active sessions. |
+
+`WorldState` records up to 200 small snapshots as its version changes; each snapshot contains the graph, latest bounded alerts/actions, forecast, replay position, metrics, timestamp, and session id. The snapshots are volatile and are not used to rewind the running replay. Scenario authoring reuses `graph/graph_replay/schemas/scenario.schema.json`, caps the event list at 100, verifies increasing sequence/offset values and known hosts, rejects duplicate ids, and stores files under `lead-core/backend/data/scenarios` by default. `CUSTOM_SCENARIOS_DIR` can select a different local runtime folder.
+
+The replay controller's new `step()` control resumes from paused state through one event and returns to paused state. Session comparison derives counts and top-1/top-3 precision from stored outcomes; its response labels every score as a session counter. No held-out Precog evaluation artifact is modified.
+
+Two contracts were added: `time_travel_snapshot` and `session_comparison`. The existing GRAPH scenario schema now bounds descriptions and event count. At the B6 gate, the checker reports **28 contracts OK**; route and workflow evidence is stored in `docs/phase-b6/`.

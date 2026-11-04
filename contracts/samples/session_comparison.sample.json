@@ -1,0 +1,16 @@
+{
+  "left": {
+    "session_id": "ses-000001", "scenario_id": "golden-path", "started_at": "2026-11-04T11:00:00Z", "ended_at": "2026-11-04T11:00:08Z",
+    "alert_count": 5, "severity_counts": {"CRITICAL": 0, "HIGH": 5, "MEDIUM": 0, "LOW": 0},
+    "forecast_count": 1, "resolved_forecasts": 1, "hits": 1, "misses": 0, "precision_at_1": 1.0, "precision_at_3": 1.0,
+    "containment_actions": 1, "successful_containments": 1
+  },
+  "right": {
+    "session_id": "ses-000002", "scenario_id": "quiet-scan", "started_at": "2026-11-04T11:05:00Z", "ended_at": "2026-11-04T11:05:03Z",
+    "alert_count": 0, "severity_counts": {"CRITICAL": 0, "HIGH": 0, "MEDIUM": 0, "LOW": 0},
+    "forecast_count": 0, "resolved_forecasts": 0, "hits": 0, "misses": 0, "precision_at_1": null, "precision_at_3": null,
+    "containment_actions": 0, "successful_containments": 0
+  },
+  "simulation_only": true,
+  "note": "Session counters describe these replays; they are not the model's overall accuracy."
+}

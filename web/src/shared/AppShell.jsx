@@ -29,6 +29,8 @@ function pageTitle(pathname) {
   if (pathname === '/forecasts') return 'Forecast ledger'
   if (pathname === '/analytics') return 'Model analytics'
   if (pathname === '/containment') return 'Containment'
+  if (pathname === '/replay') return 'Replay studio'
+  if (pathname === '/scenarios') return 'Scenario builder'
   if (pathname.startsWith('/alerts/')) return 'Alert detail'
   if (pathname === '/alerts') return 'Alerts'
   if (pathname.startsWith('/incidents/')) return 'Incident detail'
@@ -60,6 +62,8 @@ export function CommandPalette({ open, onClose, permissions }) {
     { label: 'Open forecast ledger', detail: 'Review predictions and their outcomes', icon: 'activity', keywords: 'forecast predictions explainability', run: () => navigate('/forecasts') },
     { label: 'Open model analytics', detail: 'Compare held-out results, baselines, and calibration', icon: 'audit', keywords: 'analytics model calibration baselines', run: () => navigate('/analytics') },
     { label: 'Open containment', detail: 'Review simulated playbooks and response history', icon: 'shield', keywords: 'containment response release playbook', run: () => navigate('/containment') },
+    { label: 'Open replay studio', detail: 'Control scenarios, step events, and compare sessions', icon: 'activity', keywords: 'replay time travel sessions compare', run: () => navigate('/replay') },
+    { label: 'Open scenario builder', detail: 'Create and validate a simulated event sequence', icon: 'sliders', keywords: 'scenario library builder events', run: () => navigate('/scenarios') },
     { label: 'Open session reports', detail: 'Review and print replay reports', icon: 'audit', keywords: 'reports export print', run: () => navigate('/reports') },
     { label: 'Open hosts and assets', detail: 'Review the simulated network inventory', icon: 'hosts', keywords: 'assets inventory devices', run: () => navigate('/hosts') },
     { label: 'Open audit log', detail: 'Review detection and response records', icon: 'audit', keywords: 'audit history log', run: () => navigate('/audit') },
@@ -191,6 +195,8 @@ export default function AppShell({ children }) {
     { to: '/forecasts', label: 'Forecasts', icon: 'activity' },
     { to: '/analytics', label: 'Analytics', icon: 'audit' },
     { to: '/containment', label: 'Containment', icon: 'shield' },
+    { to: '/replay', label: 'Replay studio', icon: 'activity' },
+    { to: '/scenarios', label: 'Scenario builder', icon: 'sliders' },
     { to: '/reports', label: 'Reports', icon: 'audit' },
     { to: '/hosts', label: 'Hosts & assets', icon: 'hosts' },
     { to: '/audit', label: 'Audit log', icon: 'audit' },

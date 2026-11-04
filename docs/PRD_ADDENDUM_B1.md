@@ -71,3 +71,14 @@ The forecast ledger spans the existing bounded replay archive. Session counters 
 | FR-ROLE-3 | Analysts may propose/confirm/cancel containment and control a replay; only admins may release containment or restart replay. | S | Capability response and server guards agree; the UI hides unavailable controls and displays the signed-in role. |
 
 Containment playbooks remain fully simulated. The service publishes one explicit multi-target proposal and applies its targets together only after confirmation. Release stores the original state for each host, then restores those values after a second confirmation. Optional local passwords provision analyst and viewer NIDS accounts without changing NIDS source.
+
+## Phase B6 replay studio and scenario design
+
+| ID | Requirement | Priority | Acceptance |
+|---|---|---:|---|
+| FR-REPLAY-1 | An analyst shall select a shipped or locally authored scenario, set replay speed from 1× to 8×, pause, resume, restart when permitted, and step exactly one event while paused. | M | Replay state and event position stay synchronized with the replay controller; the server enforces role permissions. |
+| FR-TIME-1 | An operator shall scrub a bounded history of world snapshots and inspect the graph, alerts, forecast, actions, replay position, and session metrics at each version. | M | Snapshots are captured as world versions change, retained in a fixed-size ring buffer, and never restore or mutate the live world. |
+| FR-SCENARIO-1 | An analyst shall compose technique, traffic, and host-attempt events using the simulated host inventory, validate the scenario, and save it to the local scenario library. | M | The server applies the existing JSON Schema plus host/order checks, rejects invalid/duplicate ids, and only persists locally under the runtime data directory. |
+| FR-COMPARE-1 | An operator shall compare two finished replay sessions side by side. | M | Alert volume, severity, forecast outcomes, and confirmed containment are derived from those sessions, with an explicit session-only accuracy note. |
+
+All B6 capabilities remain replay-only. Custom scenario files are runtime data; time travel and comparison are read-only views of the bounded in-memory evidence.

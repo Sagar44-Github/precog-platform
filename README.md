@@ -42,6 +42,8 @@ A closed-loop security console that predicts where an attacker will move next an
 
 > **Phase B5 containment and access roles:** `/app/containment` adds host, zone, predicted-path, and Top-3 playbooks; release restores each host's prior simulated state and still requires proposal plus confirmation. The server assigns `viewer`, `analyst`, or `admin` from the authenticated account: viewers are read-only, analysts can respond and run replay, and admins can release and restart. Optional `ANALYST_PASSWORD` and `VIEWER_PASSWORD` settings create those demo accounts. The contract set now has 26 checked schemas. See [B5 evidence](docs/phase-b5/) and the [B5 technical addendum](docs/TRD_ADDENDUM_B1.md#phase-b5-containment-and-demo-roles).
 
+> **Phase B6 replay studio:** `/app/replay` adds 1×–8× controls, pause/resume, single-event stepping, a read-only 200-snapshot time-travel scrubber, and side-by-side finished-session comparisons. `/app/scenarios` provides a visual event builder; custom scenarios are checked against the replay schema and simulated host inventory before being saved locally. The contract set now has 28 checked schemas. See [B6 evidence](docs/phase-b6/) and the [B6 technical addendum](docs/TRD_ADDENDUM_B1.md#phase-b6-replay-studio-time-travel-and-scenario-builder).
+
 <a id="choose-your-path"></a>
 
 ### Choose your path
@@ -104,7 +106,7 @@ flowchart LR
     <td align="center"><b>6</b><br>demo hosts in 3 zones</td>
     <td align="center"><b>Top-3</b><br>forecast, with confidence</td>
     <td align="center"><b>2 steps</b><br>propose, then confirm</td>
-    <td align="center"><b>40</b><br>add-on API routes</td>
+    <td align="center"><b>45</b><br>add-on API routes</td>
   </tr>
   <tr>
     <td align="center"><b>26</b><br>ATT&amp;CK techniques mapped</td>
@@ -696,6 +698,8 @@ ADMIN_PASSWORD=choose-a-password-you-do-not-use-anywhere-else
 # Optional demo accounts. Set unique passwords to enable role walkthroughs.
 ANALYST_PASSWORD=
 VIEWER_PASSWORD=
+# Optional local folder for validated custom replay scenarios.
+CUSTOM_SCENARIOS_DIR=
 ```
 
 NIDS ships with a published default admin login and a hardcoded secret key. `run_app.py` replaces both from the outside at start-up, so **NIDS's default password never works**.
@@ -923,13 +927,18 @@ The product's own screens use the add-on endpoints under **`/api/x`**, so they n
 | `POST` | `/api/x/containment/release/propose` | Propose a release of an executed containment; `/confirm` restores the saved prior states |
 | `GET` | `/api/x/session` | Current session record |
 | `GET` | `/api/x/sessions` | Past sessions |
+| `GET` | `/api/x/sessions/compare?left=...&right=...` | Compare two finished replay sessions with explicitly session-scoped counters |
+| `GET` | `/api/x/time-travel?limit=...&session_id=...` | Read-only bounded snapshots from the in-memory replay history |
 | `GET` | `/api/x/metrics/precog` | precision@k, calibration bins, hit-rate |
 | `GET` | `/api/x/metrics/detection` | Static offline detection results |
 | `GET` | `/api/x/replay/scenarios` | Available scenarios |
+| `GET` | `/api/x/replay/scenarios/{scenario_id}` | Inspect a scenario's validated events |
+| `POST` | `/api/x/replay/scenarios` | Validate and save a local custom scenario (analyst/admin) |
 | `GET` | `/api/x/replay/status` | Current replay state |
 | `POST` | `/api/x/replay/start` | Start a scenario (scenario id, speed) |
 | `POST` | `/api/x/replay/pause` | Pause |
 | `POST` | `/api/x/replay/resume` | Resume |
+| `POST` | `/api/x/replay/step` | Advance one event from paused state |
 | `POST` | `/api/x/replay/restart` | Restart |
 | `POST` | `/api/x/push/register` | Register a phone's push token |
 

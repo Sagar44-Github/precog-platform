@@ -6,11 +6,13 @@ All methods are safe to call from several threads at once.
 """
 import copy
 import threading
+from collections import deque
 from datetime import datetime, timezone
 
 MAX_ALERTS = 200
 
 MAX_SESSIONS = 20
+MAX_TIME_TRAVEL_SNAPSHOTS = 200
 
 
 def _empty_graph():
@@ -35,6 +37,7 @@ class WorldState:
 
         self._lock = threading.RLock()
         self._contracts = contracts
+        self._history = deque(maxlen=MAX_TIME_TRAVEL_SNAPSHOTS)
 
         self.version = 0
         self._reset_locked()
@@ -53,6 +56,19 @@ class WorldState:
 
     def _bump(self):
         self.version += 1
+        snapshot = {
+            "version": self.version,
+            "captured_at": datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"),
+            "session_id": self._session.get("session_id") if self._session else None,
+            "graph": copy.deepcopy(self._graph),
+            "alerts": copy.deepcopy(self._alerts[:20]),
+            "forecast": copy.deepcopy(self._forecasts[-1]) if self._forecasts else None,
+            "actions": copy.deepcopy(self._actions[-20:]),
+            "replay": copy.deepcopy(self._replay),
+            "metrics": copy.deepcopy(self._metrics),
+        }
+        self._check("time_travel_snapshot", snapshot)
+        self._history.append(snapshot)
         return self.version
 
     def _reset_locked(self):
@@ -167,6 +183,14 @@ class WorldState:
     def sessions(self):
         with self._lock:
             return copy.deepcopy(self._sessions)
+
+    def time_travel(self, session_id=None, limit=120):
+        """Return bounded read-only snapshots in chronological order."""
+        with self._lock:
+            snapshots = list(self._history)
+            if session_id:
+                snapshots = [item for item in snapshots if item.get("session_id") == session_id]
+            return copy.deepcopy(snapshots[-max(1, min(int(limit), MAX_TIME_TRAVEL_SNAPSHOTS)):])
 
     def incident_sessions(self):
         """Return the bounded session history plus the live session with its alert evidence."""

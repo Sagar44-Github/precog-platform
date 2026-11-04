@@ -38,6 +38,8 @@ const routeSpecs = [
   ['forecast-detail', null],
   ['analytics', '/app/analytics'],
   ['containment', '/app/containment'],
+  ['replay', '/app/replay'],
+  ['scenarios', '/app/scenarios'],
   ['hosts', '/app/hosts'],
   ['host-detail', null],
   ['audit', '/app/audit'],
@@ -65,6 +67,7 @@ function startBackend(mode, port, dbDir) {
     HOST: '127.0.0.1',
     PORT: String(port),
     WEB_DIST: join(repoRoot, 'web', 'dist'),
+    CUSTOM_SCENARIOS_DIR: join(dbDir, `${mode}-scenarios`),
     COOKIE_SECURE: '0',
     AUTO_TRAIN_MODEL: '1',
     VALIDATE_CONTRACTS: '1',
@@ -387,6 +390,48 @@ async function runMode(browser, mode, port, dbDir, errors) {
         await page.getByRole('heading', { name: 'Model and baseline results' }).waitFor({ timeout: 10000 })
         await page.getByRole('heading', { name: 'Detection model report' }).waitFor({ timeout: 10000 })
         report.analyticsWorkflow = 'held-out scores, calibration curve, session tally, and offline detection report displayed'
+
+        await page.goto(`${base}/app/scenarios`, { waitUntil: 'domcontentloaded' })
+        await page.getByLabel('Scenario ID').fill('browser-custom')
+        await page.getByLabel('Scenario description').fill('A two-step browser rehearsal sequence.')
+        await page.getByRole('button', { name: '+ Technique' }).click()
+        await page.getByLabel('Event 1 offset').fill('1000')
+        await page.getByLabel('Mark host compromised in the simulation').check()
+        await page.getByRole('button', { name: '+ Host attempt' }).click()
+        await page.getByLabel('Event 2 offset').fill('2000')
+        await page.getByRole('button', { name: 'Validate and save scenario' }).click()
+        await page.getByRole('status').filter({ hasText: 'Saved browser-custom' }).waitFor({ timeout: 10000 })
+        report.scenarioBuilderWorkflow = 'built a technique and host-attempt sequence; server validated and saved the custom scenario'
+
+        await page.goto(`${base}/app/replay`, { waitUntil: 'domcontentloaded' })
+        await page.getByLabel('Replay scenario').selectOption('quiet-scan')
+        await page.getByLabel('Replay speed').fill('8')
+        await page.getByRole('button', { name: 'Start replay' }).click()
+        await page.waitForFunction(async () => (await (await fetch('/api/x/replay/status')).json()).state === 'finished', null, { timeout: 10000 })
+        await page.getByLabel('Replay scenario').selectOption('browser-custom')
+        await page.getByLabel('Replay speed').fill('1')
+        await page.getByRole('button', { name: 'Start replay' }).click()
+        await page.getByRole('button', { name: 'Pause' }).waitFor({ timeout: 5000 })
+        await page.getByRole('button', { name: 'Pause' }).click()
+        await page.getByRole('button', { name: 'Step one event' }).click()
+        await page.waitForFunction(async () => {
+          const status = await (await fetch('/api/x/replay/status')).json()
+          return status.state === 'paused' && status.position === 1
+        }, null, { timeout: 5000 })
+        await page.waitForFunction(async () => (await (await fetch('/api/x/time-travel?limit=200')).json()).length > 3, null, { timeout: 10000 })
+        await page.getByLabel('Time travel snapshot').evaluate((input) => {
+          input.value = String(Math.min(Number(input.max), 3))
+          input.dispatchEvent(new Event('input', { bubbles: true }))
+          input.dispatchEvent(new Event('change', { bubbles: true }))
+        })
+        await page.getByRole('button', { name: 'Resume replay' }).click()
+        await page.waitForFunction(async () => (await (await fetch('/api/x/replay/status')).json()).state === 'finished', null, { timeout: 10000 })
+        await page.waitForFunction(() => document.querySelectorAll('[aria-label="Left session"] option').length >= 3, null, { timeout: 10000 })
+        await page.getByLabel('Left session').selectOption('ses-000001')
+        await page.getByLabel('Right session').selectOption('ses-000002')
+        await page.getByRole('button', { name: 'Compare sessions' }).click()
+        await page.locator('.studio-compare-result').waitFor({ timeout: 10000 })
+        report.replayStudioWorkflow = 'ran a scenario, paused and stepped one event, scrubbed historical state, then compared two finished sessions'
       } catch (error) {
         report.shellInteractions = {
           error: error.message,

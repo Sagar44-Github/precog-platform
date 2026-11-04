@@ -724,6 +724,64 @@ def sessions():
     return jsonify(_ctx()["world"].sessions())
 
 
+def _session_comparison_item(record):
+    alerts = record.get("alerts", [])
+    forecasts = record.get("forecasts", [])
+    outcomes = [item.get("outcome") for item in forecasts if item.get("status") in ("hit", "miss") and item.get("outcome")]
+    rank_hits = [item.get("rank_hit") for item in outcomes]
+    resolved = len(rank_hits)
+    hits = sum(rank is not None for rank in rank_hits)
+    actions = record.get("actions", [])
+    return {
+        "session_id": record["session_id"], "scenario_id": record.get("scenario_id"),
+        "started_at": record["started_at"], "ended_at": record.get("ended_at"),
+        "alert_count": len(alerts),
+        "severity_counts": {severity: sum(item.get("severity") == severity for item in alerts) for severity in ("CRITICAL", "HIGH", "MEDIUM", "LOW")},
+        "forecast_count": len(forecasts), "resolved_forecasts": resolved, "hits": hits, "misses": resolved - hits,
+        "precision_at_1": (sum(rank == 1 for rank in rank_hits) / resolved) if resolved else None,
+        "precision_at_3": (hits / resolved) if resolved else None,
+        "containment_actions": sum(item.get("operation", "contain") == "contain" for item in actions),
+        "successful_containments": sum(item.get("operation", "contain") == "contain" and item.get("status") == "executed" for item in actions),
+    }
+
+
+@bp.get("/sessions/compare")
+@auth.json_login_required
+def compare_sessions():
+    left_id = _query_text("left", 128)
+    right_id = _query_text("right", 128)
+    if not left_id or not right_id:
+        raise ApiError("bad_request", "Choose both left and right session ids.", 400)
+    if left_id == right_id:
+        raise ApiError("bad_request", "Choose two different replay sessions.", 400)
+    records = {item["session_id"]: item for item in _ctx()["world"].sessions()}
+    left, right = records.get(left_id), records.get(right_id)
+    if left is None or right is None:
+        raise ApiError("not_found", "One or both replay sessions were not found.", 404)
+    if not left.get("ended_at") or not right.get("ended_at"):
+        raise ApiError("session_not_finished", "Session comparison is available for finished replays.", 409)
+    payload = {
+        "left": _session_comparison_item(left), "right": _session_comparison_item(right),
+        "simulation_only": True,
+        "note": "These are session counters, not the model's overall accuracy.",
+    }
+    return jsonify(_out("session_comparison", payload))
+
+
+@bp.get("/time-travel")
+@auth.json_login_required
+def time_travel():
+    try:
+        limit = int(request.args.get("limit", 120))
+    except ValueError:
+        raise ApiError("bad_request", "'limit' must be a whole number.", 400)
+    if limit < 1:
+        raise ApiError("bad_request", "'limit' must be at least 1.", 400)
+    session_id = _query_text("session_id", 128)
+    snapshots = _ctx()["world"].time_travel(session_id=session_id, limit=limit)
+    return jsonify([_out("time_travel_snapshot", item) for item in snapshots])
+
+
 @bp.get("/metrics/precog")
 @auth.json_login_required
 def metrics_precog():
@@ -816,6 +874,28 @@ def replay_scenarios():
     return jsonify(_ctx()["hooks"].require("replay").list_scenarios())
 
 
+@bp.get("/replay/scenarios/<scenario_id>")
+@auth.json_login_required
+def replay_scenario_detail(scenario_id):
+    scenario = _ctx()["hooks"].require("replay").library.get(scenario_id)
+    if scenario is None:
+        raise ApiError("not_found", "No scenario with id %s." % scenario_id, 404)
+    return jsonify(scenario)
+
+
+@bp.post("/replay/scenarios")
+@auth.demo_role_required("analyst", "admin")
+def replay_scenario_save():
+    if request.content_length and request.content_length > 262144:
+        raise ApiError("payload_too_large", "A scenario must be 256 KiB or smaller.", 413)
+    replay = _ctx()["hooks"].require("replay")
+    try:
+        scenario = replay.library.save_custom(_body())
+    except ValueError as exc:
+        raise ApiError("invalid_scenario", str(exc), 400)
+    return jsonify(scenario), 201
+
+
 @bp.get("/replay/status")
 @auth.json_login_required
 def replay_status():
@@ -850,6 +930,12 @@ def replay_pause():
 @auth.demo_role_required("analyst", "admin")
 def replay_resume():
     return _replay_action("resume")
+
+
+@bp.post("/replay/step")
+@auth.demo_role_required("analyst", "admin")
+def replay_step():
+    return _replay_action("step")
 
 
 @bp.post("/replay/restart")

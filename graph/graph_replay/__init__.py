@@ -40,7 +40,14 @@ def register(ctx):
     from graph_net.hosts_file import load_hosts  # GRAPH's other package
 
     hosts = load_hosts(ctx.config.contracts_dir / "data" / "hosts.json")
-    library = ScenarioLibrary(SCENARIOS_DIR, known_hosts={h["host_id"] for h in hosts})
+    custom_scenarios_dir = os.environ.get("CUSTOM_SCENARIOS_DIR") or str(
+        ctx.config.repo_root / "lead-core" / "backend" / "data" / "scenarios"
+    )
+    library = ScenarioLibrary(
+        SCENARIOS_DIR,
+        known_hosts={h["host_id"] for h in hosts},
+        custom_folder=Path(custom_scenarios_dir),
+    )
     if ctx.nids is None or not hasattr(ctx.nids, "SessionLocal"):
         raise RuntimeError("The replay needs NIDS's database (ctx.nids with SessionLocal and Packet)")
     timeout = float(os.environ.get("REPLAY_DECISION_TIMEOUT", "120"))  # seconds; 0 = wait for the analyst forever

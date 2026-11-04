@@ -44,6 +44,7 @@ class ReplayController:
         self._thread = None
         self._stop = False
         self._manual_resume = False
+        self._step_requested = False
         self._session_counter = 0
         self._status = {"state": "idle", "scenario_id": None, "speed": 1.0, "position": 0}
         self.last_error = None
@@ -84,10 +85,22 @@ class ReplayController:
             state = self._status["state"]
             if state == "paused":
                 self._status["state"] = "running"
+                self._step_requested = False
             elif state == "waiting_for_decision":
                 self._manual_resume = True
             else:
                 raise HookError("not_paused", "The replay is not paused.", 409)
+            self._publish_locked()
+            self._cond.notify_all()
+            return dict(self._status)
+
+    def step(self):
+        """Resume a paused replay through one event, then pause again."""
+        with self._cond:
+            if self._status["state"] != "paused":
+                raise HookError("not_paused", "Pause the replay before stepping one event.", 409)
+            self._step_requested = True
+            self._status["state"] = "running"
             self._publish_locked()
             self._cond.notify_all()
             return dict(self._status)
@@ -114,6 +127,7 @@ class ReplayController:
             if self._status["state"] in BUSY_STATES:
                 self._status["state"] = "idle"
                 self._publish_locked()
+            self._step_requested = False
 
     def wait_until_done(self, timeout=30.0):
         """For tests and the demo: blocks until the replay finishes. Returns True if it did."""
@@ -150,6 +164,7 @@ class ReplayController:
         with self._cond:
             self._stop = False
             self._manual_resume = False
+            self._step_requested = False
             self.last_error = None
             self.last_decision = None
             self._status = {"state": "running", "scenario_id": scenario["scenario_id"], "speed": speed, "position": 0}
@@ -217,6 +232,11 @@ class ReplayController:
                     return
                 self._handle(event)
                 self._set(position=index + 1)
+                with self._cond:
+                    if self._step_requested and self._status["state"] == "running":
+                        self._step_requested = False
+                        self._status["state"] = "paused"
+                        self._publish_locked()
             self._finish()
         except Exception as exc:  # the demo must never hang on a bug: stop and say why
             log.exception("Replay stopped by an error")

@@ -22,6 +22,8 @@ import ForecastsPage from './forecasts.jsx'
 import ForecastDetailPage from './forecast-detail.jsx'
 import AnalyticsPage from './analytics.jsx'
 import ContainmentPage from './containment.jsx'
+import ReplayStudioPage from './replay-studio.jsx'
+import ScenarioBuilderPage from './scenario-builder.jsx'
 
 function render(path) {
   return renderToStaticMarkup(<StaticRouter location={path}><AuthProvider><ThemeProvider><UiPreferencesProvider><AppShell><Routes>
@@ -35,6 +37,8 @@ function render(path) {
     <Route path="/forecasts/:forecastId" element={<ForecastDetailPage />} />
     <Route path="/analytics" element={<AnalyticsPage />} />
     <Route path="/containment" element={<ContainmentPage />} />
+    <Route path="/replay" element={<ReplayStudioPage />} />
+    <Route path="/scenarios" element={<ScenarioBuilderPage />} />
     <Route path="/hosts" element={<HostsPage />} />
     <Route path="/hosts/:hostId" element={<HostDetailPage />} />
     <Route path="/audit" element={<AuditPage />} />
@@ -123,5 +127,24 @@ test('containment route shows simulation guardrails, action history, and read-on
   assert.match(html, /Action history/)
   assert.match(html, /Read-only role/)
   assert.match(html, /Containment/)
+  assert.match(html, /SIMULATION/)
+})
+
+test('replay studio exposes controls, event sequence, time travel, and session compare', () => {
+  const html = render('/replay')
+  assert.match(html, /Replay Studio/)
+  assert.match(html, /Replay controls/)
+  assert.match(html, /Time travel/)
+  assert.match(html, /Compare finished sessions/)
+  assert.match(html, /session counters describe these runs/i)
+  assert.match(html, /SIMULATION/)
+})
+
+test('scenario builder lists the simulation library and explains viewer limits', () => {
+  const html = render('/scenarios')
+  assert.match(html, /Scenario builder/)
+  assert.match(html, /Scenario library/)
+  assert.match(html, /Viewer accounts can browse scenarios/)
+  assert.match(html, /do not generate real traffic/)
   assert.match(html, /SIMULATION/)
 })

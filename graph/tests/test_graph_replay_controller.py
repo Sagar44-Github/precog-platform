@@ -177,6 +177,32 @@ def test_pause_holds_the_replay_and_resume_continues(rig):
     rig.controller.stop()
 
 
+def test_step_advances_exactly_one_event_then_pauses_again(rig):
+    rig.controller.start("quiet-scan", 1.0)
+    deadline = time.monotonic() + 2
+    while time.monotonic() < deadline and rig.controller.status()["position"] < 1:
+        time.sleep(0.005)
+    assert rig.controller.status()["position"] == 1
+    rig.controller.pause()
+    assert rig.controller.step()["state"] == "running"
+    deadline = time.monotonic() + 3
+    while time.monotonic() < deadline:
+        status = rig.controller.status()
+        if status["state"] == "paused" and status["position"] == 2:
+            break
+        time.sleep(0.005)
+    assert rig.controller.status()["state"] == "paused"
+    assert rig.controller.status()["position"] == 2
+    assert rig.detector_calls == 1
+    rig.controller.stop()
+
+
+def test_step_requires_a_paused_replay(rig):
+    with pytest.raises(HookError) as info:
+        rig.controller.step()
+    assert info.value.status == 409
+
+
 def test_controls_that_do_nothing_say_so(rig):
     for call in (rig.controller.pause, rig.controller.resume, rig.controller.restart):
         with pytest.raises(HookError) as info:

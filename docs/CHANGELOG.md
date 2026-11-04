@@ -47,3 +47,11 @@
 - Added optional `ANALYST_PASSWORD` and `VIEWER_PASSWORD` account seeding without modifying NIDS files.
 - Added `operator_profile` and `containment_playbook_request` schemas/samples; expanded `containment_action`; the checker reports 26 contracts.
 - Added API, service, startup, and page tests. Chromium evidence and screenshots are stored under `docs/phase-b5/`.
+
+## Phase B6 — Replay studio and scenario builder (2026-11-05)
+
+- Added `/app/replay` for scenario control, 1×–8× speed, pause/resume, one-event stepping, read-only time travel, and finished-session comparison.
+- Added `/app/scenarios` with the shipped/custom library and a visual builder for technique, traffic, and host-attempt events; server validation checks schema, sequence, offsets, and known hosts before atomic local save.
+- Added a 200-snapshot in-memory ring buffer and read-only time-travel and session-comparison endpoints.
+- Added the `time_travel_snapshot` and `session_comparison` contracts; bounded GRAPH scenario descriptions and event count.
+- Added backend, controller, builder, comparison, and page regression tests. Phase evidence is stored under `docs/phase-b6/`.
