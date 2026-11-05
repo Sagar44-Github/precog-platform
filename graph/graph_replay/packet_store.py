@@ -45,9 +45,53 @@ class NidsPacketStore:
             session.close()
 
     def clear(self):
+        from sqlalchemy import text
+
         session = self._session_factory()
         try:
             session.query(self._packet_class).delete()
+            if session.bind.dialect.name == "sqlite":
+                try:
+                    session.execute(text("DELETE FROM sqlite_sequence WHERE name = :table_name"), {"table_name": self._packet_class.__tablename__})
+                except Exception:  # sqlite_sequence is absent when the table does not use AUTOINCREMENT
+                    pass
+            session.commit()
+        finally:
+            session.close()
+
+    def checkpoint(self):
+        session = self._session_factory()
+        try:
+            rows = session.query(self._packet_class).order_by(self._packet_class.id).all()
+            result = []
+            for packet in rows:
+                row = {name: getattr(packet, name, None) for name in PACKET_FIELDS}
+                if row.get("timestamp") is not None:
+                    row["timestamp"] = row["timestamp"].isoformat()
+                result.append(row)
+            return result
+        finally:
+            session.close()
+
+    def restore_checkpoint(self, rows):
+        from datetime import datetime
+        from sqlalchemy import text
+
+        session = self._session_factory()
+        try:
+            session.query(self._packet_class).delete()
+            if session.bind.dialect.name == "sqlite":
+                try:
+                    session.execute(text("DELETE FROM sqlite_sequence WHERE name = :table_name"), {"table_name": self._packet_class.__tablename__})
+                except Exception:
+                    pass
+            session.flush()
+            for row in rows:
+                value = dict(row)
+                timestamp = value.get("timestamp")
+                if isinstance(timestamp, str):
+                    value["timestamp"] = datetime.fromisoformat(timestamp)
+                session.add(self._packet_class(**{key: value[key] for key in PACKET_FIELDS if key in value and key != "id"}, id=value.get("id")))
             session.commit()
         finally:
             session.close()
@@ -85,6 +129,15 @@ class MemoryPacketStore:
     def all(self):
         with self._lock:
             return [dict(r) for r in self._rows]
+
+    def checkpoint(self):
+        with self._lock:
+            return {"rows": [dict(row) for row in self._rows], "next_id": self._next_id}
+
+    def restore_checkpoint(self, state):
+        with self._lock:
+            self._rows = [dict(row) for row in state.get("rows", [])]
+            self._next_id = int(state.get("next_id", 1))
 
 
 def simple_detector(store):

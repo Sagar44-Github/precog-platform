@@ -47,5 +47,5 @@ class Config:
             validate_contracts=_flag("VALIDATE_CONTRACTS", True),
             cookie_secure=_flag("COOKIE_SECURE", False),
             incident_correlation_window_seconds=incident_window,
-            data_dir=repo_root / "lead-core" / "backend" / "data",
+            data_dir=Path(os.environ.get("PRECOG_DATA_DIR", repo_root / "lead-core" / "backend" / "data")).resolve(),
         )

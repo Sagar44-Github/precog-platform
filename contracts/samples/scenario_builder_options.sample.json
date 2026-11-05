@@ -1,0 +1,1 @@
+{"hosts": [{"host_id": "host-a", "name": "Workstation A", "zone": "user"}], "techniques": [{"id": "T1046", "name": "Network Service Discovery", "tactics": ["discovery"]}]}

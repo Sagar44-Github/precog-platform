@@ -17,11 +17,13 @@
     },
     "description": {
       "type": "string",
-      "minLength": 1
+      "minLength": 1,
+      "maxLength": 500
     },
     "events": {
       "type": "array",
       "minItems": 1,
+      "maxItems": 200,
       "items": {
         "oneOf": [
           {
@@ -55,7 +57,8 @@
         },
         "offset_ms": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "maximum": 7200000
         },
         "pause_for_decision": {
           "type": "boolean"
@@ -99,7 +102,8 @@
         },
         "offset_ms": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "maximum": 7200000
         },
         "pause_for_decision": {
           "type": "boolean"
@@ -186,7 +190,8 @@
         },
         "offset_ms": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "maximum": 7200000
         },
         "pause_for_decision": {
           "type": "boolean"

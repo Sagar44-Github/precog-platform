@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/scenario_library.schema.json",
+  "title": "Replay scenario library",
+  "type": "object",
+  "required": ["items"],
+  "properties": {"items": {"type": "array", "maxItems": 54, "items": {"$ref": "https://precog.local/contracts/scenario_summary.schema.json"}}},
+  "additionalProperties": false
+}

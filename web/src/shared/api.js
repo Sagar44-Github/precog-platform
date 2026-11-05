@@ -44,6 +44,7 @@ async function request(method, path, body) {
 
 export const apiGet = (path) => request('GET', path)
 export const apiPost = (path, body = {}) => request('POST', path, body)
+export const apiDelete = (path) => request('DELETE', path)
 
 // Named helpers, one per backend endpoint the screens need. Names match docs: TRD section 11.
 export const api = {
@@ -69,5 +70,23 @@ export const api = {
   pauseReplay: () => apiPost('/api/x/replay/pause'),
   resumeReplay: () => apiPost('/api/x/replay/resume'),
   restartReplay: () => apiPost('/api/x/replay/restart'),
+  scenarios: () => apiGet('/api/x/scenarios'),
+  scenario: (id) => apiGet(`/api/x/scenarios/${encodeURIComponent(id)}`),
+  validateScenario: (scenario) => apiPost('/api/x/scenarios/validate', { scenario }),
+  dryRunScenario: (scenario) => apiPost('/api/x/scenarios/dry-run', { scenario }),
+  saveScenario: (scenario) => apiPost('/api/x/scenarios', { scenario }),
+  deleteScenario: (id) => apiDelete(`/api/x/scenarios/${encodeURIComponent(id)}`),
+  startStudio: (scenarioId, speed = 1) => apiPost('/api/x/replay/studio/start', { scenario_id: scenarioId, speed }),
+  studioStatus: () => apiGet('/api/x/replay/studio/status'),
+  stepReplay: () => apiPost('/api/x/replay/step'),
+  stepBackReplay: () => apiPost('/api/x/replay/step-back'),
+  seekReplay: (position) => apiPost('/api/x/replay/seek', { position }),
+  setReplaySpeed: (speed) => apiPost('/api/x/replay/speed', { speed }),
+  setBreakpoints: (sequences) => apiPost('/api/x/replay/breakpoints', { sequences }),
+  runs: () => apiGet('/api/x/runs'),
+  run: (id) => apiGet(`/api/x/runs/${encodeURIComponent(id)}`),
+  runSnapshots: (id) => apiGet(`/api/x/runs/${encodeURIComponent(id)}/snapshots`),
+  runSnapshot: (id, version) => apiGet(`/api/x/snapshots?run=${encodeURIComponent(id)}&version=${version}`),
+  compareRuns: (a, b) => apiGet(`/api/x/runs/compare?a=${encodeURIComponent(a)}&b=${encodeURIComponent(b)}`),
   registerPush: (token) => apiPost('/api/x/push/register', { token }),
 }

@@ -22,6 +22,7 @@ INCIDENT_STATUSES = ("open", "contained", "closed", "reopened")
 INCIDENT_SEVERITIES = ("HIGH", "MEDIUM", "LOW")
 INCIDENT_SORTS = ("updated_desc", "created_asc", "severity_desc")
 INCIDENT_ID = re.compile(r"^INC-[0-9]{4}$")
+RUN_ID = re.compile(r"^RUN-[0-9]{6}$")
 MAX_WRITE_BYTES = 32768
 
 
@@ -159,7 +160,14 @@ def domain_feed():
             raise ApiError("bad_request", "'since' must be a whole number.", 400)
         if since < 0:
             raise ApiError("bad_request", "'since' cannot be negative.", 400)
-    result = _ctx()["hooks"].require("incidents").feed(since)
+    incidents = _ctx()["hooks"].require("incidents")
+    result = incidents.feed(since)
+    studio = _ctx()["hooks"].get("studio")
+    if studio is not None:
+        incidents.set_run_version(studio.revision)
+        result = incidents.feed(since)
+        result["revision"] += studio.revision
+        result["changed"] = since is None or since != result["revision"]
     return jsonify(_out("feed_versions", result))
 
 
@@ -545,6 +553,240 @@ def incident_status_change(incident_id):
     except ValueError as exc:
         raise ApiError("bad_request", str(exc), 400)
     return jsonify(_out("incident", incident))
+
+
+# ---------- replay studio, scenarios and run history ----------
+def _studio():
+    return _ctx()["hooks"].require("studio")
+
+
+@bp.get("/scenarios")
+@auth.json_login_required
+def scenario_library():
+    items = [_out("scenario_summary", item) for item in _studio().scenarios()]
+    return jsonify(_out("scenario_library", {"items": items}))
+
+
+@bp.get("/scenarios/options")
+@auth.json_login_required
+def scenario_builder_options():
+    studio = _studio()
+    graph = _ctx()["hooks"].require("graph")
+    events = _ctx()["hooks"].require("events")
+    table = getattr(events, "techniques", None) or getattr(getattr(events, "_delegate", None), "techniques", None)
+    hosts = [{"host_id": host_id, "name": info.get("name", host_id), "zone": info.get("zone", "unknown")}
+             for host_id, info in sorted(studio.topology.hosts.items())]
+    techniques = [{"id": item_id, "name": table.require(item_id).get("name", item_id),
+                   "tactics": list(table.require(item_id).get("tactics", []))}
+                  for item_id in sorted(studio.technique_ids)] if table is not None else []
+    return jsonify(_out("scenario_builder_options", {"hosts": hosts, "techniques": techniques}))
+
+
+@bp.get("/scenarios/<scenario_id>")
+@auth.json_login_required
+def scenario_get(scenario_id):
+    found = _studio().get_scenario(scenario_id)
+    if found is None:
+        raise ApiError("not_found", "There is no scenario called '%s'." % scenario_id, 404)
+    return jsonify(found)
+
+
+@bp.get("/scenarios/<scenario_id>/export")
+@auth.json_login_required
+def scenario_export(scenario_id):
+    found = _studio().get_scenario(scenario_id)
+    if found is None:
+        raise ApiError("not_found", "There is no scenario called '%s'." % scenario_id, 404)
+    response = jsonify(found["scenario"])
+    response.headers["Content-Disposition"] = 'attachment; filename="%s.json"' % scenario_id
+    return response
+
+
+@bp.post("/scenarios/validate")
+@auth.role_required("analyst")
+@auth.rate_limit(max_requests=20, window_seconds=60)
+def scenario_validate():
+    data = _body()
+    if set(data) != {"scenario"}:
+        raise ApiError("bad_request", "Send exactly one field: scenario.", 400)
+    return jsonify(_studio().validate(data["scenario"]))
+
+
+@bp.post("/scenarios/dry-run")
+@auth.role_required("analyst")
+@auth.rate_limit(max_requests=5, window_seconds=60)
+def scenario_dry_run():
+    data = _body()
+    if set(data) != {"scenario"}:
+        raise ApiError("bad_request", "Send exactly one field: scenario.", 400)
+    try:
+        return jsonify(_studio().dry_run(data["scenario"]))
+    except ValueError as exc:
+        raise ApiError("bad_request", str(exc), 400)
+
+
+@bp.post("/scenarios")
+@auth.role_required("analyst")
+@auth.rate_limit(max_requests=20, window_seconds=60)
+def scenario_save():
+    data = _body()
+    if set(data) != {"scenario"}:
+        raise ApiError("bad_request", "Send exactly one field: scenario.", 400)
+    try:
+        return jsonify(_studio().save_scenario(data["scenario"])), 201
+    except ValueError as exc:
+        raise ApiError("bad_request", str(exc), 400)
+
+
+@bp.delete("/scenarios/<scenario_id>")
+@auth.role_required("analyst")
+@auth.rate_limit(max_requests=20, window_seconds=60)
+def scenario_delete(scenario_id):
+    try:
+        _studio().delete_scenario(scenario_id)
+    except KeyError:
+        raise ApiError("not_found", "There is no saved user scenario called '%s'." % scenario_id, 404)
+    except ValueError as exc:
+        raise ApiError("bad_request", str(exc), 400)
+    return jsonify({"scenario_id": scenario_id, "deleted": True})
+
+
+@bp.get("/replay/studio/status")
+@auth.json_login_required
+def replay_studio_status():
+    replay = _ctx()["hooks"].require("replay")
+    studio = _studio()
+    return jsonify(_out("studio_status", {"status": replay.status(), "active_run": studio.active()}))
+
+
+@bp.post("/replay/studio/start")
+@auth.role_required("analyst")
+@auth.rate_limit(max_requests=10, window_seconds=60)
+def replay_studio_start():
+    data = _body()
+    if set(data) - {"scenario_id", "speed"} or "scenario_id" not in data:
+        raise ApiError("bad_request", "Send scenario_id and optional speed.", 400)
+    speed = data.get("speed", 1.0)
+    if isinstance(speed, bool) or not isinstance(speed, (int, float)) or not 0.25 <= float(speed) <= 8:
+        raise ApiError("bad_request", "Studio speed must be between 0.25x and 8x.", 400)
+    replay = _ctx()["hooks"].require("replay")
+    status = replay.start(_text(data, "scenario_id"), float(speed), paused=True)
+    return jsonify(_out("studio_status", {"status": status, "active_run": _studio().active()}))
+
+
+@bp.post("/replay/step")
+@auth.role_required("analyst")
+def replay_step():
+    _body()
+    replay = _ctx()["hooks"].require("replay")
+    status = replay.step()
+    return jsonify(_out("studio_status", {"status": status, "active_run": _studio().active()}))
+
+
+@bp.post("/replay/step-back")
+@auth.role_required("analyst")
+def replay_step_back():
+    _body()
+    replay = _ctx()["hooks"].require("replay")
+    status = replay.step_back()
+    return jsonify(_out("studio_status", {"status": status, "active_run": _studio().active()}))
+
+
+@bp.post("/replay/seek")
+@auth.role_required("analyst")
+def replay_seek():
+    data = _body()
+    if set(data) != {"position"}:
+        raise ApiError("bad_request", "Send exactly one field: position.", 400)
+    status = _ctx()["hooks"].require("replay").seek(data["position"])
+    return jsonify(_out("studio_status", {"status": status, "active_run": _studio().active()}))
+
+
+@bp.post("/replay/speed")
+@auth.role_required("analyst")
+def replay_speed():
+    data = _body()
+    if set(data) != {"speed"}:
+        raise ApiError("bad_request", "Send exactly one field: speed.", 400)
+    status = _ctx()["hooks"].require("replay").set_speed(data["speed"])
+    return jsonify(_out("studio_status", {"status": status, "active_run": _studio().active()}))
+
+
+@bp.post("/replay/breakpoints")
+@auth.role_required("analyst")
+def replay_breakpoints():
+    data = _body()
+    if set(data) != {"sequences"}:
+        raise ApiError("bad_request", "Send exactly one field: sequences.", 400)
+    values = _ctx()["hooks"].require("replay").set_breakpoints(data["sequences"])
+    return jsonify(_out("breakpoint_set", {"sequences": values}))
+
+
+@bp.get("/runs")
+@auth.json_login_required
+def runs_list():
+    try:
+        limit = int(request.args.get("limit", 50))
+    except ValueError:
+        raise ApiError("bad_request", "'limit' must be a whole number.", 400)
+    if not 1 <= limit <= 50:
+        raise ApiError("bad_request", "'limit' must be between 1 and 50.", 400)
+    return jsonify([_out("run_summary", item) for item in _studio().list_runs(limit)])
+
+
+@bp.get("/runs/compare")
+@auth.json_login_required
+def runs_compare():
+    first_id, second_id = request.args.get("a", ""), request.args.get("b", "")
+    if not RUN_ID.fullmatch(first_id) or not RUN_ID.fullmatch(second_id):
+        raise ApiError("bad_request", "Supply run ids with the RUN-000001 format as a and b.", 400)
+    try:
+        return jsonify(_studio().compare(first_id, second_id))
+    except KeyError as exc:
+        raise ApiError("not_found", "No run with id %s." % exc.args[0], 404)
+
+
+@bp.get("/runs/<run_id>/snapshots")
+@auth.json_login_required
+def run_snapshots(run_id):
+    if not RUN_ID.fullmatch(run_id):
+        raise ApiError("bad_request", "Run id must use the RUN-000001 format.", 400)
+    result = _studio().snapshot_index(run_id)
+    if result is None:
+        raise ApiError("not_found", "No run with id %s." % run_id, 404)
+    return jsonify(result)
+
+
+@bp.get("/runs/<run_id>")
+@auth.json_login_required
+def run_get(run_id):
+    if not RUN_ID.fullmatch(run_id):
+        raise ApiError("bad_request", "Run id must use the RUN-000001 format.", 400)
+    result = _studio().get_run(run_id)
+    if result is None:
+        raise ApiError("not_found", "No run with id %s." % run_id, 404)
+    return jsonify(_out("run_detail", {"summary": _out("run_summary", result["summary"]), "final_state": result.get("final_state")}))
+
+
+@bp.get("/snapshots")
+@auth.json_login_required
+def snapshot_get():
+    run_id = request.args.get("run", "")
+    if not RUN_ID.fullmatch(run_id):
+        raise ApiError("bad_request", "Supply a run id with the RUN-000001 format.", 400)
+    version_text = request.args.get("version")
+    version = None
+    if version_text is not None:
+        try:
+            version = int(version_text)
+        except ValueError:
+            raise ApiError("bad_request", "'version' must be a whole number.", 400)
+        if version < 0:
+            raise ApiError("bad_request", "'version' cannot be negative.", 400)
+    result = _studio().get_snapshot(run_id, version)
+    if result is None:
+        raise ApiError("not_found", "No run snapshot matches that run and version.", 404)
+    return jsonify(result)
 
 
 # ---------- anything else under /api/x ----------

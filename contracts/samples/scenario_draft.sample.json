@@ -1,0 +1,6 @@
+{
+  "scenario": {"scenario_id": "user-demo", "description": "A saved demo scenario", "events": [{"seq": 1, "offset_ms": 0, "kind": "technique", "host": "host-a", "technique_id": "T1046"}]},
+  "source": "user",
+  "editable": true,
+  "updated_at": null
+}

@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/breakpoint_set.schema.json",
+  "title": "Replay breakpoints",
+  "type": "object",
+  "required": ["sequences"],
+  "properties": {"sequences": {"type": "array", "uniqueItems": true, "maxItems": 200, "items": {"type": "integer", "minimum": 1}}},
+  "additionalProperties": false
+}

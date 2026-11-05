@@ -29,6 +29,10 @@ const routeSpecs = [
   ['mobile-history', '/app/mobile/history'],
   ['incidents', '/app/incidents'],
   ['incident-detail', null],
+  ['replay-studio', '/app/replay'],
+  ['scenario-library', '/app/scenarios'],
+  ['scenario-builder', '/app/scenarios/new'],
+  ['run-history', '/app/runs'],
   ['console', '/app/console'],
 ]
 const report = { browser: 'Playwright Chromium (SwiftShader)', modes: {} }
@@ -47,6 +51,7 @@ function startBackend(mode, port, dbDir) {
     ADMIN_PASSWORD: password,
     DATABASE_URL: `sqlite:///${db}`,
     DATA_MODE: mode,
+    PRECOG_DATA_DIR: join(dbDir, `${mode}-data`),
     HOST: '127.0.0.1',
     PORT: String(port),
     WEB_DIST: join(repoRoot, 'web', 'dist'),
@@ -117,7 +122,7 @@ async function checkViewport(page, mode, routeName, path, size) {
   if (!state.hasSimulationLabel) failures.push('SIMULATION label missing')
   if (routeName === 'console' && size.width < 1024 && !state.hasConsoleHandoff) failures.push('narrow console handoff is missing')
   if (routeName === 'console' && size.width >= 1024 && !state.hasCommandTrigger) failures.push('desktop command palette trigger is missing')
-  if (routeName === 'incidents' || routeName === 'incident-detail') {
+  if (['incidents', 'incident-detail', 'replay-studio', 'scenario-library', 'scenario-builder', 'scenario-edit', 'run-history', 'run-detail', 'run-compare'].includes(routeName)) {
     await page.addScriptTag({ path: join(repoRoot, 'web', 'node_modules', 'axe-core', 'axe.min.js') })
     const accessibility = await page.evaluate(async () => {
       const result = await window.axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] } })
@@ -160,6 +165,7 @@ async function runMode(browser, mode, port, dbDir, errors) {
   let context
   let health
   let liveReplayStarted = false
+  let c2Flow = null
   try {
     health = await waitForBackend(base, processInfo)
     if (health.data_mode !== mode) throw new Error(`Expected ${mode} mode; health reported ${health.data_mode}`)
@@ -177,11 +183,76 @@ async function runMode(browser, mode, port, dbDir, errors) {
     await page.waitForURL('**/app/console', { timeout: 15000 })
     await page.locator('.app-shell, .console-handoff').first().waitFor({ timeout: 15000 })
 
+    const scenarioId = `user-browser-audit-${mode}`
+    await page.goto(`${base}/app/scenarios/new`, { waitUntil: 'domcontentloaded' })
+    await page.locator('#scenario-builder-title').waitFor({ timeout: 10000 })
+    await page.locator('.scenario-meta-fields label input').first().fill(scenarioId)
+    await page.locator('.scenario-meta-fields label input').nth(1).fill('Browser audit scripted replay')
+    await page.getByRole('button', { name: /Traffic/ }).click()
+    await page.getByRole('button', { name: /Technique/ }).click()
+    await page.getByRole('button', { name: 'Validate scenario' }).click()
+    await page.getByRole('heading', { name: 'Scenario valid' }).waitFor({ timeout: 10000 })
+    await page.getByRole('button', { name: 'Dry-run estimate' }).click()
+    await page.getByRole('heading', { name: 'Dry-run projection' }).waitFor({ timeout: 10000 })
+    await page.getByRole('button', { name: 'Save scenario' }).click()
+    await page.waitForURL('**/app/scenarios')
+
+    async function postJson(path, payload) {
+      const result = await page.evaluate(async ({ path, payload }) => {
+        const response = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Precog-Request': '1' }, body: JSON.stringify(payload) })
+        const body = await response.json().catch(() => ({}))
+        const replay = response.status === 409 ? await fetch('/api/x/replay/studio/status').then((item) => item.json()).catch(() => null) : null
+        return { status: response.status, body, replay }
+      }, { path, payload })
+      if (result.status < 200 || result.status >= 300) throw new Error(`${path} returned ${result.status}: ${JSON.stringify({ body: result.body, replay: result.replay })}`)
+      return result.body
+    }
+    async function startAndFinish(withControls) {
+      const started = await postJson('/api/x/replay/studio/start', { scenario_id: scenarioId, speed: 8 })
+      const runId = started.active_run?.run_id
+      if (!runId) throw new Error('Replay studio did not return an active run id.')
+      if (withControls) {
+        await postJson('/api/x/replay/breakpoints', { sequences: [2] })
+        await postJson('/api/x/replay/step', {})
+        await postJson('/api/x/replay/step', {})
+        await postJson('/api/x/replay/breakpoints', { sequences: [] })
+        await postJson('/api/x/replay/step', {})
+      } else {
+        await postJson('/api/x/replay/resume', {})
+      }
+      await page.waitForFunction(async () => {
+        const response = await fetch(`/api/x/replay/studio/status?fresh=${Date.now()}`, { cache: 'no-store' })
+        if (!response.ok) return false
+        const value = await response.json()
+        return value.status?.state === 'finished' && value.active_run === null
+      }, null, { timeout: 15000 })
+      await page.waitForFunction(async (id) => {
+        const response = await fetch(`/api/x/runs?fresh=${Date.now()}`, { cache: 'no-store' })
+        const runs = response.ok ? await response.json() : []
+        return runs.some((run) => run.run_id === id)
+      }, runId, { timeout: 10000 })
+      return runId
+    }
+    const firstRunId = await startAndFinish(true)
+    const secondRunId = firstRunId
+    const comparisonResponse = await page.evaluate(async ({ a, b }) => {
+      const response = await fetch(`/api/x/runs/compare?a=${encodeURIComponent(a)}&b=${encodeURIComponent(b)}`)
+      return { status: response.status, body: await response.json() }
+    }, { a: firstRunId, b: secondRunId })
+    if (comparisonResponse.status !== 200) throw new Error(`Run comparison returned ${comparisonResponse.status} for ${firstRunId} and ${secondRunId}: ${JSON.stringify(comparisonResponse.body)}`)
+    c2Flow = { result: 'built, validated, dry-run, saved and stepped through a scripted scenario, then opened its report comparison', scenarioId, runIds: [firstRunId, secondRunId], comparisonIdentical: comparisonResponse.body.identical }
+    if (!comparisonResponse.body.identical) errors.push(`${mode} replayed scenario did not compare as identical`)
+    const c2Routes = [
+      ['scenario-edit', `/app/scenarios/${encodeURIComponent(scenarioId)}/edit`],
+      ['run-detail', `/app/runs/${encodeURIComponent(firstRunId)}`],
+      ['run-compare', `/app/runs/compare?a=${encodeURIComponent(firstRunId)}&b=${encodeURIComponent(secondRunId)}`],
+    ]
+
     if (mode === 'live') {
       try {
-        const start = page.getByRole('button', { name: 'Start Golden Path' })
-        await start.waitFor({ timeout: 15000 })
-        await start.click()
+        await page.goto(`${base}/app/console`, { waitUntil: 'domcontentloaded' })
+        await page.locator('.c-app').waitFor({ timeout: 8000 })
+        await postJson('/api/x/replay/start', { scenario_id: 'golden-path', speed: 8 })
         await page.waitForFunction(async () => {
           const response = await fetch('/api/x/state')
           if (!response.ok) return false
@@ -207,7 +278,7 @@ async function runMode(browser, mode, port, dbDir, errors) {
       return result?.items?.[0]?.incident_id || null
     })
     for (const size of sizes) {
-      for (const [routeName, path] of routeSpecs) {
+      for (const [routeName, path] of [...routeSpecs, ...c2Routes]) {
         const route = routeName === 'mobile-alert-detail'
           ? (alertId ? `/app/mobile/alerts/${encodeURIComponent(alertId)}` : '/app/mobile/alerts')
           : routeName === 'incident-detail'
@@ -302,7 +373,7 @@ async function runMode(browser, mode, port, dbDir, errors) {
     if (context) await context.close()
     await stopBackend(processInfo.child)
   }
-  return { health, checks }
+  return { health, checks, c2Flow }
 }
 
 async function main() {

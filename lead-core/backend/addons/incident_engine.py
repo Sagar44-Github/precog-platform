@@ -136,6 +136,26 @@ class IncidentService:
         with self._lock:
             self._clear_run_locked()
 
+    def checkpoint_state(self):
+        """Capture mutable incident state for replay step-back, excluding locks and services."""
+        names = ("_incidents", "_timelines", "_counter", "_timeline_counters", "_note_counter",
+                 "_seen_alerts", "_forecast_states", "_forecast_incident", "_action_states",
+                 "_session_id", "_last_session_id", "_versions", "_revision")
+        with self._lock:
+            return {name: deepcopy(getattr(self, name)) for name in names}
+
+    def restore_checkpoint(self, state):
+        names = ("_incidents", "_timelines", "_counter", "_timeline_counters", "_note_counter",
+                 "_seen_alerts", "_forecast_states", "_forecast_incident", "_action_states",
+                 "_session_id", "_last_session_id")
+        with self._lock:
+            old_versions, old_revision = self._versions, self._revision
+            for name in names:
+                setattr(self, name, deepcopy(state[name]))
+            restored_versions = state.get("_versions", {})
+            self._versions = {key: max(old_versions.get(key, 0), restored_versions.get(key, 0)) + 1 for key in old_versions}
+            self._revision = max(old_revision, state.get("_revision", 0)) + 1
+
     def _clear_run_locked(self):
         self._incidents.clear()
         self._timelines.clear()
@@ -175,6 +195,11 @@ class IncidentService:
                 "changed": since is None or since != self._revision,
                 "versions": deepcopy(self._versions),
             }
+
+    def set_run_version(self, version):
+        with self._lock:
+            self._versions["runs"] = max(self._versions["runs"], int(version))
+            self._revision = max(self._revision, sum(self._versions.values()))
 
     # ---------- correlation ----------
     def _techniques(self):
@@ -646,6 +671,11 @@ class IncidentService:
             next_cursor = page[-1]["incident_id"] if len(items) > limit and page else None
             return {"items": deepcopy(page), "next_cursor": next_cursor, "total": total}
 
+    def snapshot_records(self):
+        """Read incident records without refreshing from the world or changing lifecycle state."""
+        with self._lock:
+            return deepcopy(list(self._incidents.values()))
+
     # ---------- notes and analyst status ----------
     def add_note(self, incident_id, body, author, role):
         text = validate_note(body)
@@ -722,6 +752,9 @@ class IncidentEngine:
     def feed(self, since=None):
         return self.service.feed(since)
 
+    def set_run_version(self, version):
+        return self.service.set_run_version(version)
+
     def refresh(self):
         return self.service.refresh()
 
@@ -734,6 +767,9 @@ class IncidentEngine:
     def list_page(self, **kwargs):
         return self.service.list_page(**kwargs)
 
+    def snapshot_records(self):
+        return self.service.snapshot_records()
+
     def add_note(self, *args, **kwargs):
         return self.service.add_note(*args, **kwargs)
 
@@ -742,6 +778,12 @@ class IncidentEngine:
 
     def reset(self):
         return self.service.reset()
+
+    def checkpoint_state(self):
+        return self.service.checkpoint_state()
+
+    def restore_checkpoint(self, state):
+        return self.service.restore_checkpoint(state)
 
 
 def register(ctx):

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { Link, NavLink, useNavigate } from 'react-router-dom'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from './AuthContext.jsx'
 import { SimulationBadge } from './components.jsx'
 import { Icon } from './icons.jsx'
@@ -38,6 +38,9 @@ export function CommandPalette({ open, onClose }) {
     { label: 'Open live console', detail: 'Go to the 3D replay console', icon: 'activity', keywords: 'workspace desktop', run: () => navigate('/console') },
     { label: 'Open mobile SOC', detail: 'Open the phone PWA screens', icon: 'smartphone', keywords: 'phone pwa', run: () => navigate('/mobile') },
     { label: 'Open incident investigations', detail: 'Review correlated alerts and analyst notes', icon: 'shield', keywords: 'cases incident investigation', run: () => navigate('/incidents') },
+    { label: 'Open replay studio', detail: 'Step through a scripted replay and compare runs', icon: 'play', keywords: 'replay studio runs timeline', run: () => navigate('/replay') },
+    { label: 'Open scenario library', detail: 'Choose or build a scripted scenario', icon: 'layers', keywords: 'scenario builder library', run: () => navigate('/scenarios') },
+    { label: 'Open run history', detail: 'Review completed runs and compare outcomes', icon: 'clock', keywords: 'runs history compare', run: () => navigate('/runs') },
     { label: 'Show alert stream', detail: 'Open alerts in the console panel', icon: 'activity', keywords: 'alerts events', run: () => commandEvent({ type: 'view', view: 'alerts' }) },
     { label: 'Show session report', detail: 'Open the current session report panel', icon: 'sliders', keywords: 'reports metrics', run: () => commandEvent({ type: 'view', view: 'reports' }) },
     ...(role === 'viewer' ? [] : [{ label: 'Start Golden Path replay', detail: 'Start the deterministic simulation', icon: 'play', keywords: 'demo replay simulation', run: () => commandEvent({ type: 'start-demo' }) }]),
@@ -134,10 +137,16 @@ export function ConsoleHandoff() {
 export default function AppShell({ children }) {
   const { username, role, logout } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [openIncidents, setOpenIncidents] = useState(0)
   const [incidentNotice, setIncidentNotice] = useState(false)
-  const handoff = useConsoleHandoff()
+  const handoff = useConsoleHandoff() && location.pathname.startsWith('/console')
+  const pageTitle = location.pathname.startsWith('/replay') ? 'Replay studio'
+    : location.pathname.includes('/edit') || location.pathname.endsWith('/new') ? 'Scenario builder'
+      : location.pathname.startsWith('/scenarios') ? 'Scenario library'
+        : location.pathname.includes('/compare') ? 'Run comparison'
+          : location.pathname.startsWith('/runs') ? 'Run history' : 'Live console'
   const closePalette = () => setPaletteOpen(false)
 
   useEffect(() => {
@@ -178,7 +187,7 @@ export default function AppShell({ children }) {
   return (
     <div className="app-shell">
       <aside className="app-sidebar" aria-label="Workspace navigation">
-        <Link to="/console" className="app-brand" aria-label="Precog SOC home">
+        <Link to="/console" className="app-brand">
           <span className="brand-mark"><Icon name="activity" size={21} /></span>
           <span className="brand-copy"><b>Precog <strong>SOC</strong></b><small>SIMULATION LAB</small></span>
         </Link>
@@ -193,6 +202,15 @@ export default function AppShell({ children }) {
           <NavLink to="/incidents" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
             <Icon name="shield" /><span>Incidents</span>{openIncidents > 0 && <b className="app-nav-count" aria-label={`${openIncidents} open incidents`}>{openIncidents}</b>}
           </NavLink>
+          <NavLink to="/replay" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
+            <Icon name="play" /><span>Replay studio</span>
+          </NavLink>
+          <NavLink to="/scenarios" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
+            <Icon name="layers" /><span>Scenarios</span>
+          </NavLink>
+          <NavLink to="/runs" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
+            <Icon name="clock" /><span>Run history</span>
+          </NavLink>
         </nav>
         <div className="app-sidebar-spacer" />
         <div className="app-simulation-note"><span className="status-square" /> SIMULATED ENVIRONMENT</div>
@@ -204,7 +222,7 @@ export default function AppShell({ children }) {
       </aside>
       <div className="app-main">
         <header className="app-topbar">
-          <div className="app-breadcrumb"><span>Workspace</span><Icon name="chevron" size={15} /><h1>Live console</h1></div>
+          <div className="app-breadcrumb"><span>Workspace</span><Icon name="chevron" size={15} /><h1>{pageTitle}</h1></div>
           <div className="app-top-actions">
             {incidentNotice && <Link className="incident-notice" to="/incidents" onClick={() => setIncidentNotice(false)}>New incident <span aria-hidden="true">↗</span></Link>}
             <button type="button" className="command-trigger" onClick={() => setPaletteOpen(true)} aria-haspopup="dialog" aria-expanded={paletteOpen}>

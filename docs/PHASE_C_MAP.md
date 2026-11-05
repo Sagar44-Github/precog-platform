@@ -4,9 +4,9 @@
 
 **Starting point:** `phase-b1.5-precog-landing` at `6d12a82`
 
-**Work branch:** `phase-c1-incidents`
+**Current work branch:** `phase-c2-replay-studio`
 
-**Scope now:** establish the map and baseline, then implement C1 only. Later C items remain gated on review of the preceding item.
+**Scope now:** C1 is complete; C2 is implemented and undergoing final verification. C3–C7 remain gated on review and approval of the preceding item.
 
 ## Phase B inventory
 
@@ -15,7 +15,7 @@ The repository contains `docs/phase-b1/README.md`, `docs/DEMO_SCRIPT_V2.md`, Pha
 | Phase C item | What the current Phase B code delivers | Missing from the full C specification | Likely files or folders to change |
 |---|---|---|---|
 | **C1 Incident investigation** | Distinct security alerts, ATT&CK technique labels, alert timeline, live graph, forecast summaries, audit log, and single-host simulated containment. Phase B1 adds the workspace shell and mobile SOC routes. | Incident correlation and lifecycle; typed incident timeline; notes and status controls; incident filters, detail, exports, notifications and deep links; incident contracts; analyst/viewer authorization. | `lead-core/backend/addons/` (incident service, routes, role checks and world-state integration), `contracts/schemas/`, `contracts/samples/`, `lead-core/integration/tests/`, `web/src/areas/incidents/`, `web/src/App.jsx`, `web/src/shared/`, `docs/INCIDENTS.md`, `docs/audit/screenshots/phase-c/`. |
-| **C2 Replay studio and builder** | Four shipped deterministic replay scenarios and start/pause/resume/restart controls. | Visual scenario authoring, validation and dry run; user scenario library; stepping, breakpoints, seeking, snapshots, run history and comparison. | `graph/graph_replay/`, `lead-core/backend/addons/`, replay contracts and tests, `web/src/areas/replay/`, `web/src/App.jsx`, `docs/`. |
+| **C2 Replay studio and builder** | Four shipped deterministic replay scenarios and start/pause/resume/restart controls. | Delivered in this phase: visual timeline builder, server validation and dry run, bounded user scenario library, step/step-back/seek and breakpoints, speed control, snapshots/time travel, persisted run archive and comparisons. | `graph/graph_replay/`, `lead-core/backend/addons/replay_studio.py`, `lead-core/backend/addons/routes.py`, replay contracts and tests, `web/src/areas/replay/`, `web/src/App.jsx`, `web/src/shared/`, `docs/REPLAY_STUDIO.md`. |
 | **C3 Network digital twin** | A live 3D console graph and a separate interactive 3D landing scene, plus graph topology and a phone-friendly SOC view. | Asset/service/weakness inspection, path explanations and alternatives, risk/exposure overlays, camera presets, time travel, segmentation preview and equivalent accessible list. | `graph/graph_net/`, `lead-core/backend/addons/`, `web/src/areas/console/`, new `web/src/areas/twin/` and host views, topology contracts and tests. |
 | **C4 Precog decision and what-if lab** | Markov top-three forecasts, baseline/session metrics, calibration chart and a reproducible offline evaluation command. | Per-forecast candidate exclusions and formula explanation; read-only what-if; server evaluation runs, cache and experiment log; model card and per-profile analysis. | `lead-core/precog/precog_engine/`, `lead-core/backend/addons/`, forecast/what-if/evaluation contracts and tests, new forecast/lab/analytics web areas. |
 | **C5 Response governance** | Propose/confirm/cancel for a single-host simulated containment, expiry, and audit events. | Role and playbook policy; impact previews; zone/path/top-three actions; approval records; release proposal/confirmation; governance history and UI. | `viz/viz_containment/` or a new add-on module, `lead-core/backend/addons/`, containment/approval contracts and tests, `web/src/areas/containment/`, role-aware navigation. |
@@ -66,4 +66,28 @@ Environment: Windows 11 desktop, PowerShell, Python 3.11.9, repository `.venv`, 
 | Scenario acceptance | `test_golden_path_lateral_spread_quiet_scan_and_repeat_determinism` | Golden Path: exactly one contained incident, one executed action, blocked-hit forecast, source compromise shown. Lateral spread: one growing incident. Quiet scan: one LOW, open incident. Repeated quiet scans normalize identically. |
 | Diff hygiene | `git diff --check`; NIDS path check | No whitespace errors and no changes under `lead-core/backend/nids/`. |
 
-C1 is complete on `phase-c1-incidents`. C2–C7 remain unstarted and gated on review/approval. The existing dependency advisories and Vite chunk warning remain; Render and physical-phone behavior are unverified.
+C1 is complete on `phase-c1-incidents`. C2 implementation and verification are recorded below; C3–C7 remain unstarted and gated on review/approval. The existing dependency advisories and Vite chunk warning remain; Render and physical-phone behavior are unverified.
+
+## C2 delivered
+
+C2 extends the shipped scenario library and replay controls with a scenario builder and replay studio. Analysts can validate and dry-run a scenario, save and edit `user-` scenarios, control playback from 0.25× to 8×, set event breakpoints, step forward and back, and inspect or seek recorded snapshots. Finished runs are saved for comparison, with at most 50 finished runs and 2,000 active snapshots retained. User scenarios are capped at 50 and each scenario is capped at 200 events and two hours. Persisted JSON files are written atomically beneath `lead-core/backend/data/`; no supplied scenario content is executed as code.
+
+The C2 routes cover scenario library/options/detail/export, validation/dry-run/save/delete, studio status/start/step/step-back/seek/speed/breakpoints, finished run list/detail/compare/snapshot index, and the shared snapshot lookup. The shared feed now includes the runs version. New contracts and samples: `breakpoint_set`, `run_comparison`, `run_detail`, `run_snapshot`, `run_summary`, `scenario_builder_options`, `scenario_draft`, `scenario_dry_run`, `scenario_library`, `scenario_summary`, `scenario_validation`, `snapshot_index`, and `studio_status` (13 total). See [REPLAY_STUDIO.md](REPLAY_STUDIO.md) for endpoint and behavior details.
+
+## C2 verification
+
+| Check | Command or procedure | Result |
+|---|---|---|
+| Full Python suite | `.venv/Scripts/python.exe -m pytest -o "addopts=" -p no:cacheprovider --tb=short` | **400 collected; 399 passed, 1 skipped**, 2 existing warnings. The skip is the optional Precog repository test. |
+| Web suite | `npm test` in `web/` | **122 passed, 0 failed, 0 skipped** across 24 web test files. Existing React `useLayoutEffect` server-render warnings remain. |
+| Contracts | `.venv/Scripts/python.exe contracts/check_contracts.py` | **31 contracts OK**. |
+| Production build | `npm run build` in `web/` | Succeeded. Main application chunk: 189.26 kB (61.29 kB gzip); graph chunks remain split. Vite still warns about the 827.91 kB graph chunk. |
+| Browser workflow audit | `npm run audit:browser` in `web/` | **96 checks; 0 failures, 0 browser errors, 0 axe violations**. Sample/live at 390×844, 820×1180 and 1440×900. Builder, validation, dry run, save, stepping, comparison route, and live propose/confirm flow pass. |
+| Browser evidence | `docs/audit/phase-c/c2-final/browser-audit-results.json`; `docs/audit/screenshots/phase-c/c2-final/` | **96 screenshots**. |
+| Scenario/replay acceptance | C2 integration tests and browser flow | Dry-run does not mutate live state; route-level tests compare two distinct run IDs and verify snapshots, stepping, step-back, speed and breakpoints. |
+| Golden Path | C1 integration tests included in the full Python suite | Passed; C2 snapshot capture no longer alters incident correlation. |
+| Hosted bundle and readiness | Build/copy `web/dist` into `lead-core/backend/web_dist`; run `lead-core/integration/check_hosted.py` against the local live service | **24 web files copied; 12 readiness checks passed**, including PWA assets, login, live state and scenario library. |
+| Golden Path rehearsal | `.venv/Scripts/python.exe lead-core/integration/golden_path.py --runs 2 --speed 1` | **2 of 2 PASS**; propose then confirm, blocked hit, re-evaluation, and replay completion. |
+| Diff hygiene | `git diff --cached --check`; NIDS path check | Clean staged diff; no changes under the pinned `lead-core/backend/nids/` tree. |
+
+C2 implementation and verification are complete on `phase-c2-replay-studio`. C3 is a separate gated work item.

@@ -61,7 +61,7 @@ def start(client):
 
 
 def test_every_part_is_registered(stack):
-    for name in ("events", "graph", "replay", "containment", "precog", "push"):
+    for name in ("events", "graph", "replay", "containment", "precog", "push", "incidents", "studio"):
         assert stack["hooks"].has(name), name
 
 
