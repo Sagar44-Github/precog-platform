@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/run_snapshot.schema.json",
+  "title": "Replay snapshot",
+  "type": "object",
+  "required": ["run_id", "version", "position", "event_seq", "event_kind", "captured_at", "state"],
+  "properties": {
+    "run_id": {"type": "string", "pattern": "^RUN-[0-9]{6}$"},
+    "version": {"type": "integer", "minimum": 0},
+    "position": {"type": "integer", "minimum": 0},
+    "event_seq": {"type": ["integer", "null"]},
+    "event_kind": {"type": "string"},
+    "captured_at": {"type": "string", "format": "date-time"},
+    "state": {"type": "object", "additionalProperties": true}
+  },
+  "additionalProperties": false
+}

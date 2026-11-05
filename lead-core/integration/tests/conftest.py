@@ -11,6 +11,7 @@ import tempfile
 from pathlib import Path
 
 import pytest
+from flask.testing import FlaskClient
 
 
 BACKEND = Path(__file__).resolve().parents[2] / "backend"
@@ -23,6 +24,8 @@ os.environ["DATABASE_URL"] = "sqlite:///" + (Path(_tmp) / "test.db").as_posix()
 os.environ["SECRET_KEY"] = "test-secret-key-not-for-real-use"
 
 os.environ["ADMIN_PASSWORD"] = "test-admin-password"
+os.environ["ANALYST_PASSWORD"] = "test-analyst-password"
+os.environ["VIEWER_PASSWORD"] = "test-viewer-password"
 
 os.environ["DATA_MODE"] = "sample"
 
@@ -31,6 +34,7 @@ os.environ["VALIDATE_CONTRACTS"] = "1"
 os.environ["AUTO_TRAIN_MODEL"] = "1"
 
 os.environ["WEB_DIST"] = str(Path(_tmp) / "no-dist-here")
+os.environ["PRECOG_DATA_DIR"] = str(Path(_tmp) / "addon-data")
 
 sys.path.insert(0, str(BACKEND))
 
@@ -44,6 +48,18 @@ def flask_app():
 
     app = create_app()
     app.config["TESTING"] = True
+    class PrecogTestClient(FlaskClient):
+        def open(self, *args, **kwargs):
+            method = (kwargs.get("method") or "GET").upper()
+            path = str(args[0] if args else kwargs.get("path", ""))
+            if method in ("POST", "PUT", "PATCH", "DELETE") and path.startswith("/api/x/") and path != "/api/x/login":
+                if "json" not in kwargs and "data" not in kwargs:
+                    kwargs["json"] = {}
+                headers = dict(kwargs.get("headers") or {})
+                headers.setdefault("X-Precog-Request", "1")
+                kwargs["headers"] = headers
+            return super().open(*args, **kwargs)
+    app.test_client_class = PrecogTestClient
     return app
 
 
@@ -64,10 +80,14 @@ def world(ctx):
 
 @pytest.fixture()
 def hooks(ctx):
-    """The hooks object, emptied before and after the test so stand-ins never leak."""
+    """Temporarily isolate hook stand-ins, then restore the app's real role modules."""
+    original = dict(ctx["hooks"]._items)
     ctx["hooks"]._items.clear()
-    yield ctx["hooks"]
-    ctx["hooks"]._items.clear()
+    try:
+        yield ctx["hooks"]
+    finally:
+        ctx["hooks"]._items.clear()
+        ctx["hooks"]._items.update(original)
 
 
 @pytest.fixture()
@@ -80,3 +100,14 @@ def logged_in(client):
     reply = client.post("/api/x/login", json={"username": "admin", "password": ADMIN_PASSWORD})
     assert reply.status_code == 200, reply.get_data(as_text=True)
     return client
+
+
+@pytest.fixture(autouse=True)
+def restore_role_registry(flask_app):
+    """Keep shared add-on roles available even when legacy fixtures isolate hook stand-ins."""
+    extension = flask_app.extensions["precog"]
+    baseline = extension.setdefault("_test_role_registry", dict(extension["hooks"]._items))
+    yield
+    hooks = extension["hooks"]
+    hooks._items.clear()
+    hooks._items.update(baseline)

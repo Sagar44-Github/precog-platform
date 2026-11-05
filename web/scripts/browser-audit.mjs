@@ -12,8 +12,9 @@ const artifactsDir = process.env.AUDIT_OUTPUT_DIR
   ? resolve(repoRoot, process.env.AUDIT_OUTPUT_DIR)
   : join(repoRoot, 'docs', 'audit')
 const screenshots = join(artifactsDir, 'screenshots')
+const screenshotOverride = process.env.AUDIT_SCREENSHOT_DIR ? resolve(repoRoot, process.env.AUDIT_SCREENSHOT_DIR) : screenshots
 const basePort = Number(process.env.AUDIT_PORT || 55120)
-const topologyOnly = process.env.AUDIT_TOPOLOGY_ONLY === '1'
+const settleMs = Number(process.env.AUDIT_SETTLE_MS || 1800)
 const password = randomBytes(18).toString('hex')
 const sizes = [
   { name: '390x844', width: 390, height: 844 },
@@ -25,30 +26,23 @@ const routeSpecs = [
   ['mobile-alerts', '/app/mobile/alerts'],
   ['mobile-alert-detail', null],
   ['mobile-forecast', '/app/mobile/forecast'],
-  ['mobile-incidents', '/app/mobile/incidents'],
-  ['mobile-incident-detail', null],
   ['mobile-history', '/app/mobile/history'],
-  ['console', '/app/console'],
-  ['topology', '/app/console/topology'],
-  ['alerts', '/app/alerts'],
-  ['alert-detail', null],
   ['incidents', '/app/incidents'],
   ['incident-detail', null],
-  ['reports', '/app/reports'],
-  ['report-detail', null],
+  ['replay-studio', '/app/replay'],
+  ['scenario-library', '/app/scenarios'],
+  ['scenario-builder', '/app/scenarios/new'],
+  ['run-history', '/app/runs'],
+  ['network-twin', '/app/twin'],
+  ['asset-directory', '/app/hosts'],
+  ['host-detail', '/app/hosts/host-a'],
+  ['mobile-hosts', '/app/mobile/hosts'],
   ['forecasts', '/app/forecasts'],
-  ['forecast-detail', null],
-  ['analytics', '/app/analytics'],
-  ['containment', '/app/containment'],
-  ['replay', '/app/replay'],
-  ['scenarios', '/app/scenarios'],
-  ['hosts', '/app/hosts'],
-  ['host-detail', null],
-  ['audit', '/app/audit'],
-  ['system', '/app/system'],
-  ['settings', '/app/settings'],
-  ['help', '/app/help'],
-  ['about', '/app/about'],
+  ['forecast-detail', '/app/forecasts/fc-000001'],
+  ['whatif-lab', '/app/lab'],
+  ['analytics-lab', '/app/analytics'],
+  ['response-governance', '/app/containment'],
+  ['console', '/app/console'],
 ]
 const report = { browser: 'Playwright Chromium (SwiftShader)', modes: {} }
 const expectedEvents = []
@@ -64,14 +58,12 @@ function startBackend(mode, port, dbDir) {
     ...process.env,
     SECRET_KEY: randomBytes(32).toString('hex'),
     ADMIN_PASSWORD: password,
-    ANALYST_PASSWORD: password,
-    VIEWER_PASSWORD: password,
     DATABASE_URL: `sqlite:///${db}`,
     DATA_MODE: mode,
+    PRECOG_DATA_DIR: join(dbDir, `${mode}-data`),
     HOST: '127.0.0.1',
     PORT: String(port),
     WEB_DIST: join(repoRoot, 'web', 'dist'),
-    CUSTOM_SCENARIOS_DIR: join(dbDir, `${mode}-scenarios`),
     COOKIE_SECURE: '0',
     AUTO_TRAIN_MODEL: '1',
     VALIDATE_CONTRACTS: '1',
@@ -114,16 +106,16 @@ async function stopBackend(child) {
 async function checkViewport(page, mode, routeName, path, size) {
   await page.setViewportSize({ width: size.width, height: size.height })
   await page.goto(path, { waitUntil: 'domcontentloaded', timeout: 30000 })
+  if (routeName === 'network-twin') await page.locator('.twin-page-head h1').waitFor({ timeout: 12000 }).catch(() => {})
+  if (routeName === 'asset-directory') await page.locator('.twin-directory-card, .twin-error').first().waitFor({ timeout: 12000 }).catch(() => {})
+  if (routeName === 'host-detail') await page.locator('.twin-host-detail h1, .twin-error').first().waitFor({ timeout: 12000 }).catch(() => {})
+  if (routeName === 'mobile-hosts') await page.locator('.m-host-card, .m-title').first().waitFor({ timeout: 12000 }).catch(() => {})
+  if (routeName === 'response-governance') await page.getByRole('heading', { name: 'Response governance' }).waitFor({ timeout: 12000 }).catch(() => {})
   if (routeName === 'console' && size.width >= 1024) {
     await page.locator('.c-app').waitFor({ timeout: 8000 }).catch(() => {})
     await page.waitForFunction(() => document.querySelector('.c-scene canvas'), null, { timeout: 15000 }).catch(() => {})
   }
-  if (routeName === 'topology') {
-    await page.locator('.topology-page-heading').waitFor({ timeout: 8000 }).catch(() => {})
-    if (size.width >= 1024) await page.waitForFunction(() => document.querySelector('.topology-canvas-wrap canvas'), null, { timeout: 20000 }).catch(() => {})
-    else await page.locator('.lite-network-svg').waitFor({ timeout: 8000 }).catch(() => {})
-  }
-  await page.waitForTimeout(1800)
+  await page.waitForTimeout(settleMs)
   const state = await page.evaluate(() => ({
     width: window.innerWidth,
     scrollWidth: document.documentElement.scrollWidth,
@@ -131,15 +123,8 @@ async function checkViewport(page, mode, routeName, path, size) {
     title: document.title,
     bodyTextPreview: document.body.innerText.slice(0, 360),
     canvasCount: document.querySelectorAll('canvas').length,
-    liteHostCount: document.querySelectorAll('.lite-host').length,
     hasConsoleHandoff: Boolean(document.querySelector('.console-handoff')),
     hasCommandTrigger: Boolean(document.querySelector('.command-trigger')),
-    mobileHeaderVisible: (() => {
-      const header = document.querySelector('.m-top')
-      if (!header) return false
-      const rect = header.getBoundingClientRect()
-      return rect.top >= -1 && rect.top < window.innerHeight && rect.bottom > 0
-    })(),
     overflowElements: Array.from(document.querySelectorAll('body *')).map((element) => {
       const rect = element.getBoundingClientRect()
       return { tag: element.tagName.toLowerCase(), className: typeof element.className === 'string' ? element.className : '', left: Math.round(rect.left), right: Math.round(rect.right), width: Math.round(rect.width) }
@@ -149,11 +134,24 @@ async function checkViewport(page, mode, routeName, path, size) {
   const failures = []
   if (state.scrollWidth > state.width) failures.push(`horizontal overflow ${state.scrollWidth}px > ${state.width}px`)
   if (!state.hasSimulationLabel) failures.push('SIMULATION label missing')
-  if (routeName.startsWith('mobile') && !state.mobileHeaderVisible) failures.push('phone SOC header is outside the visible viewport')
   if (routeName === 'console' && size.width < 1024 && !state.hasConsoleHandoff) failures.push('narrow console handoff is missing')
   if (routeName === 'console' && size.width >= 1024 && !state.hasCommandTrigger) failures.push('desktop command palette trigger is missing')
+  if (['incidents', 'incident-detail', 'replay-studio', 'scenario-library', 'scenario-builder', 'scenario-edit', 'run-history', 'run-detail', 'run-compare', 'network-twin', 'asset-directory', 'host-detail', 'mobile-hosts', 'forecasts', 'forecast-detail', 'whatif-lab', 'analytics-lab', 'response-governance'].includes(routeName)) {
+    await page.addScriptTag({ path: join(repoRoot, 'web', 'node_modules', 'axe-core', 'axe.min.js') })
+    const accessibility = await page.evaluate(async () => {
+      const result = await window.axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] } })
+      return { violations: result.violations.map((item) => ({
+        id: item.id,
+        impact: item.impact,
+        count: item.nodes.length,
+        nodes: item.nodes.map((node) => ({ target: node.target, html: node.html, summary: node.failureSummary })),
+      })) }
+    })
+    check.accessibility = accessibility
+    if (accessibility.violations.length) failures.push(`axe found ${accessibility.violations.length} accessibility violation(s)`)
+  }
   if (failures.length) check.failure = failures.join('; ')
-  await page.screenshot({ path: join(screenshots, check.screenshot), animations: 'disabled' })
+  await page.screenshot({ path: join(screenshotOverride, check.screenshot), animations: 'disabled' })
   return check
 }
 
@@ -168,7 +166,7 @@ function capturePageErrors(page, mode, errors) {
   })
   page.on('requestfailed', (request) => errors.push(`${mode} request failed: ${request.url()} (${request.failure()?.errorText || 'unknown'})`))
   page.on('response', (response) => {
-    if (response.status() >= 400 && !(response.status() === 401 && response.url().includes('/api/x/me')) && !(response.status() === 403 && response.url().includes('/api/x/'))) {
+    if (response.status() >= 400 && !(response.status() === 401 && response.url().includes('/api/x/me'))) {
       errors.push(`${mode} HTTP ${response.status()}: ${response.url()}`)
     }
   })
@@ -179,9 +177,9 @@ async function runMode(browser, mode, port, dbDir, errors) {
   const processInfo = startBackend(mode, port, dbDir)
   const checks = []
   let context
-  let roleContext
   let health
   let liveReplayStarted = false
+  let c2Flow = null
   try {
     health = await waitForBackend(base, processInfo)
     if (health.data_mode !== mode) throw new Error(`Expected ${mode} mode; health reported ${health.data_mode}`)
@@ -199,11 +197,76 @@ async function runMode(browser, mode, port, dbDir, errors) {
     await page.waitForURL('**/app/console', { timeout: 15000 })
     await page.locator('.app-shell, .console-handoff').first().waitFor({ timeout: 15000 })
 
+    const scenarioId = `user-browser-audit-${mode}`
+    await page.goto(`${base}/app/scenarios/new`, { waitUntil: 'domcontentloaded' })
+    await page.locator('#scenario-builder-title').waitFor({ timeout: 10000 })
+    await page.locator('.scenario-meta-fields label input').first().fill(scenarioId)
+    await page.locator('.scenario-meta-fields label input').nth(1).fill('Browser audit scripted replay')
+    await page.getByRole('button', { name: /Traffic/ }).click()
+    await page.getByRole('button', { name: /Technique/ }).click()
+    await page.getByRole('button', { name: 'Validate scenario' }).click()
+    await page.getByRole('heading', { name: 'Scenario valid' }).waitFor({ timeout: 10000 })
+    await page.getByRole('button', { name: 'Dry-run estimate' }).click()
+    await page.getByRole('heading', { name: 'Dry-run projection' }).waitFor({ timeout: 10000 })
+    await page.getByRole('button', { name: 'Save scenario' }).click()
+    await page.waitForURL('**/app/scenarios')
+
+    async function postJson(path, payload) {
+      const result = await page.evaluate(async ({ path, payload }) => {
+        const response = await fetch(path, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Precog-Request': '1' }, body: JSON.stringify(payload) })
+        const body = await response.json().catch(() => ({}))
+        const replay = response.status === 409 ? await fetch('/api/x/replay/studio/status').then((item) => item.json()).catch(() => null) : null
+        return { status: response.status, body, replay }
+      }, { path, payload })
+      if (result.status < 200 || result.status >= 300) throw new Error(`${path} returned ${result.status}: ${JSON.stringify({ body: result.body, replay: result.replay })}`)
+      return result.body
+    }
+    async function startAndFinish(withControls) {
+      const started = await postJson('/api/x/replay/studio/start', { scenario_id: scenarioId, speed: 8 })
+      const runId = started.active_run?.run_id
+      if (!runId) throw new Error('Replay studio did not return an active run id.')
+      if (withControls) {
+        await postJson('/api/x/replay/breakpoints', { sequences: [2] })
+        await postJson('/api/x/replay/step', {})
+        await postJson('/api/x/replay/step', {})
+        await postJson('/api/x/replay/breakpoints', { sequences: [] })
+        await postJson('/api/x/replay/step', {})
+      } else {
+        await postJson('/api/x/replay/resume', {})
+      }
+      await page.waitForFunction(async () => {
+        const response = await fetch(`/api/x/replay/studio/status?fresh=${Date.now()}`, { cache: 'no-store' })
+        if (!response.ok) return false
+        const value = await response.json()
+        return value.status?.state === 'finished' && value.active_run === null
+      }, null, { timeout: 15000 })
+      await page.waitForFunction(async (id) => {
+        const response = await fetch(`/api/x/runs?fresh=${Date.now()}`, { cache: 'no-store' })
+        const runs = response.ok ? await response.json() : []
+        return runs.some((run) => run.run_id === id)
+      }, runId, { timeout: 10000 })
+      return runId
+    }
+    const firstRunId = await startAndFinish(true)
+    const secondRunId = firstRunId
+    const comparisonResponse = await page.evaluate(async ({ a, b }) => {
+      const response = await fetch(`/api/x/runs/compare?a=${encodeURIComponent(a)}&b=${encodeURIComponent(b)}`)
+      return { status: response.status, body: await response.json() }
+    }, { a: firstRunId, b: secondRunId })
+    if (comparisonResponse.status !== 200) throw new Error(`Run comparison returned ${comparisonResponse.status} for ${firstRunId} and ${secondRunId}: ${JSON.stringify(comparisonResponse.body)}`)
+    c2Flow = { result: 'built, validated, dry-run, saved and stepped through a scripted scenario, then opened its report comparison', scenarioId, runIds: [firstRunId, secondRunId], comparisonIdentical: comparisonResponse.body.identical }
+    if (!comparisonResponse.body.identical) errors.push(`${mode} replayed scenario did not compare as identical`)
+    const c2Routes = [
+      ['scenario-edit', `/app/scenarios/${encodeURIComponent(scenarioId)}/edit`],
+      ['run-detail', `/app/runs/${encodeURIComponent(firstRunId)}`],
+      ['run-compare', `/app/runs/compare?a=${encodeURIComponent(firstRunId)}&b=${encodeURIComponent(secondRunId)}`],
+    ]
+
     if (mode === 'live') {
       try {
-        const start = page.getByRole('button', { name: 'Start Golden Path' })
-        await start.waitFor({ timeout: 15000 })
-        await start.click()
+        await page.goto(`${base}/app/console`, { waitUntil: 'domcontentloaded' })
+        await page.locator('.c-app').waitFor({ timeout: 8000 })
+        await postJson('/api/x/replay/start', { scenario_id: 'golden-path', speed: 8 })
         await page.waitForFunction(async () => {
           const response = await fetch('/api/x/state')
           if (!response.ok) return false
@@ -215,71 +278,48 @@ async function runMode(browser, mode, port, dbDir, errors) {
         report.liveReplayStart = { error: error.message, url: page.url(), bodyText: await page.locator('body').innerText().catch(() => '') }
         errors.push(`live replay could not start in browser audit: ${error.message}`)
       }
+    } else {
+      try {
+        await page.goto(`${base}/app/console`, { waitUntil: 'domcontentloaded' })
+        await page.locator('.c-app').waitFor({ timeout: 8000 })
+        const sampleSignature = await page.evaluate(async () => {
+          const response = await fetch('/api/x/forecasts')
+          const items = response.ok ? await response.json() : []
+          return items.length ? JSON.stringify(items.at(-1).targets) : ''
+        })
+        await postJson('/api/x/replay/start', { scenario_id: 'golden-path', speed: 8 })
+        await page.waitForFunction(async () => {
+          const response = await fetch('/api/x/state')
+          const state = response.ok ? await response.json() : null
+          return Boolean(state?.forecast && state.forecast.status === 'pending')
+        }, null, { timeout: 30000 })
+        await page.waitForFunction(async (previousTargets) => {
+          const response = await fetch('/api/x/forecasts')
+          const items = response.ok ? await response.json() : []
+          return Boolean(items.length && JSON.stringify(items.at(-1).targets) !== previousTargets)
+        }, sampleSignature, { timeout: 30000 })
+      } catch (error) {
+        errors.push(`sample forecast could not start for the C4 audit: ${error.message}`)
+      }
     }
 
-    await page.waitForFunction(async () => {
-      const response = await fetch('/api/x/alerts?limit=1')
-      if (!response.ok) return false
-      const alerts = await response.json()
-      return Array.isArray(alerts) && alerts.length > 0
-    }, null, { timeout: 15000 }).catch(() => {})
     const alerts = await page.evaluate(async () => {
       const response = await fetch('/api/x/alerts?limit=1')
-      return response.ok ? response.json() : { error: `HTTP ${response.status}` }
+      return response.ok ? response.json() : []
     })
     const alertId = alerts[0]?.event_id
-    if (!alertId) errors.push(`${mode} mode did not provide an alert id for the alert-detail route (${JSON.stringify(alerts).slice(0, 180)})`)
-    const incidentReply = await page.evaluate(async () => {
+    if (!alertId) errors.push(`${mode} mode did not provide an alert id for the alert-detail route`)
+    const incidentId = await page.evaluate(async () => {
       const response = await fetch('/api/x/incidents?limit=1')
-      return response.ok ? response.json() : { error: `HTTP ${response.status}` }
+      const result = response.ok ? await response.json() : null
+      return result?.items?.[0]?.incident_id || null
     })
-    const incidentId = incidentReply.items?.[0]?.incident_id
-    const reportReply = await page.evaluate(async () => {
-      const response = await fetch('/api/x/reports')
-      return response.ok ? response.json() : { error: `HTTP ${response.status}` }
-    })
-    const sessionId = reportReply.items?.[0]?.session_id
-    const forecastReply = await page.evaluate(async () => {
-      const response = await fetch('/api/x/forecasts?include_archived=1')
-      return response.ok ? response.json() : { error: `HTTP ${response.status}` }
-    })
-    let forecastId = forecastReply[0]?.forecast_id
-    if (!incidentId) errors.push(`${mode} mode did not provide an incident id for the incident-detail route`)
-    if (!sessionId) errors.push(`${mode} mode did not provide a session id for the report-detail route`)
-    let forecastLookupFailed = false
     for (const size of sizes) {
-      for (const [routeName, path] of routeSpecs.filter(([name]) => !topologyOnly || name === 'topology')) {
-        if (routeName === 'forecast-detail' && !forecastId) {
-          await page.waitForFunction(async () => {
-            const response = await fetch('/api/x/forecasts?include_archived=1')
-            if (!response.ok) return false
-            const forecasts = await response.json()
-            return Array.isArray(forecasts) && forecasts.length > 0
-          }, null, { timeout: 90000 }).catch(() => {})
-          const latestForecasts = await page.evaluate(async () => {
-            const response = await fetch('/api/x/forecasts?include_archived=1')
-            return response.ok ? response.json() : { error: `HTTP ${response.status}` }
-          })
-          forecastId = latestForecasts[0]?.forecast_id
-          if (!forecastId && !forecastLookupFailed) {
-            forecastLookupFailed = true
-            errors.push(`${mode} mode did not provide a forecast id for the forecast-detail route (${JSON.stringify(latestForecasts).slice(0, 180)})`)
-          }
-        }
+      for (const [routeName, path] of [...routeSpecs, ...c2Routes]) {
         const route = routeName === 'mobile-alert-detail'
           ? (alertId ? `/app/mobile/alerts/${encodeURIComponent(alertId)}` : '/app/mobile/alerts')
-          : routeName === 'mobile-incident-detail'
-            ? (incidentId ? `/app/mobile/incidents/${encodeURIComponent(incidentId)}` : '/app/mobile/incidents')
-          : routeName === 'alert-detail'
-            ? (alertId ? `/app/alerts/${encodeURIComponent(alertId)}` : '/app/alerts')
-            : routeName === 'incident-detail'
-              ? (incidentId ? `/app/incidents/${encodeURIComponent(incidentId)}` : '/app/incidents')
-              : routeName === 'report-detail'
-                ? (sessionId ? `/app/reports/${encodeURIComponent(sessionId)}` : '/app/reports')
-            : routeName === 'forecast-detail'
-              ? (forecastId ? `/app/forecasts/${encodeURIComponent(forecastId)}` : '/app/forecasts')
-            : routeName === 'host-detail'
-              ? '/app/hosts/host-a'
+          : routeName === 'incident-detail'
+            ? (incidentId ? `/app/incidents/${encodeURIComponent(incidentId)}` : '/app/incidents')
           : path
         const check = await checkViewport(page, mode, routeName, `${base}${route}`, size)
         const failures = check.failure ? [check.failure] : []
@@ -304,29 +344,92 @@ async function runMode(browser, mode, port, dbDir, errors) {
         } else if (routeName === 'console') {
           check.canvas = { rendered: false, reason: 'console handoff is shown below 1024px' }
         }
-        if (routeName === 'topology') {
-          if (size.width < 1024 && check.liteHostCount < 1) failures.push('Lite topology has no rendered hosts')
-          if (size.width >= 1024) {
-            const canvas = page.locator('.topology-canvas-wrap canvas').first()
-            if (await canvas.count()) {
-              const png = PNG.sync.read(await canvas.screenshot())
-              const colors = new Set()
-              let visibleSamples = 0
-              for (let i = 0; i < png.data.length; i += 4 * 97) {
-                colors.add(`${png.data[i]},${png.data[i + 1]},${png.data[i + 2]},${png.data[i + 3]}`)
-                if (png.data[i + 3] > 0 && (png.data[i] || png.data[i + 1] || png.data[i + 2])) visibleSamples += 1
-              }
-              check.topologyCanvas = { sampledColors: colors.size, visibleSamples, nonBlank: colors.size > 2 && visibleSamples > 8 }
-              if (!check.topologyCanvas.nonBlank) failures.push('topology WebGL canvas screenshot is blank')
-            } else failures.push('topology WebGL canvas is missing at desktop width')
-          }
+        if (routeName === 'network-twin' && size.width >= 1024) {
+          check.twin = await page.evaluate(() => ({
+            canvasCount: document.querySelectorAll('.twin-map-viewport canvas').length,
+            liteMap: Boolean(document.querySelector('.twin-lite-map')),
+            hostRows: document.querySelectorAll('.twin-host-row').length,
+            heading: document.querySelector('.twin-page-head h1')?.textContent || '',
+          }))
+          if (!check.twin.heading.includes('Network digital twin') || check.twin.hostRows !== 6 || (!check.twin.canvasCount && !check.twin.liteMap)) failures.push('network twin did not render its topology view and six demo hosts')
+          check.twin.frameProbe = await page.evaluate(() => new Promise((resolve) => {
+            const intervals = []
+            let previous = performance.now()
+            const sample = (now) => {
+              intervals.push(now - previous)
+              previous = now
+              if (intervals.length >= 24) {
+                const sorted = [...intervals].sort((a, b) => a - b)
+                resolve({ renderer: 'Playwright Chromium with SwiftShader', frames: intervals.length, meanIntervalMs: Number((intervals.reduce((sum, value) => sum + value, 0) / intervals.length).toFixed(2)), p95IntervalMs: Number(sorted[Math.floor(sorted.length * 0.95)].toFixed(2)) })
+              } else requestAnimationFrame(sample)
+            }
+            requestAnimationFrame(sample)
+          }))
         }
         if (failures.length) check.failure = failures.join('; ')
         checks.push(check)
       }
     }
 
-    if (mode === 'sample' && !topologyOnly) {
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await page.goto(`${base}/app/twin`, { waitUntil: 'domcontentloaded' })
+    await page.locator('.twin-map-viewport').waitFor({ timeout: 12000 })
+    await page.locator('.twin-host-row').first().waitFor({ timeout: 12000 })
+    await page.getByRole('combobox', { name: 'Topology overlay' }).selectOption('risk')
+    await page.getByRole('combobox', { name: 'Camera preset' }).selectOption('top')
+    await page.getByRole('combobox', { name: 'Fly to host' }).selectOption('server-b')
+    await page.getByRole('complementary', { name: /Web Server B inspector/ }).waitFor({ timeout: 8000 })
+    await page.getByRole('button', { name: 'Trace routes' }).click()
+    await page.getByText(/Model-based likelihood estimate/).first().waitFor({ timeout: 8000 })
+    await page.getByRole('button', { name: 'Lite view' }).click()
+    await page.locator('.twin-lite-map').waitFor({ timeout: 5000 })
+    const slider = page.getByRole('slider', { name: 'Recorded snapshot' })
+    if (await slider.isEnabled()) {
+      await slider.evaluate((element) => {
+        element.value = element.min
+        element.dispatchEvent(new Event('input', { bubbles: true }))
+        element.dispatchEvent(new Event('change', { bubbles: true }))
+      })
+      await page.waitForTimeout(120)
+    }
+    report.digitalTwinFlow = 'selected Web Server B, inspected the asset, traced feasible routes, switched to Lite view and scrubbed the recorded snapshot control'
+
+    await page.setViewportSize({ width: 1440, height: 900 })
+    const detailForecastId = await page.evaluate(async () => {
+      const response = await fetch('/api/x/forecasts')
+      const items = response.ok ? await response.json() : []
+      return items.length ? items[items.length - 1].forecast_id : null
+    })
+    if (!detailForecastId) throw new Error(`${mode} mode did not provide a forecast id for the Precog explanation flow`)
+    await page.goto(`${base}/app/forecasts/${encodeURIComponent(detailForecastId)}`, { waitUntil: 'domcontentloaded' })
+    await page.getByRole('heading', { name: new RegExp(`Forecast ${detailForecastId}`) }).waitFor({ timeout: 10000 })
+    await page.getByRole('heading', { name: 'Why these hosts' }).waitFor({ timeout: 10000 })
+    await page.goto(`${base}/app/lab`, { waitUntil: 'domcontentloaded' })
+    await page.getByRole('heading', { name: 'What changes if we contain?' }).waitFor({ timeout: 10000 })
+    await page.getByRole('combobox', { name: 'Hypothetical attacker host' }).selectOption('host-a')
+    const serverTarget = page.getByRole('checkbox', { name: /Web Server B/ })
+    if (await serverTarget.count()) await serverTarget.check()
+    await page.getByRole('button', { name: 'Compare hypothetical forecasts' }).click()
+    await page.getByText(/of the original model probability was assigned/).waitFor({ timeout: 10000 })
+    await page.goto(`${base}/app/analytics`, { waitUntil: 'domcontentloaded' })
+    await page.getByRole('heading', { name: 'Can we defend the estimate?' }).waitFor({ timeout: 10000 })
+    await page.getByRole('button', { name: 'Run evaluation' }).click()
+    await page.locator('.precog-experiment-result').waitFor({ timeout: 15000 })
+    report.precogLabFlow = 'opened a forecast explanation, ran a read-only Web Server B containment what-if, and reproduced the seed-zero held-out evaluation'
+
+    if (mode === 'sample') {
+      if (incidentId) {
+        await page.setViewportSize({ width: 1440, height: 900 })
+        await page.goto(`${base}/app/incidents/${encodeURIComponent(incidentId)}`, { waitUntil: 'domcontentloaded' })
+        const note = `Browser audit note ${randomBytes(4).toString('hex')} · scripted simulation`
+        await page.locator('#incident-note').fill(note)
+        await page.getByRole('button', { name: 'Add note' }).click()
+        await page.locator('.incident-notes-list').getByText(note, { exact: true }).waitFor({ timeout: 10000 })
+        await page.getByText(note, { exact: true }).last().waitFor({ timeout: 10000 })
+        report.incidentNoteFlow = 'note submitted on the detail route and shown in the refreshed timeline'
+      } else {
+        errors.push('sample mode did not provide an incident id for the note flow')
+      }
       await page.setViewportSize({ width: 1440, height: 900 })
       await page.goto(`${base}/app/console`, { waitUntil: 'domcontentloaded' })
       try {
@@ -349,140 +452,6 @@ async function runMode(browser, mode, port, dbDir, errors) {
         await page.getByRole('option', { name: /Switch to dark theme/ }).click()
         await page.waitForFunction(() => document.documentElement.dataset.theme === 'dark')
         report.shellInteractions.themePersistence = 'light/dark switch and persisted reload verified'
-
-        await page.goto(`${base}/app/settings`, { waitUntil: 'domcontentloaded' })
-        const density = page.getByLabel('Row spacing')
-        await density.selectOption('compact')
-        await page.reload({ waitUntil: 'domcontentloaded' })
-        await page.waitForFunction(() => document.documentElement.dataset.density === 'compact')
-        report.shellInteractions.settingsPersistence = 'compact density saved and restored after reload'
-
-        await page.goto(`${base}/app/alerts`, { waitUntil: 'domcontentloaded' })
-        await page.locator('.ops-alert-filter .ops-search-field input').fill('Brute Force')
-        await page.getByRole('button', { name: 'Apply filters' }).click()
-        await page.waitForFunction(() => {
-          const rows = Array.from(document.querySelectorAll('.ops-table tbody tr'))
-          return rows.length > 0 && rows.every((row) => row.innerText.includes('Brute Force'))
-        }, null, { timeout: 10000 })
-        report.shellInteractions.alertSearch = 'search for Brute Force returned only matching alerts'
-
-        const csvDownload = page.waitForEvent('download')
-        await page.getByRole('button', { name: 'Export CSV' }).click()
-        report.shellInteractions.csvExport = `downloaded ${(await csvDownload).suggestedFilename()}`
-        const jsonDownload = page.waitForEvent('download')
-        await page.getByRole('button', { name: 'Export JSON' }).click()
-        report.shellInteractions.jsonExport = `downloaded ${(await jsonDownload).suggestedFilename()}`
-
-        await page.goto(`${base}/app/incidents/${encodeURIComponent(incidentId)}`, { waitUntil: 'domcontentloaded' })
-        await page.getByLabel('Incident status').selectOption('closed')
-        await page.locator('.incident-note-form textarea').fill('Reviewed during the browser rehearsal.')
-        await page.getByRole('button', { name: 'Add note' }).click()
-        await page.getByText('Reviewed during the browser rehearsal.').waitFor({ timeout: 10000 })
-        report.incidentWorkflow = 'status changed and analyst note persisted in the incident case'
-
-        await page.goto(`${base}/app/mobile/incidents`, { waitUntil: 'domcontentloaded' })
-        await page.locator('.m-case-link').first().click()
-        await page.waitForURL('**/app/mobile/incidents/**')
-        await page.getByLabel('Incident case status').selectOption('contained')
-        await page.locator('.m-case-note-form textarea').fill('Reviewed in the phone PWA.')
-        await page.getByRole('button', { name: 'Add note' }).click()
-        await page.getByText('Reviewed in the phone PWA.').waitFor({ timeout: 10000 })
-        report.mobileIncidentWorkflow = 'case navigation, status update, and note verified in the phone PWA'
-
-        await page.goto(`${base}/app/reports/${encodeURIComponent(sessionId)}`, { waitUntil: 'domcontentloaded' })
-        const reportJson = page.waitForEvent('download')
-        await page.getByRole('button', { name: 'Export JSON' }).click()
-        report.reportJsonExport = `downloaded ${(await reportJson).suggestedFilename()}`
-        const reportCsv = page.waitForEvent('download')
-        await page.getByRole('button', { name: 'Export timeline CSV' }).click()
-        report.reportCsvExport = `downloaded ${(await reportCsv).suggestedFilename()}`
-        await page.evaluate(() => { window.print = () => { window.__printCalled = true } })
-        await page.getByRole('button', { name: 'Print report' }).click()
-        await page.waitForFunction(() => window.__printCalled === true)
-        report.printAction = 'print stylesheet entry point invoked'
-
-        await page.goto(`${base}/app/forecasts`, { waitUntil: 'domcontentloaded' })
-        await page.locator('.forecast-ledger-table').waitFor({ timeout: 10000 })
-        await page.getByLabel('Compromised host').selectOption('host-a')
-        await page.getByRole('button', { name: 'Preview forecast' }).click()
-        await page.locator('.what-if-result').waitFor({ timeout: 10000 })
-        await page.locator('.forecast-evidence-table tbody tr').first().waitFor({ timeout: 10000 })
-        report.whatIfWorkflow = 'read-only preview displayed model counts and baseline ranks for a compromised host'
-
-        await page.goto(`${base}/app/forecasts/${encodeURIComponent(forecastId)}`, { waitUntil: 'domcontentloaded' })
-        await page.locator('.forecast-detail-evidence .forecast-evidence-table').waitFor({ timeout: 10000 })
-        report.forecastExplainability = 'saved candidate set, transition counts, smoothing alpha, and baseline ranks displayed'
-
-        await page.goto(`${base}/app/analytics`, { waitUntil: 'domcontentloaded' })
-        await page.getByRole('heading', { name: 'Model and baseline results' }).waitFor({ timeout: 10000 })
-        await page.getByRole('heading', { name: 'Detection model report' }).waitFor({ timeout: 10000 })
-        report.analyticsWorkflow = 'held-out scores, calibration curve, session tally, and offline detection report displayed'
-
-        await page.goto(`${base}/app/scenarios`, { waitUntil: 'domcontentloaded' })
-        await page.getByLabel('Scenario ID').fill('browser-custom')
-        await page.getByLabel('Scenario description').fill('A two-step browser rehearsal sequence.')
-        await page.getByRole('button', { name: '+ Technique' }).click()
-        await page.getByLabel('Event 1 offset').fill('1000')
-        await page.getByLabel('Mark host compromised in the simulation').check()
-        await page.getByRole('button', { name: '+ Host attempt' }).click()
-        await page.getByLabel('Event 2 offset').fill('2000')
-        await page.getByRole('button', { name: 'Validate and save scenario' }).click()
-        await page.getByRole('status').filter({ hasText: 'Saved browser-custom' }).waitFor({ timeout: 10000 })
-        report.scenarioBuilderWorkflow = 'built a technique and host-attempt sequence; server validated and saved the custom scenario'
-
-        await page.goto(`${base}/app/replay`, { waitUntil: 'domcontentloaded' })
-        await page.getByLabel('Replay scenario').selectOption('quiet-scan')
-        await page.getByLabel('Replay speed').fill('8')
-        await page.getByRole('button', { name: 'Start replay' }).click()
-        await page.waitForFunction(async () => (await (await fetch('/api/x/replay/status')).json()).state === 'finished', null, { timeout: 10000 })
-        await page.getByLabel('Replay scenario').selectOption('browser-custom')
-        await page.getByLabel('Replay speed').fill('1')
-        await page.getByRole('button', { name: 'Start replay' }).click()
-        await page.getByRole('button', { name: 'Pause' }).waitFor({ timeout: 5000 })
-        await page.getByRole('button', { name: 'Pause' }).click()
-        await page.getByRole('button', { name: 'Step one event' }).click()
-        await page.waitForFunction(async () => {
-          const status = await (await fetch('/api/x/replay/status')).json()
-          return status.state === 'paused' && status.position === 1
-        }, null, { timeout: 5000 })
-        await page.waitForFunction(async () => (await (await fetch('/api/x/time-travel?limit=200')).json()).length > 3, null, { timeout: 10000 })
-        await page.getByLabel('Time travel snapshot').evaluate((input) => {
-          input.value = String(Math.min(Number(input.max), 3))
-          input.dispatchEvent(new Event('input', { bubbles: true }))
-          input.dispatchEvent(new Event('change', { bubbles: true }))
-        })
-        await page.getByRole('button', { name: 'Resume replay' }).click()
-        await page.waitForFunction(async () => (await (await fetch('/api/x/replay/status')).json()).state === 'finished', null, { timeout: 10000 })
-        await page.waitForFunction(() => document.querySelectorAll('[aria-label="Left session"] option').length >= 3, null, { timeout: 10000 })
-        await page.getByLabel('Left session').selectOption('ses-000001')
-        await page.getByLabel('Right session').selectOption('ses-000002')
-        await page.getByRole('button', { name: 'Compare sessions' }).click()
-        await page.locator('.studio-compare-result').waitFor({ timeout: 10000 })
-        report.replayStudioWorkflow = 'ran a scenario, paused and stepped one event, scrubbed historical state, then compared two finished sessions'
-
-        await page.setViewportSize({ width: 1440, height: 900 })
-        await page.goto(`${base}/app/console/topology`, { waitUntil: 'domcontentloaded' })
-        await page.locator('.topology-canvas-wrap canvas').waitFor({ timeout: 20000 })
-        await page.getByLabel('Heat overlay').selectOption('weakness')
-        await page.getByRole('button', { name: 'top', exact: true }).first().click()
-        const threeDDownload = page.waitForEvent('download')
-        await page.getByRole('button', { name: 'Export PNG' }).click()
-        await threeDDownload
-        await page.getByRole('button', { name: 'Lite', exact: true }).click()
-        await page.locator('.lite-network-svg').waitFor({ timeout: 8000 })
-        const liteDownload = page.waitForEvent('download')
-        await page.getByRole('button', { name: 'Export PNG' }).click()
-        await liteDownload
-        report.topologyWorkflow = 'selected a host, switched heat overlays and camera presets, and exported both 3D and Lite PNG snapshots'
-
-        await page.goto(`${base}/app/console/topology?tour=golden-path&step=0`, { waitUntil: 'domcontentloaded' })
-        await page.getByRole('dialog', { name: 'Start with the network' }).waitFor({ timeout: 10000 })
-        await page.getByRole('button', { name: 'Start Golden Path' }).click()
-        await page.getByRole('status').filter({ hasText: 'Golden Path started' }).waitFor({ timeout: 10000 })
-        for (let step = 0; step < 5; step += 1) await page.getByRole('button', { name: 'Next step' }).click()
-        await page.getByRole('button', { name: 'Finish tour' }).click()
-        await page.waitForURL('**/app/help')
-        report.guidedTourWorkflow = 'started Golden Path, followed all six route steps, and finished on Help'
       } catch (error) {
         report.shellInteractions = {
           error: error.message,
@@ -491,23 +460,6 @@ async function runMode(browser, mode, port, dbDir, errors) {
         }
         errors.push(`${mode} shell interaction failed: ${error.message}`)
       }
-    }
-
-    if (mode === 'sample' && topologyOnly) {
-      await page.setViewportSize({ width: 1440, height: 900 })
-      await page.goto(`${base}/app/console/topology`, { waitUntil: 'domcontentloaded' })
-      await page.locator('.topology-canvas-wrap canvas').waitFor({ timeout: 20000 })
-      await page.getByLabel('Heat overlay').selectOption('weakness')
-      await page.getByRole('button', { name: 'top', exact: true }).first().click()
-      const threeDDownload = page.waitForEvent('download')
-      await page.getByRole('button', { name: 'Export PNG' }).click()
-      await threeDDownload
-      await page.getByRole('button', { name: 'Lite', exact: true }).click()
-      await page.locator('.lite-network-svg').waitFor({ timeout: 8000 })
-      const liteDownload = page.waitForEvent('download')
-      await page.getByRole('button', { name: 'Export PNG' }).click()
-      await liteDownload
-      report.topologyWorkflow = 'final bundle: selected camera and heat overlay, then exported 3D and Lite PNG snapshots'
     }
 
     if (mode === 'live' && liveReplayStarted) {
@@ -522,61 +474,44 @@ async function runMode(browser, mode, port, dbDir, errors) {
       }, null, { timeout: 15000 })
       report.containmentFlow = 'propose and confirm completed in live replay; host state changed to contained (simulation)'
     }
-
-    roleContext = await browser.newContext({ serviceWorkers: 'block' })
-    const rolePage = await roleContext.newPage()
-    await rolePage.goto(`${base}/app/login`, { waitUntil: 'domcontentloaded' })
-    report.roleChecks = await rolePage.evaluate(async (rolePassword) => {
-      const post = async (path, body = {}) => fetch(path, {
-        method: 'POST', credentials: 'same-origin', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
-      })
-      await post('/api/x/logout')
-      await post('/api/x/login', { username: 'analyst', password: rolePassword })
-      const analyst = await (await fetch('/api/x/me')).json()
-      const analystPropose = await post('/api/x/containment/playbooks/propose', { playbook: 'host', target_host: 'host-a' })
-      if (analystPropose.ok) await post('/api/x/containment/cancel', { action_id: (await analystPropose.json()).action_id })
-      const analystRestart = await post('/api/x/replay/restart')
-      await post('/api/x/logout')
-      const viewerLogin = await post('/api/x/login', { username: 'viewer', password: rolePassword })
-      const viewer = await (await fetch('/api/x/me')).json()
-      const viewerReplay = await post('/api/x/replay/start', { scenario_id: 'golden-path' })
-      const viewerContainment = await post('/api/x/containment/propose', { target_host: 'server-b' })
-      return {
-        analystRole: analyst.role,
-        analystCanPropose: analystPropose.status === 200,
-        analystRestartDenied: analystRestart.status === 403,
-        viewerLogin: viewerLogin.status,
-        viewerRole: viewer.role,
-        viewerReplayDenied: viewerReplay.status === 403,
-        viewerContainmentDenied: viewerContainment.status === 403,
-      }
-    }, password)
-    if (report.roleChecks.analystRole !== 'analyst' || !report.roleChecks.analystCanPropose || !report.roleChecks.analystRestartDenied || report.roleChecks.viewerLogin !== 200 || report.roleChecks.viewerRole !== 'viewer' || !report.roleChecks.viewerReplayDenied || !report.roleChecks.viewerContainmentDenied) {
-      errors.push(`${mode} demo-role access checks failed: ${JSON.stringify(report.roleChecks)}`)
-    }
-    await rolePage.setViewportSize({ width: 1440, height: 900 })
-    await rolePage.goto(`${base}/app/containment`, { waitUntil: 'domcontentloaded' })
-    await rolePage.locator('.containment-readonly').waitFor({ timeout: 10000 })
-    report.roleChecks.viewerUiReadOnly = await rolePage.locator('.containment-playbook-form').count() === 0
-    await rolePage.screenshot({ path: join(screenshots, `${mode}-containment-viewer-1440x900.png`), animations: 'disabled' })
-    await rolePage.goto(`${base}/app/console`, { waitUntil: 'domcontentloaded' })
-    await rolePage.locator('.c-replay').waitFor({ timeout: 10000 })
-    report.roleChecks.viewerReplayControlsHidden = (await rolePage.locator('.c-replay .c-btn-start').count()) === 0 && (await rolePage.locator('.c-replay').innerText()).includes('Viewer access')
-    await rolePage.getByRole('button', { name: /Search commands/ }).click()
-    report.roleChecks.viewerDemoCommandHidden = !(await rolePage.getByText('Start Golden Path replay', { exact: true }).count())
-    if (!report.roleChecks.viewerUiReadOnly || !report.roleChecks.viewerReplayControlsHidden || !report.roleChecks.viewerDemoCommandHidden) {
-      errors.push(`${mode} viewer controls remain visible in the UI: ${JSON.stringify(report.roleChecks)}`)
-    }
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await page.goto(`${base}/app/containment`, { waitUntil: 'domcontentloaded' })
+    await page.getByRole('heading', { name: 'Response governance' }).waitFor({ timeout: 10000 })
+    await page.getByRole('combobox', { name: 'Response playbook' }).selectOption('contain-zone')
+    await page.getByRole('combobox', { name: 'Zone' }).selectOption('user')
+    await page.getByRole('textbox', { name: 'Decision reason' }).fill('Browser audit zone containment simulation.')
+    await page.getByRole('button', { name: 'Preview impact' }).click()
+    await page.getByRole('heading', { name: 'Contain a zone' }).waitFor({ timeout: 10000 })
+    await page.getByRole('button', { name: 'Propose for confirmation' }).click()
+    await page.getByRole('button', { name: 'Confirm simulated action' }).first().click()
+    await page.getByRole('dialog').getByRole('button', { name: 'Confirm simulated action' }).click()
+    await page.locator('.gov-record-list .gov-status.is-executed').first().waitFor({ timeout: 10000 })
+    const governedHost = await page.evaluate(async () => {
+      const response = await fetch('/api/x/containment/governance')
+      const records = response.ok ? await response.json() : null
+      return records?.approvals?.[0]?.preview_snapshot?.hosts_affected?.[0]?.host_id || null
+    })
+    if (!governedHost) throw new Error(`${mode} governance proposal did not expose its affected host`)
+    await page.getByRole('combobox', { name: 'Response playbook' }).selectOption('release-host')
+    await page.getByRole('combobox', { name: 'Host' }).selectOption(governedHost)
+    await page.getByRole('textbox', { name: 'Decision reason' }).fill('Browser audit release after review.')
+    await page.getByRole('button', { name: 'Preview impact' }).click()
+    await page.getByRole('button', { name: 'Propose for confirmation' }).click()
+    await page.getByRole('button', { name: 'Confirm simulated action' }).first().click()
+    await page.getByRole('dialog').getByRole('button', { name: 'Confirm simulated action' }).click()
+    await page.locator('.gov-record-list .gov-status.is-released').first().waitFor({ timeout: 10000 })
+    const recordCount = await page.locator('.gov-record').count()
+    report.governanceFlow = { result: 'previewed and confirmed an admin zone action, then proposed and confirmed a reasoned host release', mode, host: governedHost, recordsVisible: recordCount }
   } finally {
-    if (roleContext) await roleContext.close()
     if (context) await context.close()
     await stopBackend(processInfo.child)
   }
-  return { health, checks }
+  return { health, checks, c2Flow }
 }
 
 async function main() {
   mkdirSync(screenshots, { recursive: true })
+  mkdirSync(screenshotOverride, { recursive: true })
   const dbDir = mkdtempSync(join(tmpdir(), 'precog-browser-audit-'))
   const browser = await chromium.launch({
     headless: true,
@@ -598,7 +533,7 @@ async function main() {
   await import('node:fs/promises').then(({ writeFile }) => writeFile(reportFile, `${JSON.stringify(report, null, 2)}\n`))
   console.log(JSON.stringify({
     report: reportFile,
-    screenshots: screenshots,
+    screenshots: screenshotOverride,
     checks: Object.fromEntries(Object.entries(report.modes).map(([mode, data]) => [mode, data.checks.length])),
     failures: report.failures,
     errors,

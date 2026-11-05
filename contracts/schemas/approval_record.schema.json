@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/approval_record.schema.json",
+  "title": "Response playbook approval and execution record",
+  "type": "object",
+  "properties": {
+    "action_id": { "type": "string", "pattern": "^PB-ACT-[0-9]{6}$" },
+    "playbook_id": { "type": "string", "enum": ["contain-host", "contain-zone", "contain-predicted-path", "contain-top-three"] },
+    "status": { "type": "string", "enum": ["pending_approval", "pending_confirmation", "executed", "partially_executed", "cancelled", "expired", "rejected"] },
+    "proposed_by": { "type": "string", "minLength": 1, "maxLength": 80 },
+    "proposed_role": { "type": "string", "enum": ["analyst", "admin"] },
+    "proposed_at": { "type": "string", "minLength": 1 },
+    "expires_at": { "type": "string", "minLength": 1 },
+    "reason": { "type": "string", "minLength": 1, "maxLength": 500 },
+    "preview_snapshot": { "$ref": "playbook_preview.schema.json" },
+    "host_action_ids": { "type": "array", "maxItems": 6, "items": { "type": "string", "pattern": "^act-[0-9]{6}$" } },
+    "incident_id": { "type": ["string", "null"], "pattern": "^INC-[0-9]{4}$" },
+    "run_id": { "type": ["string", "null"] },
+    "approval": { "type": ["object", "null"], "properties": {
+      "actor": { "type": "string", "minLength": 1, "maxLength": 80 }, "role": { "type": "string", "enum": ["admin"] },
+      "decision": { "type": "string", "enum": ["approve", "reject"] }, "at": { "type": "string", "minLength": 1 },
+      "reason": { "type": "string", "maxLength": 500 }
+    }, "required": ["actor", "role", "decision", "at", "reason"], "additionalProperties": false },
+    "execution_summary": { "type": ["string", "null"], "maxLength": 300 },
+    "updated_at": { "type": ["string", "null"] },
+    "cancelled_by": { "type": ["string", "null"], "maxLength": 80 },
+    "cancelled_role": { "type": ["string", "null"], "enum": ["analyst", "admin", null] },
+    "cancellation_reason": { "type": ["string", "null"], "maxLength": 500 }
+  },
+  "required": ["action_id", "playbook_id", "status", "proposed_by", "proposed_role", "proposed_at", "expires_at", "reason", "preview_snapshot", "host_action_ids", "incident_id", "run_id", "approval", "execution_summary", "updated_at", "cancelled_by", "cancelled_role", "cancellation_reason"],
+  "additionalProperties": false
+}

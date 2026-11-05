@@ -1,0 +1,235 @@
+{
+  "browser": "Playwright Chromium with SwiftShader",
+  "viewports": [
+    {
+      "name": "390x844",
+      "horizontalOverflow": false,
+      "firstContentfulPaintMs": 936,
+      "cumulativeLayoutShift": 0,
+      "steps": [
+        {
+          "label": "01\nNetwork",
+          "canvas": {
+            "width": 390,
+            "height": 790,
+            "sampledColors": 989,
+            "litSamples": 10625,
+            "nonBlank": true
+          },
+          "screenshot": "390x844-step-01.png"
+        },
+        {
+          "label": "02\nDetect",
+          "canvas": {
+            "width": 390,
+            "height": 790,
+            "sampledColors": 992,
+            "litSamples": 10625,
+            "nonBlank": true
+          },
+          "screenshot": "390x844-step-02.png"
+        },
+        {
+          "label": "03\nReconstruct",
+          "canvas": {
+            "width": 390,
+            "height": 790,
+            "sampledColors": 996,
+            "litSamples": 10625,
+            "nonBlank": true
+          },
+          "screenshot": "390x844-step-03.png"
+        },
+        {
+          "label": "04\nForecast",
+          "canvas": {
+            "width": 390,
+            "height": 790,
+            "sampledColors": 1081,
+            "litSamples": 10625,
+            "nonBlank": true
+          },
+          "screenshot": "390x844-step-04.png"
+        },
+        {
+          "label": "05\nContain",
+          "canvas": {
+            "width": 390,
+            "height": 790,
+            "sampledColors": 1087,
+            "litSamples": 10625,
+            "nonBlank": true
+          },
+          "screenshot": "390x844-step-05.png"
+        }
+      ],
+      "geometryCount": "50",
+      "textureCount": "13",
+      "quality": "lite",
+      "endGeometryCount": "50",
+      "endTextureCount": "13"
+    },
+    {
+      "name": "820x1180",
+      "horizontalOverflow": false,
+      "firstContentfulPaintMs": 656,
+      "cumulativeLayoutShift": 0,
+      "steps": [
+        {
+          "label": "01\nNetwork",
+          "canvas": {
+            "width": 820,
+            "height": 1112,
+            "sampledColors": 1502,
+            "litSamples": 31443,
+            "nonBlank": true
+          },
+          "screenshot": "820x1180-step-01.png"
+        },
+        {
+          "label": "02\nDetect",
+          "canvas": {
+            "width": 820,
+            "height": 1112,
+            "sampledColors": 1513,
+            "litSamples": 31443,
+            "nonBlank": true
+          },
+          "screenshot": "820x1180-step-02.png"
+        },
+        {
+          "label": "03\nReconstruct",
+          "canvas": {
+            "width": 820,
+            "height": 1112,
+            "sampledColors": 1511,
+            "litSamples": 31443,
+            "nonBlank": true
+          },
+          "screenshot": "820x1180-step-03.png"
+        },
+        {
+          "label": "04\nForecast",
+          "canvas": {
+            "width": 820,
+            "height": 1112,
+            "sampledColors": 1691,
+            "litSamples": 31443,
+            "nonBlank": true
+          },
+          "screenshot": "820x1180-step-04.png"
+        },
+        {
+          "label": "05\nContain",
+          "canvas": {
+            "width": 820,
+            "height": 1112,
+            "sampledColors": 1694,
+            "litSamples": 31443,
+            "nonBlank": true
+          },
+          "screenshot": "820x1180-step-05.png"
+        }
+      ],
+      "geometryCount": "50",
+      "textureCount": "13",
+      "quality": "lite",
+      "endGeometryCount": "50",
+      "endTextureCount": "13"
+    },
+    {
+      "name": "1440x900",
+      "horizontalOverflow": false,
+      "firstContentfulPaintMs": 636,
+      "cumulativeLayoutShift": 0,
+      "steps": [
+        {
+          "label": "01\nNetwork",
+          "canvas": {
+            "width": 1440,
+            "height": 832,
+            "sampledColors": 1824,
+            "litSamples": 41314,
+            "nonBlank": true
+          },
+          "screenshot": "1440x900-step-01.png"
+        },
+        {
+          "label": "02\nDetect",
+          "canvas": {
+            "width": 1440,
+            "height": 832,
+            "sampledColors": 1833,
+            "litSamples": 41314,
+            "nonBlank": true
+          },
+          "screenshot": "1440x900-step-02.png"
+        },
+        {
+          "label": "03\nReconstruct",
+          "canvas": {
+            "width": 1440,
+            "height": 832,
+            "sampledColors": 1891,
+            "litSamples": 41314,
+            "nonBlank": true
+          },
+          "screenshot": "1440x900-step-03.png"
+        },
+        {
+          "label": "04\nForecast",
+          "canvas": {
+            "width": 1440,
+            "height": 832,
+            "sampledColors": 2326,
+            "litSamples": 41314,
+            "nonBlank": true
+          },
+          "screenshot": "1440x900-step-04.png"
+        },
+        {
+          "label": "05\nContain",
+          "canvas": {
+            "width": 1440,
+            "height": 832,
+            "sampledColors": 2172,
+            "litSamples": 41314,
+            "nonBlank": true
+          },
+          "screenshot": "1440x900-step-05.png"
+        }
+      ],
+      "geometryCount": "50",
+      "textureCount": "13",
+      "quality": "lite",
+      "endGeometryCount": "50",
+      "endTextureCount": "13"
+    }
+  ],
+  "interactions": {
+    "skipLinkFocused": true,
+    "pointerHostSelection": "SIMULATION · USER / DMZ / INTERNAL\nWorkstation B · 192.168.1.12",
+    "orbitSceneChange": 0.13968067694018096,
+    "hostSelection": "SIMULATION · USER / DMZ / INTERNAL\nFile Server · 192.168.1.30",
+    "containmentSimulation": true,
+    "liteFallback": true,
+    "manual3DRestore": true,
+    "enterDestination": "/app/login",
+    "reducedMotionUsesDesignedFallback": true
+  },
+  "errors": [],
+  "performance": {
+    "pre3dFiles": [
+      "index-B8ZzCdX9.js",
+      "LandingPage-CkzmEXsf.js"
+    ],
+    "pre3dGzipBytes": 68552,
+    "pre3dGzipKB": 66.9,
+    "lazy3dFiles": [
+      "LandingStage-ybSrlZI2.js",
+      "OrbitControls-ClZSeS-A.js"
+    ],
+    "lazy3dGzipBytes": 155886,
+    "lazy3dGzipKB": 152.2
+  }
+}

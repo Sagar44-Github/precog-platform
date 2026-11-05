@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/topology_paths.schema.json",
+  "title": "Feasible network paths",
+  "type": "object",
+  "required": ["from_host", "to_host", "paths", "basis"],
+  "properties": {
+    "from_host": {"type": "string"}, "to_host": {"type": "string"}, "basis": {"type": "string"},
+    "paths": {"type": "array", "maxItems": 25, "items": {"type": "object", "required": ["hosts", "edges", "likelihood"], "properties": {
+      "hosts": {"type": "array", "minItems": 1, "items": {"type": "string"}},
+      "edges": {"type": "array", "items": {"type": "object", "required": ["from_host", "to_host", "likelihood"], "properties": {"from_host": {"type": "string"}, "to_host": {"type": "string"}, "likelihood": {"type": "number", "minimum": 0, "maximum": 1}}, "additionalProperties": false}},
+      "likelihood": {"type": "number", "minimum": 0, "maximum": 1}
+    }, "additionalProperties": false}}
+  },
+  "additionalProperties": false
+}

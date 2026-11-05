@@ -6,30 +6,31 @@ import { ThemeToggle } from './theme-context.jsx'
 const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
-  const [operator, setOperator] = useState(null)
+  const [username, setUsername] = useState(null)
+  const [role, setRole] = useState(null)
   const [checking, setChecking] = useState(true)
 
   useEffect(() => {
     api.me()
-      .then((reply) => setOperator(reply))
-      .catch(() => setOperator(null))
+      .then((reply) => { setUsername(reply.username); setRole(reply.role || null) })
+      .catch(() => { setUsername(null); setRole(null) })
       .finally(() => setChecking(false))
   }, [])
 
   const value = {
-    operator,
-    username: operator?.username || null,
-    role: operator?.role || 'viewer',
-    roleName: operator?.role_name || 'Viewer',
-    permissions: operator?.permissions || {},
+    username,
+    role,
+    readOnly: role === 'viewer',
     checking,
     async login(name, password) {
       const reply = await api.login(name, password)
-      setOperator(reply)
+      setUsername(reply.username)
+      setRole(reply.role || null)
     },
     async logout() {
       await api.logout()
-      setOperator(null)
+      setUsername(null)
+      setRole(null)
     },
   }
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
@@ -85,7 +86,6 @@ export function LoginPage() {
         <div className="error-text" role="alert">{message}</div>
         <button className="button login-submit" type="submit" disabled={busy}>{busy ? 'Authenticating…' : <><span>Enter command center</span><b aria-hidden="true">↗</b></>}</button>
         <p className="login-footer">Local replay mode <span>·</span> Human-confirmed containment</p>
-        <p className="login-role-note">Access level comes from the signed-in demo account.</p>
       </form>
       <div className="login-corner login-corner-left">PREC0G / SOC <span>v1.0</span></div>
       <div className="login-corner login-corner-right">LOCAL NODE · SECURE SESSION</div>

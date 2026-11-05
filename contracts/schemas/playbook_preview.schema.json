@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/playbook_preview.schema.json",
+  "title": "Governed response impact preview",
+  "type": "object",
+  "properties": {
+    "playbook_id": { "type": "string", "enum": ["contain-host", "contain-zone", "contain-predicted-path", "contain-top-three", "release-host"] },
+    "forecast_id": { "type": ["string", "null"] },
+    "hosts_affected": { "type": "array", "minItems": 1, "maxItems": 6, "items": { "type": "object", "properties": {
+      "host_id": { "type": "string", "minLength": 1 }, "name": { "type": "string", "minLength": 1 },
+      "state": { "type": "string", "enum": ["normal", "compromised", "contained"] },
+      "criticality": { "type": "number", "minimum": 0, "maximum": 1 }, "forecast_probability": { "type": "number", "minimum": 0, "maximum": 1 }
+    }, "required": ["host_id", "name", "state", "criticality", "forecast_probability"], "additionalProperties": false } },
+    "feasible_edges_changed": { "type": "array", "maxItems": 100, "items": { "type": "object", "properties": { "from_host": { "type": "string" }, "to_host": { "type": "string" } }, "required": ["from_host", "to_host"], "additionalProperties": false } },
+    "probability_removed": { "type": "number", "minimum": 0, "maximum": 1 },
+    "probability_restored": { "type": "number", "minimum": 0, "maximum": 1 },
+    "criticality_total": { "type": "number", "minimum": 0 },
+    "side_effects": { "type": "array", "minItems": 1, "maxItems": 5, "items": { "type": "string", "minLength": 1, "maxLength": 240 } },
+    "expected_reevaluation": { "type": "string", "minLength": 1, "maxLength": 300 },
+    "simulation_only": { "const": true }
+  },
+  "required": ["playbook_id", "forecast_id", "hosts_affected", "feasible_edges_changed", "probability_removed", "probability_restored", "criticality_total", "side_effects", "expected_reevaluation", "simulation_only"],
+  "additionalProperties": false
+}

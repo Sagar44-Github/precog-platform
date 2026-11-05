@@ -19,6 +19,8 @@ class Config:
     data_mode: str            # "sample" or "live"
     validate_contracts: bool
     cookie_secure: bool
+    incident_correlation_window_seconds: int = 300
+    data_dir: Path = Path("lead-core/backend/data")
 
     @staticmethod
     def from_env(repo_root):
@@ -30,6 +32,13 @@ class Config:
         if not web_dist:  # the bundled copy (made by deploy/build_web_bundle.py, used when hosted) wins over the local build
             bundled = repo_root / "lead-core" / "backend" / "web_dist"
             web_dist = str(bundled) if (bundled / "index.html").is_file() else None
+        window_text = os.environ.get("INCIDENT_CORRELATION_WINDOW_SECONDS", "300").strip()
+        try:
+            incident_window = int(window_text)
+        except ValueError as exc:
+            raise ValueError("INCIDENT_CORRELATION_WINDOW_SECONDS must be a whole number.") from exc
+        if incident_window < 1 or incident_window > 86400:
+            raise ValueError("INCIDENT_CORRELATION_WINDOW_SECONDS must be between 1 and 86400.")
         return Config(
             repo_root=repo_root,
             contracts_dir=repo_root / "contracts",
@@ -37,4 +46,6 @@ class Config:
             data_mode=data_mode,
             validate_contracts=_flag("VALIDATE_CONTRACTS", True),
             cookie_secure=_flag("COOKIE_SECURE", False),
+            incident_correlation_window_seconds=incident_window,
+            data_dir=Path(os.environ.get("PRECOG_DATA_DIR", repo_root / "lead-core" / "backend" / "data")).resolve(),
         )

@@ -1,11 +1,14 @@
-import { NavLink, Navigate, Route, Routes, useLocation } from 'react-router-dom'
-import { useEffect } from 'react'
+import { lazy, Suspense } from 'react'
+import { NavLink, Navigate, Route, Routes } from 'react-router-dom'
 import { SimulationBadge, StaleBanner, ToastProvider } from '../../shared/components.jsx'
 import { ThemeToggle } from '../../shared/theme-context.jsx'
 import { useWorldState } from '../../shared/usePolling.js'
-import { AlertDetailScreen, AlertsScreen, ForecastScreen, HistoryScreen, HomeScreen, IncidentDetailScreen, IncidentsScreen } from './screens.jsx'
+import { AlertDetailScreen, AlertsScreen, ForecastScreen, HistoryScreen, HomeScreen } from './screens.jsx'
 import { highAlertCount } from './logic.js'
+import { useAuth } from '../../shared/AuthContext.jsx'
 import './mobile.css'
+
+const MobileHostsPage = lazy(() => import('../twin/MobileHosts.jsx'))
 
 // The phone app (owner: GRAPH). App.jsx imports the default export. VIZ imports the named components below.
 export { AccuracyCounter, AttackPath2D, ForecastBars, OutcomeCard, SeverityBadge, StateChip } from './components.jsx'
@@ -13,7 +16,7 @@ export { AccuracyCounter, AttackPath2D, ForecastBars, OutcomeCard, SeverityBadge
 export function TabBar({ state }) {
   const high = state ? highAlertCount(state.alerts) : 0
   const pending = Boolean(state && state.forecast)
-  const tabs = [['/mobile', 'Home', '⌂', true], ['/mobile/alerts', 'Alerts', '△', false], ['/mobile/incidents', 'Cases', '▤', false], ['/mobile/forecast', 'Forecast', '◌', false], ['/mobile/history', 'History', '◷', false]]
+  const tabs = [['/mobile', 'Home', '⌂', true], ['/mobile/alerts', 'Alerts', '△', false], ['/mobile/forecast', 'Forecast', '◌', false], ['/incidents', 'Cases', '◉', false], ['/mobile/history', 'History', '◷', false]]
   return (
     <nav className="m-tabs" aria-label="Main">
       {tabs.map(([to, label, icon, end]) => (
@@ -28,9 +31,9 @@ export function TabBar({ state }) {
 }
 
 export default function MobileApp() {
+  const { role } = useAuth()
+  const canOperate = role !== 'viewer'
   const { state, stale, loggedOut } = useWorldState()
-  const location = useLocation()
-  useEffect(() => { window.scrollTo(0, 0) }, [location.pathname])
   if (loggedOut) return <Navigate to="/login" replace />
   return (
     <ToastProvider>
@@ -38,13 +41,13 @@ export default function MobileApp() {
         <header className="m-top"><h1>Precog SOC</h1><div className="m-top-actions"><ThemeToggle className="m-theme-toggle" /><SimulationBadge /></div></header>
         <StaleBanner stale={stale} />
         <Routes>
-          <Route index element={<HomeScreen state={state} stale={stale} />} />
+          <Route index element={<HomeScreen state={state} stale={stale} canOperate={canOperate} />} />
           <Route path="alerts" element={<AlertsScreen state={state} />} />
           <Route path="alerts/:id" element={<AlertDetailScreen state={state} />} />
-          <Route path="incidents" element={<IncidentsScreen />} />
-          <Route path="incidents/:id" element={<IncidentDetailScreen />} />
-          <Route path="forecast" element={<ForecastScreen state={state} />} />
+          <Route path="forecast" element={<ForecastScreen state={state} canOperate={canOperate} />} />
           <Route path="history" element={<HistoryScreen state={state} />} />
+          <Route path="hosts" element={<Suspense fallback={<div className="m-screen">Loading hosts…</div>}><MobileHostsPage /></Suspense>} />
+          <Route path="hosts/:id" element={<Suspense fallback={<div className="m-screen">Loading host…</div>}><MobileHostsPage /></Suspense>} />
           <Route path="*" element={<Navigate to="/mobile" replace />} />
         </Routes>
         <TabBar state={state} />

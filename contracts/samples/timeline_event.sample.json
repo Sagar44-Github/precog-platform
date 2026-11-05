@@ -1,0 +1,13 @@
+{
+  "event_id": "INC-0001-E0001",
+  "incident_id": "INC-0001",
+  "sequence": 1,
+  "type": "alert",
+  "timestamp": "2026-11-05T12:00:00Z",
+  "summary": "Incident opened by the first alert.",
+  "ref_id": "evt-000001",
+  "host_ids": ["host-a"],
+  "data": { "severity": "HIGH" },
+  "actor": null,
+  "role": null
+}

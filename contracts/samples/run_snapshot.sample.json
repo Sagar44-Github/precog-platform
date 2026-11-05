@@ -1,0 +1,1 @@
+{"run_id": "RUN-000001", "version": 0, "position": 0, "event_seq": null, "event_kind": "start", "captured_at": "2026-11-05T00:00:00Z", "state": {"graph": {}, "alerts": [], "forecasts": [], "actions": [], "metrics": {}, "incidents": []}}

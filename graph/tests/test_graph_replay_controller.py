@@ -184,15 +184,9 @@ def test_step_advances_exactly_one_event_then_pauses_again(rig):
         time.sleep(0.005)
     assert rig.controller.status()["position"] == 1
     rig.controller.pause()
-    assert rig.controller.step()["state"] == "running"
-    deadline = time.monotonic() + 3
-    while time.monotonic() < deadline:
-        status = rig.controller.status()
-        if status["state"] == "paused" and status["position"] == 2:
-            break
-        time.sleep(0.005)
-    assert rig.controller.status()["state"] == "paused"
-    assert rig.controller.status()["position"] == 2
+    status = rig.controller.step()
+    assert status["state"] == "paused"
+    assert status["position"] == 2
     assert rig.detector_calls == 1
     rig.controller.stop()
 

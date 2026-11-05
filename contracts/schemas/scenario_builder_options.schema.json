@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/scenario_builder_options.schema.json",
+  "title": "Scenario builder choices",
+  "type": "object",
+  "required": ["hosts", "techniques"],
+  "properties": {
+    "hosts": {"type": "array", "items": {"type": "object", "required": ["host_id", "name", "zone"], "properties": {"host_id": {"type": "string"}, "name": {"type": "string"}, "zone": {"type": "string"}}, "additionalProperties": false}},
+    "techniques": {"type": "array", "items": {"type": "object", "required": ["id", "name", "tactics"], "properties": {"id": {"type": "string"}, "name": {"type": "string"}, "tactics": {"type": "array", "items": {"type": "string"}}}, "additionalProperties": false}}
+  },
+  "additionalProperties": false
+}

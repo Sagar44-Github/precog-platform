@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/studio_status.schema.json",
+  "title": "Replay studio status",
+  "type": "object",
+  "required": ["status", "active_run"],
+  "properties": {
+    "status": {"type": "object", "required": ["state", "scenario_id", "speed", "position"], "properties": {"state": {"type": "string", "enum": ["idle", "running", "paused", "waiting_for_decision", "finished"]}, "scenario_id": {"type": ["string", "null"]}, "speed": {"type": "number", "exclusiveMinimum": 0}, "position": {"type": "integer", "minimum": 0}}, "additionalProperties": false},
+    "active_run": {"type": ["object", "null"], "required": ["run_id", "summary"], "properties": {"run_id": {"type": "string", "pattern": "^RUN-[0-9]{6}$"}, "summary": {"$ref": "https://precog.local/contracts/run_summary.schema.json"}}, "additionalProperties": false}
+  },
+  "additionalProperties": false
+}

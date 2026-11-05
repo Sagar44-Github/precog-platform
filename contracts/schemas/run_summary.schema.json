@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/run_summary.schema.json",
+  "title": "Finished replay run summary",
+  "type": "object",
+  "required": ["run_id", "scenario_id", "description", "speed", "started_at", "ended_at", "status", "outcome", "event_count", "alerts_count", "incidents_count", "forecasts_count", "actions_count", "metrics", "scenario_fingerprint"],
+  "properties": {
+    "run_id": {"type": "string", "pattern": "^RUN-[0-9]{6}$"},
+    "scenario_id": {"type": "string"},
+    "description": {"type": "string", "maxLength": 500},
+    "speed": {"type": "number", "exclusiveMinimum": 0},
+    "started_at": {"type": "string", "format": "date-time"},
+    "ended_at": {"type": ["string", "null"], "format": "date-time"},
+    "status": {"type": "string", "enum": ["running", "finished"]},
+    "outcome": {"type": "string", "enum": ["in_progress", "completed", "error"]},
+    "event_count": {"type": "integer", "minimum": 0, "maximum": 200},
+    "alerts_count": {"type": "integer", "minimum": 0},
+    "incidents_count": {"type": "integer", "minimum": 0},
+    "forecasts_count": {"type": "integer", "minimum": 0},
+    "actions_count": {"type": "integer", "minimum": 0},
+    "metrics": {"type": "object", "additionalProperties": true},
+    "scenario_fingerprint": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+  },
+  "additionalProperties": false
+}

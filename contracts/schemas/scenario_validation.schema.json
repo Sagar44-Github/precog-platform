@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/scenario_validation.schema.json",
+  "title": "Scenario validation result",
+  "type": "object",
+  "required": ["valid", "errors", "event_count", "duration_ms"],
+  "properties": {
+    "valid": {"type": "boolean"},
+    "errors": {"type": "array", "items": {"type": "object", "required": ["path", "code", "message"], "properties": {"path": {"type": "string"}, "code": {"type": "string"}, "message": {"type": "string"}}, "additionalProperties": false}},
+    "event_count": {"type": "integer", "minimum": 0},
+    "duration_ms": {"type": "integer", "minimum": 0}
+  },
+  "additionalProperties": false
+}

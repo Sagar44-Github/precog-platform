@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/whatif_request.schema.json",
+  "title": "Precog what-if request",
+  "type": "object",
+  "required": ["from_host", "host_states", "contain_hosts"],
+  "properties": {
+    "from_host": {"type": "string", "minLength": 1},
+    "host_states": {"type": "object", "maxProperties": 6, "additionalProperties": {"enum": ["normal", "compromised", "contained"]}},
+    "contain_hosts": {"type": "array", "maxItems": 6, "uniqueItems": true, "items": {"type": "string", "minLength": 1}}
+  },
+  "additionalProperties": false
+}

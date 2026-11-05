@@ -87,6 +87,14 @@ class ScenarioLibrary:
     def ids(self):
         return list(self._scenarios)
 
+    def add(self, scenario):
+        """Register a validated user scenario in the in-memory replay library."""
+        self._scenarios[scenario["scenario_id"]] = scenario
+
+    def remove(self, scenario_id):
+        """Remove only an explicitly named scenario; callers enforce ownership."""
+        return self._scenarios.pop(scenario_id, None)
+
     def get(self, scenario_id):
         return self._scenarios.get(scenario_id)
 

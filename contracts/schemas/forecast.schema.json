@@ -124,7 +124,102 @@
       }
     },
     "explanation": {
-      "$ref": "https://precog.local/contracts/forecast_explanation.schema.json"
+      "type": "object",
+      "description": "Compact generation-time evidence; the full forecast explanation has its own endpoint and contract.",
+      "required": [
+        "model",
+        "technique_hint_source",
+        "candidate_count",
+        "candidate_set"
+      ],
+      "properties": {
+        "model": {
+          "type": "object",
+          "required": [
+            "name",
+            "alpha"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1
+            },
+            "alpha": {
+              "type": "number",
+              "minimum": 0
+            }
+          },
+          "additionalProperties": false
+        },
+        "technique_hint_source": {
+          "enum": [
+            "repo",
+            "lookup"
+          ]
+        },
+        "candidate_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "candidate_set": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "host_id",
+              "transition_count",
+              "model_probability",
+              "model_rank",
+              "rule_based_probability",
+              "rule_based_rank",
+              "uniform_probability",
+              "uniform_rank"
+            ],
+            "properties": {
+              "host_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "transition_count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "model_probability": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "model_rank": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 3
+              },
+              "rule_based_probability": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "rule_based_rank": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 3
+              },
+              "uniform_probability": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
+              },
+              "uniform_rank": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 3
+              }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
     }
   },
   "required": [

@@ -1,0 +1,8 @@
+{
+  "source_host": "host-a",
+  "removed_edge": {"from_host": "host-a", "to_host": "host-b"},
+  "reachable_before": ["db-server", "domain-controller", "file-server", "host-b", "server-b"],
+  "reachable_after": ["db-server", "domain-controller", "file-server", "server-b"],
+  "newly_unreachable": ["host-b"],
+  "basis": "Read-only reachability projection over feasible demo edges. No live topology or host state was changed."
+}

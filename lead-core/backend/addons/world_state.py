@@ -364,3 +364,28 @@ class WorldState:
             self._replay = copy.deepcopy(state["replay"])
             self._metrics = copy.deepcopy(state["metrics"])
             return self._bump()
+
+    def capture_replay_state(self):
+        """Capture the complete in-memory replay view for an event-level checkpoint."""
+        with self._lock:
+            return copy.deepcopy({
+                "graph": self._graph, "alerts": self._alerts, "forecasts": self._forecasts,
+                "actions": self._actions, "replay": self._replay, "metrics": self._metrics,
+                "session": self._session, "sessions": self._sessions,
+            })
+
+    def restore_replay_state(self, state):
+        """Restore a replay checkpoint while keeping the polling version monotonic."""
+        required = ("graph", "alerts", "forecasts", "actions", "replay", "metrics", "session", "sessions")
+        if not isinstance(state, dict) or any(key not in state for key in required):
+            raise ValueError("Replay checkpoint is incomplete.")
+        with self._lock:
+            self._graph = copy.deepcopy(state["graph"])
+            self._alerts = copy.deepcopy(state["alerts"])
+            self._forecasts = copy.deepcopy(state["forecasts"])
+            self._actions = copy.deepcopy(state["actions"])
+            self._replay = copy.deepcopy(state["replay"])
+            self._metrics = copy.deepcopy(state["metrics"])
+            self._session = copy.deepcopy(state["session"])
+            self._sessions = copy.deepcopy(state["sessions"])
+            return self._bump()

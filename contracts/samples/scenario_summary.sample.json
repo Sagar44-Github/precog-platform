@@ -1,0 +1,9 @@
+{
+  "scenario_id": "golden-path",
+  "description": "The rehearsed demo",
+  "events": 5,
+  "has_decision_point": true,
+  "source": "shipped",
+  "editable": false,
+  "custom": false
+}

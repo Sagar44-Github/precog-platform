@@ -89,7 +89,7 @@ def test_the_hosted_checker_passes_against_the_real_app_routes(flask_app, client
     assert ok or failed
 
 
-def test_the_root_opens_the_precog_demo_instead_of_the_nids_dashboard(client):
+def test_the_root_opens_the_precog_landing_page_instead_of_the_nids_dashboard(client):
     reply = client.get("/", follow_redirects=False)
     assert reply.status_code == 302
-    assert reply.headers["Location"].endswith("/app/console/")
+    assert reply.headers["Location"].endswith("/app/")

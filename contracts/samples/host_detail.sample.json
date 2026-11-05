@@ -1,0 +1,8 @@
+{
+  "host": {"host_id": "server-b", "name": "Web Server B", "zone": "dmz", "address": "192.168.1.20", "role": "Web server", "state": "normal", "services": ["http/80", "ssh/22"], "weaknesses": [{"weakness_id": "DEMO-0003", "service": "http/80", "cvss": 9.8, "description": "Simulated flaw in a public web application", "simulated": true}], "criticality": 0.7, "risk": 6.86, "exposure": 4},
+  "alerts": [],
+  "forecasts": [],
+  "actions": [],
+  "incidents": [],
+  "basis": "Host state is live in-memory simulation state; weakness and risk values are demo estimates."
+}

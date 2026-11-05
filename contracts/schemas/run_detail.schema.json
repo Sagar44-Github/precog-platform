@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/run_detail.schema.json",
+  "title": "Replay run detail",
+  "type": "object",
+  "required": ["summary", "final_state"],
+  "properties": {"summary": {"$ref": "https://precog.local/contracts/run_summary.schema.json"}, "final_state": {"type": ["object", "null"], "additionalProperties": true}},
+  "additionalProperties": false
+}

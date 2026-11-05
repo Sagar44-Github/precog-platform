@@ -66,6 +66,27 @@ class LiveGraph:
             self._reset_locked()
             self._publish()
 
+    def restore(self, snapshot, publish=True):
+        """Restore a validated replay checkpoint without changing the static topology."""
+        if not isinstance(snapshot, dict) or not isinstance(snapshot.get("hosts"), list):
+            raise ValueError("Graph checkpoint is incomplete.")
+        with self._lock:
+            states = {item.get("host_id"): item.get("state") for item in snapshot["hosts"]}
+            if set(states) != set(self._state) or any(value not in STATES for value in states.values()):
+                raise ValueError("Graph checkpoint contains unknown hosts or states.")
+            edges = {}
+            for item in snapshot.get("edges", []):
+                source, target = item.get("from_host"), item.get("to_host")
+                self._check_known(source)
+                self._check_known(target)
+                edges[(source, target)] = item.get("first_seen")
+            path = snapshot.get("compromised_path", [])
+            if any(host not in states for host in path):
+                raise ValueError("Graph checkpoint path contains an unknown host.")
+            self._state, self._edges, self._path = states, edges, list(path)
+            if publish:
+                self._publish()
+
     def add_connection(self, source, target):
         """Record that `source` was seen talking to `target`. The first sighting keeps its time."""
         with self._lock:

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/run_comparison.schema.json",
+  "title": "Replay run comparison",
+  "type": "object",
+  "required": ["left_run_id", "right_run_id", "identical", "changes", "simulation_note"],
+  "properties": {
+    "left_run_id": {"type": "string", "pattern": "^RUN-[0-9]{6}$"},
+    "right_run_id": {"type": "string", "pattern": "^RUN-[0-9]{6}$"},
+    "identical": {"type": "boolean"},
+    "changes": {"type": "object", "required": ["alerts", "incidents", "forecasts", "actions", "metrics", "outcome"], "properties": {"alerts": {"type": "object"}, "incidents": {"type": "object"}, "forecasts": {"type": "object"}, "actions": {"type": "object"}, "metrics": {"type": "object"}, "outcome": {"type": "object", "required": ["left", "right"], "properties": {"left": {"type": "string"}, "right": {"type": "string"}}, "additionalProperties": false}}, "additionalProperties": false},
+    "simulation_note": {"type": "string", "minLength": 1}
+  },
+  "additionalProperties": false
+}

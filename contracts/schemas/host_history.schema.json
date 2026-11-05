@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/host_history.schema.json",
+  "title": "Network twin host history",
+  "type": "object",
+  "required": ["host_id", "events", "total"],
+  "properties": {
+    "host_id": {"type": "string"},
+    "total": {"type": "integer", "minimum": 0},
+    "events": {"type": "array", "maxItems": 500, "items": {"type": "object", "required": ["event_id", "kind", "occurred_at", "summary", "reference_id", "run_id", "state"], "properties": {
+      "event_id": {"type": "string"}, "kind": {"enum": ["state", "alert", "forecast", "action", "incident"]},
+      "occurred_at": {"type": "string"}, "summary": {"type": "string"}, "reference_id": {"type": ["string", "null"]},
+      "run_id": {"type": ["string", "null"]}, "state": {"type": ["string", "null"]}
+    }, "additionalProperties": false}}
+  },
+  "additionalProperties": false
+}

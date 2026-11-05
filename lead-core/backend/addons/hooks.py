@@ -24,13 +24,14 @@ Hook names and what the object behind each one must offer:
                               confirm(world, action_id) -> containment_action dict
                               cancel(world, action_id) -> containment_action dict
   push          (VIZ)         register(token) -> None
+  twin          (LEAD-CORE)   read-only asset and topology projections
 
 A role registers its object inside its package's register(ctx) function (ctx.hooks.register(name, obj)).
 Until a hook is registered, the matching routes answer with a clear 501 "not built yet".
 """
 from .errors import ApiError
 
-KNOWN_HOOKS = ("replay", "events", "graph", "precog", "containment", "push")
+KNOWN_HOOKS = ("replay", "events", "graph", "precog", "containment", "push", "incidents", "studio", "twin")
 
 
 class Hooks:

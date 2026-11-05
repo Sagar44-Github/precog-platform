@@ -1,0 +1,23 @@
+{
+  "action_id": "PB-ACT-000002",
+  "playbook_id": "release-host",
+  "status": "released",
+  "proposed_by": "admin",
+  "proposed_role": "admin",
+  "proposed_at": "2026-11-05T09:02:00Z",
+  "expires_at": "2026-11-05T09:03:00Z",
+  "reason": "Restore the simulated demo host after review.",
+  "preview_snapshot": {"playbook_id": "release-host", "forecast_id": null, "hosts_affected": [{"host_id": "server-b", "name": "Web Server B", "state": "contained", "criticality": 0.7, "forecast_probability": 0.0}], "feasible_edges_changed": [{"from_host": "host-a", "to_host": "server-b"}], "probability_removed": 0.0, "probability_restored": 0.0, "criticality_total": 0.7, "side_effects": ["The host returns to normal simulated state and can be reached again.", "This does not change any real network setting."], "expected_reevaluation": "After confirmation, the next scripted response is compared with the forecast and the simulation updates its outcome.", "simulation_only": true},
+  "run_id": "session-demo",
+  "host_id": "server-b",
+  "host_name": "Web Server B",
+  "previous_state": "contained",
+  "confirmed_by": "admin",
+  "confirmed_role": "admin",
+  "confirmed_at": "2026-11-05T09:02:10Z",
+  "execution_summary": "Host returned to normal simulated state.",
+  "updated_at": "2026-11-05T09:02:10Z",
+  "cancelled_by": null,
+  "cancelled_role": null,
+  "cancellation_reason": null
+}

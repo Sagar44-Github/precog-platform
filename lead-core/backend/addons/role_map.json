@@ -1,0 +1,16 @@
+{
+  "roles": {
+    "admin": {
+      "users": ["admin"],
+      "password_env": "ADMIN_PASSWORD"
+    },
+    "analyst": {
+      "users": ["analyst"],
+      "password_env": "ANALYST_PASSWORD"
+    },
+    "viewer": {
+      "users": ["viewer"],
+      "password_env": "VIEWER_PASSWORD"
+    }
+  }
+}

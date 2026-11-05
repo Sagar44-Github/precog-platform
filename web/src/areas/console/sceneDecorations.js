@@ -14,24 +14,50 @@ function line(points, color, opacity) {
 }
 
 /** A restrained 3D stage: ground grid, zone fields, orbital guides and a deterministic star field. */
-export function createSceneDecorations(colors) {
+export function createSceneDecorations(colors, { twin = false, zones = [] } = {}) {
   const stage = new THREE.Group()
   stage.name = 'precog-scene-atmosphere'
 
-  const hemisphere = new THREE.HemisphereLight(colors.text, colors.bg, 0.55)
-  hemisphere.name = 'ambient-hemisphere'
-  stage.add(hemisphere)
-  const directional = new THREE.DirectionalLight(colors.text, 0.9)
-  directional.name = 'key-directional'
-  directional.position.set(-90, 210, 155)
-  directional.castShadow = true
-  directional.shadow.mapSize.set(1024, 1024)
-  directional.shadow.camera.left = -320
-  directional.shadow.camera.right = 320
-  directional.shadow.camera.top = 260
-  directional.shadow.camera.bottom = -260
-  directional.shadow.bias = -0.0002
-  stage.add(directional)
+  if (twin) {
+    const twinZones = zones.length ? zones : [
+      { zone: 'user', label: 'USER ZONE', x: -150 },
+      { zone: 'dmz', label: 'DMZ', x: 0 },
+      { zone: 'internal', label: 'INTERNAL', x: 150 },
+    ]
+    twinZones.forEach((zone, index) => {
+      const tint = index === 1 ? colors.forecast : colors.accent
+      const slab = new THREE.Mesh(
+        new THREE.BoxGeometry(132, 5, 185),
+        new THREE.MeshBasicMaterial({ color: tint, transparent: true, opacity: 0.09, depthWrite: false }),
+      )
+      slab.name = `zone-slab-${zone.zone}`
+      slab.position.set(zone.x, -36, 0)
+      stage.add(slab)
+      const outline = new THREE.LineSegments(
+        new THREE.EdgesGeometry(slab.geometry),
+        new THREE.LineBasicMaterial({ color: tint, transparent: true, opacity: 0.45 }),
+      )
+      outline.name = `zone-outline-${zone.zone}`
+      outline.position.copy(slab.position)
+      stage.add(outline)
+      const label = makeLabel(zone.label || zone.zone.toUpperCase(), colors.text, 4)
+      if (label) {
+        label.name = `zone-label-${zone.zone}`
+        label.position.set(zone.x, -26, -98)
+        stage.add(label)
+      }
+    })
+    const grid = new THREE.GridHelper(560, 28, colors.muted, colors.muted)
+    grid.name = 'twin-floor-grid'
+    grid.position.set(0, -40, 0)
+    for (const material of Array.isArray(grid.material) ? grid.material : [grid.material]) {
+      material.transparent = true
+      material.opacity = 0.12
+      material.depthWrite = false
+    }
+    stage.add(grid)
+    return stage
+  }
 
   const grid = new THREE.GridHelper(620, 40, colors.muted, colors.muted)
   grid.name = 'ground-grid'
@@ -48,28 +74,16 @@ export function createSceneDecorations(colors) {
     new THREE.MeshBasicMaterial({ color: colors.forecast, transparent: true, opacity: 0.16, depthWrite: false }),
   )
   outerOrbit.name = 'outer-orbit'
-  outerOrbit.position.set(0, -86, 0)
-  outerOrbit.rotation.x = Math.PI / 2
+  outerOrbit.position.set(0, 0, -105)
   stage.add(outerOrbit)
 
   ZONES.forEach((zone, index) => {
-    const platform = new THREE.Mesh(
-      new THREE.CylinderGeometry(82, 88, 3, 56),
-      new THREE.MeshStandardMaterial({ color: index === 1 ? colors.forecast : colors.accent, roughness: 0.92, metalness: 0.02, transparent: true, opacity: 0.12 }),
-    )
-    platform.name = `zone-platform-${index}`
-    platform.position.set(zone.x, -84, -28)
-    platform.castShadow = false
-    platform.receiveShadow = true
-    stage.add(platform)
-
     const field = new THREE.Mesh(
       new THREE.RingGeometry(46, 82, 72),
       new THREE.MeshBasicMaterial({ color: index === 1 ? colors.forecast : colors.accent, transparent: true, opacity: 0.055, side: THREE.DoubleSide, depthWrite: false }),
     )
     field.name = `zone-field-${index}`
-    field.position.set(zone.x, -81, -28)
-    field.rotation.x = Math.PI / 2
+    field.position.set(zone.x, 0, -75)
     stage.add(field)
 
     const orbit = new THREE.Mesh(
@@ -77,12 +91,11 @@ export function createSceneDecorations(colors) {
       new THREE.MeshBasicMaterial({ color: index === 1 ? colors.forecast : colors.accent, transparent: true, opacity: 0.2, depthWrite: false }),
     )
     orbit.name = `zone-orbit-${index}`
-    orbit.position.set(zone.x, -79, -28)
-    orbit.rotation.x = Math.PI / 2
+    orbit.position.set(zone.x, 0, -65)
     orbit.rotation.z = index === 1 ? Math.PI / 12 : -Math.PI / 18
     stage.add(orbit)
 
-    const guide = line([new THREE.Vector3(zone.x, -81, -148), new THREE.Vector3(zone.x, -81, 100)], colors.muted, 0.15)
+    const guide = line([new THREE.Vector3(zone.x, -95, -65), new THREE.Vector3(zone.x, 95, -65)], colors.muted, 0.15)
     guide.name = `zone-guide-${index}`
     stage.add(guide)
 

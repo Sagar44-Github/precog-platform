@@ -2,16 +2,19 @@
 
 Every error answers JSON like {"error": {"code": "...", "message": "..."}}.
 """
-import json
+from flask import Blueprint, Response, current_app, jsonify, request
 import platform
 import sqlite3
 import uuid
-from datetime import datetime, time, timedelta, timezone
+from datetime import time, timedelta
 from importlib.metadata import version as package_version
-
-from flask import Blueprint, current_app, jsonify, request
 from flask_login import current_user
 from werkzeug.exceptions import HTTPException
+from urllib.parse import urlsplit
+from datetime import datetime, timezone
+import html
+import json
+import re
 
 from . import auth
 from .contracts import ContractError
@@ -25,11 +28,28 @@ MAX_ALERT_LIMIT = 200
 ALERT_SEVERITIES = ("HIGH", "MEDIUM", "LOW", "NORMAL")
 AUDIT_TYPES = ("detection", "forecast", "containment", "incident")
 PAGE_SORTS = ("ts", "risk_score", "severity")
-INCIDENT_STATUSES = ("open", "contained", "closed")
+INCIDENT_STATUSES = ("open", "contained", "closed", "reopened")
+INCIDENT_SEVERITIES = ("HIGH", "MEDIUM", "LOW")
+INCIDENT_SORTS = ("updated_desc", "created_asc", "severity_desc")
+INCIDENT_ID = re.compile(r"^INC-[0-9]{4}$")
+RUN_ID = re.compile(r"^RUN-[0-9]{6}$")
+MAX_WRITE_BYTES = 32768
 
 
 def _ctx():
     return current_app.extensions["precog"]
+
+
+def _governance():
+    service = current_app.extensions.get("precog_governance")
+    if service is None:
+        raise ApiError("not_built", "The response governance module is not available.", 501)
+    return service
+
+
+def _governance_result(record):
+    kind = "release_record" if record.get("playbook_id") == "release-host" else "approval_record"
+    return {"record_type": "release" if kind == "release_record" else "approval", "record": _out(kind, record)}
 
 
 def _body():
@@ -38,6 +58,35 @@ def _body():
     if not isinstance(data, dict):
         raise ApiError("bad_request", "Send a JSON object in the request body.", 400)
     return data
+
+
+@bp.before_request
+def _protect_cookie_writes():
+    """Only same-origin JSON requests with the app's non-simple header may mutate state.
+
+    The custom header forces a CORS preflight; this service does not enable cross-origin
+    CORS. Fetch Metadata and Origin are checked as a second same-origin signal.
+    """
+    if request.method not in ("POST", "PUT", "PATCH", "DELETE"):
+        return None
+    if request.endpoint == "precog_addons.login":
+        return None
+    if not current_user.is_authenticated:
+        return None  # protected views return the existing JSON 401 response
+    if not request.is_json:
+        raise ApiError("json_required", "Send writes as application/json.", 415)
+    if request.content_length is not None and request.content_length > MAX_WRITE_BYTES:
+        raise ApiError("request_too_large", "The JSON request is larger than 32 KB.", 413)
+    if request.headers.get("X-Precog-Request") != "1":
+        raise ApiError("csrf_rejected", "This write did not include the required same-origin request header.", 403)
+    if request.headers.get("Sec-Fetch-Site", "").lower() == "cross-site":
+        raise ApiError("csrf_rejected", "Cross-site writes are not allowed.", 403)
+    origin = request.headers.get("Origin")
+    if origin:
+        parsed = urlsplit(origin)
+        if parsed.scheme != request.scheme or parsed.netloc.lower() != request.host.lower():
+            raise ApiError("csrf_rejected", "Cross-origin writes are not allowed.", 403)
+    return None
 
 
 def _text(data, key, required=True):
@@ -64,6 +113,984 @@ def _out(contract_name, data):
     return data
 
 
+@bp.errorhandler(Exception)
+def _handle_errors(exc):
+    
+    if isinstance(exc, ApiError):
+        return jsonify(exc.to_dict()), exc.status
+    
+    if isinstance(exc, HTTPException):
+        return jsonify({"error": {"code": exc.name.lower().replace(" ", "_"), "message": exc.description}}), exc.code
+    
+    current_app.logger.exception("Unexpected error in /api/x")
+    
+    return jsonify({"error": {"code": "internal_error", "message": "Something went wrong on the server."}}), 500
+
+
+# ---------- health and login ----------
+@bp.get("/health")
+def health():
+    ctx = _ctx()
+    
+    return jsonify({
+        "status": "ok", "data_mode": ctx["config"].data_mode, "version": ctx["world"].version,
+        "hooks": ctx["hooks"].registered(), "modules": ctx["load_report"],
+    })
+
+
+@bp.post("/login")
+def login():
+    data = _body()
+    user = auth.check_login(_ctx()["nids"], data.get("username"), data.get("password"))
+    
+    if user is None:
+        raise ApiError("invalid_credentials", "Wrong username or password.", 401)
+    auth.do_login(user)
+    return jsonify(_out("role_info", auth.info_for(user.username)))
+
+
+@bp.post("/logout")
+def logout():
+    auth.do_logout()
+    return jsonify({"status": "ok"})
+
+
+@bp.get("/me")
+def me():
+    # Keep the public SPA's initial auth check quiet for signed-out visitors.
+    # Protected data routes still require a session and return JSON 401 errors.
+    if current_user.is_authenticated:
+        return jsonify(_out("role_info", auth.info_for(current_user.username)))
+    return jsonify({"status": "ok", "username": None})
+
+
+@bp.get("/role")
+@auth.json_login_required
+def role_info():
+    return jsonify(_out("role_info", auth.info_for(current_user.username)))
+
+
+@bp.get("/feed")
+@auth.json_login_required
+def domain_feed():
+    since_text = request.args.get("since")
+    since = None
+    if since_text is not None:
+        try:
+            since = int(since_text)
+        except ValueError:
+            raise ApiError("bad_request", "'since' must be a whole number.", 400)
+        if since < 0:
+            raise ApiError("bad_request", "'since' cannot be negative.", 400)
+    incidents = _ctx()["hooks"].require("incidents")
+    result = incidents.feed(since)
+    studio = _ctx()["hooks"].get("studio")
+    if studio is not None:
+        incidents.set_run_version(studio.revision)
+        result = incidents.feed(since)
+        result["revision"] += studio.revision
+    governance = current_app.extensions.get("precog_governance")
+    if governance is not None:
+        governance.records(1)  # Refresh expired proposals before publishing the action version.
+        result["versions"]["actions"] += governance.revision
+        result["revision"] += governance.revision
+    result["changed"] = since is None or since != result["revision"]
+    return jsonify(_out("feed_versions", result))
+
+
+# ---------- reading the state ----------
+@bp.get("/state")
+@auth.json_login_required
+def state():
+    since = request.args.get("since")
+    if since is not None:
+        try:
+            since = int(since)
+        except ValueError:
+            raise ApiError("bad_request", "'since' must be a whole number.", 400)
+    return jsonify(_out("world_state", _ctx()["world"].snapshot(since)))
+
+
+@bp.get("/alerts")
+@auth.json_login_required
+def alerts():
+    
+    try:
+        limit = int(request.args.get("limit", 50))
+    except ValueError:
+        raise ApiError("bad_request", "'limit' must be a whole number.", 400)
+    
+    limit = max(1, min(limit, MAX_ALERT_LIMIT))
+    return jsonify(_ctx()["world"].alerts(limit))
+
+
+@bp.get("/alerts/<event_id>")
+@auth.json_login_required
+
+def alert(event_id):
+    found = _ctx()["world"].get_alert(event_id)
+    if found is None:
+        raise ApiError("not_found", "No alert with id %s." % event_id, 404)
+    return jsonify(found)
+
+
+@bp.get("/graph")
+@auth.json_login_required
+
+def graph():
+    return jsonify(_out("graph_snapshot", _ctx()["world"].graph()))
+
+
+
+@bp.get("/forecasts")
+@auth.json_login_required
+def forecasts():
+    status = request.args.get("status")
+    source = request.args.get("source")
+    include_archived = request.args.get("include_archived", "0").lower() in ("1", "true", "yes")
+    if status is not None and status not in FORECAST_STATUSES:
+        raise ApiError("bad_request", "'status' must be one of: %s." % ", ".join(FORECAST_STATUSES), 400)
+    if source is not None and source not in ("repo", "lookup"):
+        raise ApiError("bad_request", "'source' must be repo or lookup.", 400)
+    rows = _ctx()["world"].forecasts(status, include_archived=include_archived)
+    if source is not None:
+        rows = [row for row in rows if row.get("source") == source]
+    return jsonify(rows)
+
+
+@bp.get("/forecasts/current")
+@auth.json_login_required
+def forecast_current():
+    
+    
+    found = _ctx()["world"].current_forecast()
+    
+    if found is None:
+    
+        raise ApiError("no_forecast", "No forecast is pending.", 404)
+    return jsonify(found)
+
+
+@bp.get("/forecasts/<forecast_id>/explain")
+@auth.json_login_required
+def forecast_explain(forecast_id):
+    try:
+        result = current_app.extensions["precog_lab"].explain(forecast_id)
+    except KeyError:
+        raise ApiError("not_found", "There is no forecast with id %s." % forecast_id, 404)
+    return jsonify(_out("forecast_explanation", result))
+
+
+@bp.post("/whatif")
+@auth.json_login_required
+@auth.rate_limit(max_requests=20, window_seconds=60)
+def whatif():
+    data = _body()
+    try:
+        _ctx()["contracts"].validate("whatif_request", data) if _ctx()["contracts"] else None
+        result = current_app.extensions["precog_lab"].whatif(data)
+    except ContractError as exc:
+        raise ApiError("bad_request", str(exc), 400)
+    except ValueError as exc:
+        raise ApiError("bad_request", str(exc), 400)
+    return jsonify(_out("whatif_result", result))
+
+
+@bp.get("/analytics/model")
+@auth.json_login_required
+def analytics_model():
+    return jsonify(_out("model_card", current_app.extensions["precog_lab"].model_overview()))
+
+
+@bp.post("/analytics/evaluate")
+@auth.role_required("analyst")
+@auth.rate_limit(max_requests=3, window_seconds=60)
+def analytics_evaluate():
+    data = _body()
+    try:
+        if _ctx()["contracts"]:
+            _ctx()["contracts"].validate("evaluation_request", data)
+    except ContractError as exc:
+        raise ApiError("bad_request", str(exc), 400)
+    if set(data) - {"seed", "test_fraction", "alpha_grid"}:
+        raise ApiError("bad_request", "Only seed, test_fraction and alpha_grid are accepted.", 400)
+    seed = data.get("seed", 0)
+    fraction = data.get("test_fraction", 0.2)
+    grid = data.get("alpha_grid", [0.01, 0.05, 0.1, 0.2, 0.5, 1.0])
+    if isinstance(seed, bool) or not isinstance(seed, int) or abs(seed) > 1000000:
+        raise ApiError("bad_request", "seed must be a whole number between -1000000 and 1000000.", 400)
+    if isinstance(fraction, bool) or not isinstance(fraction, (int, float)) or not 0.1 <= float(fraction) <= 0.5:
+        raise ApiError("bad_request", "test_fraction must be between 0.1 and 0.5.", 400)
+    if not isinstance(grid, list) or not 1 <= len(grid) <= 6 or any(isinstance(value, bool) or not isinstance(value, (int, float)) or not 0.001 <= float(value) <= 2 for value in grid) or len(set(grid)) != len(grid):
+        raise ApiError("bad_request", "alpha_grid must contain 1–6 unique numbers from 0.001 to 2.", 400)
+    try:
+        result = current_app.extensions["precog_lab"].run_evaluation(seed, float(fraction), [float(value) for value in grid])
+    except TimeoutError as exc:
+        raise ApiError("evaluation_timeout", str(exc), 503)
+    return jsonify(_out("evaluation_run", result))
+
+
+@bp.get("/analytics/experiments")
+@auth.json_login_required
+def analytics_experiments():
+    return jsonify([_out("evaluation_run", item) for item in current_app.extensions["precog_lab"].list_experiments()])
+
+
+# ---------- containment (needs the VIZ module) ----------
+@bp.post("/containment/propose")
+@auth.role_required("analyst")
+
+def containment_propose():
+    ctx = _ctx()
+    data = _body()
+    target = _text(data, "target_host")
+    forecast_id = _text(data, "forecast_id", required=False)
+    requested_by = data.get("requested_by", "console")
+    
+    if requested_by not in REQUESTERS:
+        raise ApiError("bad_request", "'requested_by' must be 'console' or 'mobile'.", 400)
+    action = ctx["hooks"].require("containment").propose(ctx["world"], target, forecast_id, requested_by)
+    
+    return jsonify(_out("containment_action", action))
+
+
+@bp.post("/containment/confirm")
+@auth.role_required("analyst")
+def containment_confirm():
+    ctx = _ctx()
+    action = ctx["hooks"].require("containment").confirm(ctx["world"], _text(_body(), "action_id"))
+    
+    return jsonify(_out("containment_action", action))
+
+
+@bp.post("/containment/cancel")
+@auth.role_required("analyst")
+def containment_cancel():
+    ctx = _ctx()
+    action = ctx["hooks"].require("containment").cancel(ctx["world"], _text(_body(), "action_id"))
+    return jsonify(_out("containment_action", action))
+
+
+@bp.get("/containment/actions")
+@auth.json_login_required
+def containment_actions():
+    return jsonify(_ctx()["world"].actions())
+
+
+# ---------- governed response playbooks (all actions remain simulated) ----------
+@bp.get("/containment/playbooks")
+@auth.json_login_required
+def containment_playbooks():
+    return jsonify([_out("playbook", item) for item in _governance().list_playbooks()])
+
+
+@bp.post("/containment/preview")
+@auth.json_login_required
+@auth.rate_limit(max_requests=20, window_seconds=60)
+def containment_preview():
+    data = _body()
+    allowed = {"playbook_id", "host_id", "zone", "forecast_id"}
+    if set(data) - allowed or "playbook_id" not in data:
+        raise ApiError("bad_request", "Send playbook_id and only its optional host_id, zone, and forecast_id fields.", 400)
+    for key in ("playbook_id", "host_id", "zone", "forecast_id"):
+        if key in data and data[key] is not None and (not isinstance(data[key], str) or len(data[key]) > 100):
+            raise ApiError("bad_request", "'%s' must be text of at most 100 characters." % key, 400)
+    preview = _governance().preview(data["playbook_id"], auth.current_role(), data.get("host_id"), data.get("zone"), data.get("forecast_id"))
+    return jsonify(_out("playbook_preview", preview))
+
+
+@bp.get("/containment/governance")
+@auth.json_login_required
+def containment_governance_records():
+    try:
+        limit = int(request.args.get("limit", "100"))
+    except ValueError:
+        raise ApiError("bad_request", "'limit' must be a whole number.", 400)
+    records = _governance().records(limit)
+    return jsonify({
+        "approvals": [_out("approval_record", item) for item in records["approvals"]],
+        "releases": [_out("release_record", item) for item in records["releases"]],
+        "revision": records["revision"],
+    })
+
+
+@bp.get("/containment/governance/export")
+@auth.json_login_required
+@auth.rate_limit(max_requests=12, window_seconds=60)
+def containment_governance_export():
+    fmt = request.args.get("format", "json").lower()
+    if fmt not in ("json", "markdown"):
+        raise ApiError("bad_request", "Format must be json or markdown.", 400)
+    records = _governance().records(200)
+    if fmt == "json":
+        return jsonify(records)
+    lines = ["# Precog SOC response governance", "", "SIMULATION — these actions changed only in-memory demo state.", ""]
+    for title, items in (("Playbook proposals", records["approvals"]), ("Host releases", records["releases"])):
+        lines.extend(["## " + title, ""])
+        if not items:
+            lines.extend(["No records.", ""])
+        for item in items:
+            reason = html.escape(str(item.get("reason", ""))).replace("\n", " ")
+            lines.extend([
+                "### %s · %s · %s" % (item["action_id"], item["playbook_id"], item["status"]),
+                "",
+                "- Proposed by: %s (%s)" % (html.escape(item["proposed_by"]), item["proposed_role"]),
+                "- Proposed at: %s" % item["proposed_at"],
+                "- Reason: %s" % reason,
+                "- Hosts: %s" % ", ".join(host["host_id"] for host in item["preview_snapshot"]["hosts_affected"]),
+                "- Executed actions: %s" % ", ".join(item.get("host_action_ids", [])) if "host_action_ids" in item else "- Executed actions: release record",
+                "",
+            ])
+    response = Response("\n".join(lines), content_type="text/markdown; charset=utf-8")
+    response.headers["Content-Disposition"] = 'attachment; filename="precog-response-governance.md"'
+    return response
+
+
+@bp.post("/containment/governance/propose")
+@auth.role_required("analyst")
+@auth.rate_limit(max_requests=12, window_seconds=60)
+def containment_governance_propose():
+    data = _body()
+    allowed = {"playbook_id", "host_id", "zone", "forecast_id", "incident_id", "reason"}
+    if set(data) - allowed or not {"playbook_id", "reason"} <= set(data):
+        raise ApiError("bad_request", "Send playbook_id and reason, with only optional host_id, zone, forecast_id, and incident_id.", 400)
+    for key in allowed:
+        value = data.get(key)
+        if value is not None and (not isinstance(value, str) or len(value) > (500 if key == "reason" else 100)):
+            raise ApiError("bad_request", "'%s' has an invalid value or is too long." % key, 400)
+    if data.get("incident_id") is not None and not INCIDENT_ID.fullmatch(data["incident_id"]):
+        raise ApiError("bad_request", "'incident_id' must use the INC-0001 format.", 400)
+    record = _governance().propose(
+        data["playbook_id"], current_user.username, auth.current_role(), data["reason"],
+        host_id=data.get("host_id"), zone=data.get("zone"), forecast_id=data.get("forecast_id"), incident_id=data.get("incident_id"),
+    )
+    return jsonify(_governance_result(record))
+
+
+@bp.post("/containment/governance/approve")
+@auth.role_required("admin")
+def containment_governance_approve():
+    data = _body()
+    if set(data) - {"action_id", "decision", "reason"} or not {"action_id", "decision"} <= set(data):
+        raise ApiError("bad_request", "Send action_id, decision and an optional reason.", 400)
+    action_id = _text(data, "action_id")
+    if len(action_id) > 32:
+        raise ApiError("bad_request", "Invalid action id.", 400)
+    record = _governance().approve(action_id, current_user.username, auth.current_role(), data["decision"], data.get("reason", ""))
+    return jsonify(_governance_result(record))
+
+
+@bp.post("/containment/governance/confirm")
+@auth.role_required("analyst")
+def containment_governance_confirm():
+    data = _body()
+    if set(data) != {"action_id"}:
+        raise ApiError("bad_request", "Send exactly one field: action_id.", 400)
+    action_id = _text(data, "action_id")
+    if len(action_id) > 32:
+        raise ApiError("bad_request", "Invalid action id.", 400)
+    return jsonify(_governance_result(_governance().confirm(action_id, current_user.username, auth.current_role())))
+
+
+@bp.post("/containment/governance/cancel")
+@auth.role_required("analyst")
+def containment_governance_cancel():
+    data = _body()
+    if set(data) - {"action_id", "reason"} or "action_id" not in data:
+        raise ApiError("bad_request", "Send action_id and an optional cancellation reason.", 400)
+    action_id = _text(data, "action_id")
+    if len(action_id) > 32:
+        raise ApiError("bad_request", "Invalid action id.", 400)
+    record = _governance().cancel(action_id, current_user.username, auth.current_role(), data.get("reason", "Cancelled by the operator."))
+    return jsonify(_governance_result(record))
+
+
+# ---------- session and metrics ----------
+@bp.get("/session")
+@auth.json_login_required
+def session():
+    found = _ctx()["world"].session()
+    if found is None:
+        raise ApiError("no_session", "There is no session yet.", 404)
+    return jsonify(found)
+
+
+@bp.get("/sessions")
+@auth.json_login_required
+def sessions():
+    return jsonify(_ctx()["world"].sessions())
+
+
+@bp.get("/metrics/precog")
+@auth.json_login_required
+def metrics_precog():
+    return jsonify(_out("session_metrics", _ctx()["world"].metrics()))
+
+
+@bp.get("/metrics/detection")
+@auth.json_login_required
+def metrics_detection():
+    found = _ctx()["world"].detection_report()
+    if found is None:
+        raise ApiError("no_report", "No detection report has been loaded.", 404)
+    return jsonify(found)
+
+
+# ---------- replay (needs the GRAPH module) ----------
+@bp.get("/replay/scenarios")
+@auth.json_login_required
+def replay_scenarios():
+    return jsonify(_ctx()["hooks"].require("replay").list_scenarios())
+
+
+@bp.get("/replay/status")
+@auth.json_login_required
+def replay_status():
+    ctx = _ctx()
+    replay = ctx["hooks"].get("replay")
+    return jsonify(_out("replay_status", replay.status() if replay else ctx["world"].replay()))
+
+
+@bp.post("/replay/start")
+@auth.role_required("analyst")
+def replay_start():
+    data = _body()
+    scenario_id = _text(data, "scenario_id")
+    speed = data.get("speed", 1.0)
+    if isinstance(speed, bool) or not isinstance(speed, (int, float)) or speed <= 0:
+        raise ApiError("bad_request", "'speed' must be a number above 0.", 400)
+    return jsonify(_out("replay_status", _ctx()["hooks"].require("replay").start(scenario_id, float(speed))))
+
+
+def _replay_action(name):
+    status = getattr(_ctx()["hooks"].require("replay"), name)()
+    return jsonify(_out("replay_status", status))
+
+
+@bp.post("/replay/pause")
+@auth.role_required("analyst")
+def replay_pause():
+    return _replay_action("pause")
+
+
+@bp.post("/replay/resume")
+@auth.role_required("analyst")
+def replay_resume():
+    return _replay_action("resume")
+
+
+@bp.post("/replay/restart")
+@auth.role_required("analyst")
+def replay_restart():
+    return _replay_action("restart")
+
+
+# ---------- push ----------
+@bp.post("/push/register")
+@auth.role_required("analyst")
+def push_register():
+    ctx = _ctx()
+    token = _text(_body(), "token")
+    if len(token) > 4096:
+        raise ApiError("bad_request", "That push token is too long.", 400)
+    count = ctx["world"].add_push_token(token)
+    push = ctx["hooks"].get("push")
+    if push is not None:
+        push.register(token)
+    return jsonify({"status": "ok", "count": count})
+
+
+# ---------- incident investigation workbench ----------
+def _incident_id(value):
+    if not INCIDENT_ID.fullmatch(value or ""):
+        raise ApiError("bad_request", "Incident identifiers use the form INC-0001.", 400)
+    return value
+
+
+def _incident_time_arg(key, alternate=None):
+    value = request.args.get(key)
+    if value is None and alternate:
+        value = request.args.get(alternate)
+    if value is None or value == "":
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        raise ApiError("bad_request", "'%s' must be an ISO 8601 timestamp." % key, 400)
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+@bp.get("/incidents")
+@auth.json_login_required
+@auth.rate_limit(max_requests=90, window_seconds=60)
+def incidents_list():
+    status = request.args.get("status")
+    severity = request.args.get("severity")
+    sort = request.args.get("sort", "updated_desc")
+    host = request.args.get("host")
+    technique = request.args.get("technique")
+    cursor = request.args.get("cursor")
+    if status and status not in INCIDENT_STATUSES:
+        raise ApiError("bad_request", "'status' must be one of: %s." % ", ".join(INCIDENT_STATUSES), 400)
+    if severity and severity not in INCIDENT_SEVERITIES:
+        raise ApiError("bad_request", "'severity' must be one of: %s." % ", ".join(INCIDENT_SEVERITIES), 400)
+    if sort not in INCIDENT_SORTS:
+        raise ApiError("bad_request", "'sort' must be one of: %s." % ", ".join(INCIDENT_SORTS), 400)
+    if host is not None and (not host.strip() or len(host) > 80):
+        raise ApiError("bad_request", "'host' must be a host id of 1 to 80 characters.", 400)
+    if technique is not None and (not technique.strip() or len(technique) > 100):
+        raise ApiError("bad_request", "'technique' must be 1 to 100 characters.", 400)
+    if cursor:
+        _incident_id(cursor)
+    try:
+        limit = int(request.args.get("limit", 25))
+    except ValueError:
+        raise ApiError("bad_request", "'limit' must be a whole number.", 400)
+    if not 1 <= limit <= 100:
+        raise ApiError("bad_request", "'limit' must be between 1 and 100.", 400)
+    start = _incident_time_arg("start", "from")
+    end = _incident_time_arg("end", "to")
+    if start and end and start > end:
+        raise ApiError("bad_request", "'start' must be before 'end'.", 400)
+    try:
+        result = _ctx()["hooks"].require("incidents").list_page(
+            status=status,
+            severity=severity,
+            host=host.strip() if host else None,
+            technique=technique.strip() if technique else None,
+            start=start,
+            end=end,
+            sort=sort,
+            limit=limit,
+            cursor=cursor,
+        )
+    except ValueError as exc:
+        raise ApiError("bad_request", str(exc), 400)
+    result["items"] = [_out("incident", item) for item in result["items"]]
+    return jsonify(result)
+
+
+@bp.get("/incidents/<incident_id>/timeline")
+@auth.json_login_required
+@auth.rate_limit(max_requests=90, window_seconds=60)
+def incident_timeline(incident_id):
+    incident_id = _incident_id(incident_id)
+    engine = _ctx()["hooks"].require("incidents")
+    if engine.get(incident_id) is None:
+        raise ApiError("not_found", "No incident with id %s." % incident_id, 404)
+    return jsonify([_out("timeline_event", event) for event in engine.timeline(incident_id)])
+
+
+@bp.get("/incidents/<incident_id>/export")
+@auth.json_login_required
+@auth.rate_limit(max_requests=12, window_seconds=60)
+def incident_export(incident_id):
+    incident_id = _incident_id(incident_id)
+    engine = _ctx()["hooks"].require("incidents")
+    incident = engine.get(incident_id)
+    if incident is None:
+        raise ApiError("not_found", "No incident with id %s." % incident_id, 404)
+    incident = _out("incident", incident)
+    timeline = [_out("timeline_event", event) for event in engine.timeline(incident_id)]
+    export_format = request.args.get("format", "json").lower()
+    if export_format == "json":
+        response = jsonify({
+            "incident": incident,
+            "timeline": timeline,
+            "simulation_note": "Scripted replay data only. Containment changes simulated in-memory state; it does not affect a real network.",
+        })
+        response.headers["Content-Disposition"] = 'attachment; filename="%s.json"' % incident_id
+        return response
+    if export_format != "markdown":
+        raise ApiError("bad_request", "'format' must be json or markdown.", 400)
+    import html
+
+    lines = [
+        "# %s — %s" % (incident_id, html.escape(incident["title"])),
+        "",
+        "**SIMULATION:** Scripted replay data only. Containment changes simulated in-memory state; no real network is affected.",
+        "",
+        "- Status: %s" % incident["status"],
+        "- Severity: %s" % incident["severity"],
+        "- Scenario: %s" % (incident["scenario_id"] or "unknown"),
+        "- Affected hosts: %s" % (", ".join(incident["affected_hosts"]) or "none"),
+        "- Compromised hosts: %s" % (", ".join(incident["compromised_hosts"]) or "none"),
+        "",
+        "## Timeline",
+    ]
+    lines.extend("- %s — %s" % (item["timestamp"], html.escape(item["summary"])) for item in timeline)
+    if incident["notes"]:
+        lines.extend(["", "## Analyst notes"])
+        lines.extend("- %s (%s, %s): %s" % (note["created_at"], note["author"], note["role"], html.escape(note["body"])) for note in incident["notes"])
+    response = Response("\n".join(lines) + "\n", mimetype="text/markdown")
+    response.headers["Content-Disposition"] = 'attachment; filename="%s.md"' % incident_id
+    return response
+
+
+@bp.get("/incidents/<incident_id>")
+@auth.json_login_required
+@auth.rate_limit(max_requests=90, window_seconds=60)
+def incident_detail(incident_id):
+    incident_id = _incident_id(incident_id)
+    incident = _ctx()["hooks"].require("incidents").get(incident_id)
+    if incident is None:
+        raise ApiError("not_found", "No incident with id %s." % incident_id, 404)
+    return jsonify(_out("incident", incident))
+
+
+@bp.post("/incidents/<incident_id>/notes")
+@auth.role_required("analyst")
+def incident_note_add(incident_id):
+    incident_id = _incident_id(incident_id)
+    data = _body()
+    if set(data) != {"body"}:
+        raise ApiError("bad_request", "Send exactly one field: body.", 400)
+    engine = _ctx()["hooks"].require("incidents")
+    try:
+        note = engine.add_note(incident_id, data.get("body"), current_user.username, auth.current_role())
+    except KeyError:
+        raise ApiError("not_found", "No incident with id %s." % incident_id, 404)
+    except ValueError as exc:
+        raise ApiError("bad_request", str(exc), 400)
+    return jsonify(_out("incident_note", note)), 201
+
+
+@bp.post("/incidents/<incident_id>/status")
+@auth.role_required("analyst")
+def incident_status_change(incident_id):
+    incident_id = _incident_id(incident_id)
+    data = _body()
+    if set(data) != {"status", "reason", "confirm"}:
+        raise ApiError("bad_request", "Send status, reason and confirm.", 400)
+    engine = _ctx()["hooks"].require("incidents")
+    try:
+        incident = engine.change_status(
+            incident_id,
+            data.get("status"),
+            data.get("reason"),
+            data.get("confirm"),
+            current_user.username,
+            auth.current_role(),
+        )
+    except KeyError:
+        raise ApiError("not_found", "No incident with id %s." % incident_id, 404)
+    except ValueError as exc:
+        raise ApiError("bad_request", str(exc), 400)
+    return jsonify(_out("incident", incident))
+
+
+# ---------- replay studio, scenarios and run history ----------
+def _studio():
+    return _ctx()["hooks"].require("studio")
+
+
+@bp.get("/scenarios")
+@auth.json_login_required
+def scenario_library():
+    items = [_out("scenario_summary", item) for item in _studio().scenarios()]
+    return jsonify(_out("scenario_library", {"items": items}))
+
+
+@bp.get("/scenarios/options")
+@auth.json_login_required
+def scenario_builder_options():
+    studio = _studio()
+    graph = _ctx()["hooks"].require("graph")
+    events = _ctx()["hooks"].require("events")
+    table = getattr(events, "techniques", None) or getattr(getattr(events, "_delegate", None), "techniques", None)
+    hosts = [{"host_id": host_id, "name": info.get("name", host_id), "zone": info.get("zone", "unknown")}
+             for host_id, info in sorted(studio.topology.hosts.items())]
+    techniques = [{"id": item_id, "name": table.require(item_id).get("name", item_id),
+                   "tactics": list(table.require(item_id).get("tactics", []))}
+                  for item_id in sorted(studio.technique_ids)] if table is not None else []
+    return jsonify(_out("scenario_builder_options", {"hosts": hosts, "techniques": techniques}))
+
+
+@bp.get("/scenarios/<scenario_id>")
+@auth.json_login_required
+def scenario_get(scenario_id):
+    found = _studio().get_scenario(scenario_id)
+    if found is None:
+        raise ApiError("not_found", "There is no scenario called '%s'." % scenario_id, 404)
+    return jsonify(found)
+
+
+@bp.get("/scenarios/<scenario_id>/export")
+@auth.json_login_required
+def scenario_export(scenario_id):
+    found = _studio().get_scenario(scenario_id)
+    if found is None:
+        raise ApiError("not_found", "There is no scenario called '%s'." % scenario_id, 404)
+    response = jsonify(found["scenario"])
+    response.headers["Content-Disposition"] = 'attachment; filename="%s.json"' % scenario_id
+    return response
+
+
+@bp.post("/scenarios/validate")
+@auth.role_required("analyst")
+@auth.rate_limit(max_requests=20, window_seconds=60)
+def scenario_validate():
+    data = _body()
+    if set(data) != {"scenario"}:
+        raise ApiError("bad_request", "Send exactly one field: scenario.", 400)
+    return jsonify(_studio().validate(data["scenario"]))
+
+
+@bp.post("/scenarios/dry-run")
+@auth.role_required("analyst")
+@auth.rate_limit(max_requests=5, window_seconds=60)
+def scenario_dry_run():
+    data = _body()
+    if set(data) != {"scenario"}:
+        raise ApiError("bad_request", "Send exactly one field: scenario.", 400)
+    try:
+        return jsonify(_studio().dry_run(data["scenario"]))
+    except ValueError as exc:
+        raise ApiError("bad_request", str(exc), 400)
+
+
+@bp.post("/scenarios")
+@auth.role_required("analyst")
+@auth.rate_limit(max_requests=20, window_seconds=60)
+def scenario_save():
+    data = _body()
+    if set(data) != {"scenario"}:
+        raise ApiError("bad_request", "Send exactly one field: scenario.", 400)
+    try:
+        return jsonify(_studio().save_scenario(data["scenario"])), 201
+    except ValueError as exc:
+        raise ApiError("bad_request", str(exc), 400)
+
+
+@bp.delete("/scenarios/<scenario_id>")
+@auth.role_required("analyst")
+@auth.rate_limit(max_requests=20, window_seconds=60)
+def scenario_delete(scenario_id):
+    try:
+        _studio().delete_scenario(scenario_id)
+    except KeyError:
+        raise ApiError("not_found", "There is no saved user scenario called '%s'." % scenario_id, 404)
+    except ValueError as exc:
+        raise ApiError("bad_request", str(exc), 400)
+    return jsonify({"scenario_id": scenario_id, "deleted": True})
+
+
+@bp.get("/replay/studio/status")
+@auth.json_login_required
+def replay_studio_status():
+    replay = _ctx()["hooks"].require("replay")
+    studio = _studio()
+    return jsonify(_out("studio_status", {"status": replay.status(), "active_run": studio.active()}))
+
+
+@bp.post("/replay/studio/start")
+@auth.role_required("analyst")
+@auth.rate_limit(max_requests=10, window_seconds=60)
+def replay_studio_start():
+    data = _body()
+    if set(data) - {"scenario_id", "speed"} or "scenario_id" not in data:
+        raise ApiError("bad_request", "Send scenario_id and optional speed.", 400)
+    speed = data.get("speed", 1.0)
+    if isinstance(speed, bool) or not isinstance(speed, (int, float)) or not 0.25 <= float(speed) <= 8:
+        raise ApiError("bad_request", "Studio speed must be between 0.25x and 8x.", 400)
+    replay = _ctx()["hooks"].require("replay")
+    status = replay.start(_text(data, "scenario_id"), float(speed), paused=True)
+    return jsonify(_out("studio_status", {"status": status, "active_run": _studio().active()}))
+
+
+@bp.post("/replay/step")
+@auth.role_required("analyst")
+def replay_step():
+    _body()
+    replay = _ctx()["hooks"].require("replay")
+    status = replay.step()
+    if _ctx()["hooks"].get("studio") is None:
+        return jsonify(status)
+    return jsonify(_out("studio_status", {"status": status, "active_run": _studio().active()}))
+
+
+@bp.post("/replay/step-back")
+@auth.role_required("analyst")
+def replay_step_back():
+    _body()
+    replay = _ctx()["hooks"].require("replay")
+    status = replay.step_back()
+    return jsonify(_out("studio_status", {"status": status, "active_run": _studio().active()}))
+
+
+@bp.post("/replay/seek")
+@auth.role_required("analyst")
+def replay_seek():
+    data = _body()
+    if set(data) != {"position"}:
+        raise ApiError("bad_request", "Send exactly one field: position.", 400)
+    status = _ctx()["hooks"].require("replay").seek(data["position"])
+    return jsonify(_out("studio_status", {"status": status, "active_run": _studio().active()}))
+
+
+@bp.post("/replay/speed")
+@auth.role_required("analyst")
+def replay_speed():
+    data = _body()
+    if set(data) != {"speed"}:
+        raise ApiError("bad_request", "Send exactly one field: speed.", 400)
+    status = _ctx()["hooks"].require("replay").set_speed(data["speed"])
+    return jsonify(_out("studio_status", {"status": status, "active_run": _studio().active()}))
+
+
+@bp.post("/replay/breakpoints")
+@auth.role_required("analyst")
+def replay_breakpoints():
+    data = _body()
+    if set(data) != {"sequences"}:
+        raise ApiError("bad_request", "Send exactly one field: sequences.", 400)
+    values = _ctx()["hooks"].require("replay").set_breakpoints(data["sequences"])
+    return jsonify(_out("breakpoint_set", {"sequences": values}))
+
+
+@bp.get("/runs")
+@auth.json_login_required
+def runs_list():
+    try:
+        limit = int(request.args.get("limit", 50))
+    except ValueError:
+        raise ApiError("bad_request", "'limit' must be a whole number.", 400)
+    if not 1 <= limit <= 50:
+        raise ApiError("bad_request", "'limit' must be between 1 and 50.", 400)
+    return jsonify([_out("run_summary", item) for item in _studio().list_runs(limit)])
+
+
+@bp.get("/runs/compare")
+@auth.json_login_required
+def runs_compare():
+    first_id, second_id = request.args.get("a", ""), request.args.get("b", "")
+    if not RUN_ID.fullmatch(first_id) or not RUN_ID.fullmatch(second_id):
+        raise ApiError("bad_request", "Supply run ids with the RUN-000001 format as a and b.", 400)
+    try:
+        return jsonify(_studio().compare(first_id, second_id))
+    except KeyError as exc:
+        raise ApiError("not_found", "No run with id %s." % exc.args[0], 404)
+
+
+@bp.get("/runs/<run_id>/snapshots")
+@auth.json_login_required
+def run_snapshots(run_id):
+    if not RUN_ID.fullmatch(run_id):
+        raise ApiError("bad_request", "Run id must use the RUN-000001 format.", 400)
+    result = _studio().snapshot_index(run_id)
+    if result is None:
+        raise ApiError("not_found", "No run with id %s." % run_id, 404)
+    return jsonify(result)
+
+
+@bp.get("/runs/<run_id>")
+@auth.json_login_required
+def run_get(run_id):
+    if not RUN_ID.fullmatch(run_id):
+        raise ApiError("bad_request", "Run id must use the RUN-000001 format.", 400)
+    result = _studio().get_run(run_id)
+    if result is None:
+        raise ApiError("not_found", "No run with id %s." % run_id, 404)
+    return jsonify(_out("run_detail", {"summary": _out("run_summary", result["summary"]), "final_state": result.get("final_state")}))
+
+
+@bp.get("/snapshots")
+@auth.json_login_required
+def snapshot_get():
+    run_id = request.args.get("run", "")
+    if not RUN_ID.fullmatch(run_id):
+        raise ApiError("bad_request", "Supply a run id with the RUN-000001 format.", 400)
+    version_text = request.args.get("version")
+    version = None
+    if version_text is not None:
+        try:
+            version = int(version_text)
+        except ValueError:
+            raise ApiError("bad_request", "'version' must be a whole number.", 400)
+        if version < 0:
+            raise ApiError("bad_request", "'version' cannot be negative.", 400)
+    result = _studio().get_snapshot(run_id, version)
+    if result is None:
+        raise ApiError("not_found", "No run snapshot matches that run and version.", 404)
+    return jsonify(result)
+
+
+# ---------- read-only network digital twin ----------
+def _twin():
+    return _ctx()["hooks"].require("twin")
+
+
+@bp.get("/topology")
+@auth.json_login_required
+def topology_get():
+    return jsonify(_out("topology", _twin().topology_view()))
+
+
+@bp.get("/topology/paths")
+@auth.json_login_required
+@auth.rate_limit(max_requests=30, window_seconds=60)
+def topology_paths_get():
+    source, target = request.args.get("from", ""), request.args.get("to", "")
+    if not source or not target:
+        raise ApiError("bad_request", "Supply from and to host ids.", 400)
+    try:
+        limit = int(request.args.get("limit", "10"))
+        result = _twin().paths(source, target, limit)
+    except ValueError as exc:
+        raise ApiError("bad_request", str(exc), 400)
+    except KeyError as exc:
+        raise ApiError("not_found", "Unknown demo host %s." % exc.args[0], 404)
+    return jsonify(_out("topology_paths", result))
+
+
+@bp.get("/topology/segmentation-preview")
+@auth.json_login_required
+@auth.rate_limit(max_requests=20, window_seconds=60)
+def topology_segmentation_preview():
+    source = request.args.get("from", "")
+    remove_from = request.args.get("remove_from", "")
+    remove_to = request.args.get("remove_to", "")
+    if not source or not remove_from or not remove_to:
+        raise ApiError("bad_request", "Supply from, remove_from and remove_to host ids.", 400)
+    try:
+        result = _twin().segmentation_preview(source, remove_from, remove_to)
+    except ValueError as exc:
+        raise ApiError("bad_request", str(exc), 400)
+    except KeyError as exc:
+        raise ApiError("not_found", "Unknown demo host %s." % exc.args[0], 404)
+    return jsonify(_out("segmentation_preview", result))
+
+
+@bp.get("/hosts/<host_id>")
+@auth.json_login_required
+def host_detail_get(host_id):
+    try:
+        result = _twin().host_detail(host_id)
+    except KeyError:
+        raise ApiError("not_found", "There is no host with id %s." % host_id, 404)
+    return jsonify(_out("host_detail", result))
+
+
+@bp.get("/hosts/<host_id>/history")
+@auth.json_login_required
+@auth.rate_limit(max_requests=20, window_seconds=60)
+def host_history_get(host_id):
+    try:
+        limit = int(request.args.get("limit", "200"))
+        result = _twin().host_history(host_id, limit)
+    except ValueError as exc:
+        raise ApiError("bad_request", str(exc), 400)
+    except KeyError:
+        raise ApiError("not_found", "There is no host with id %s." % host_id, 404)
+    return jsonify(_out("host_history", result))
+
+
+# ---------- anything else under /api/x ----------
+
+
+# Compatibility endpoints retained from the Phase B operator workspace.
 def _validate_input(contract_name, data):
     contracts = _ctx()["contracts"]
     if contracts is not None:
@@ -71,7 +1098,6 @@ def _validate_input(contract_name, data):
             contracts.validate(contract_name, data)
         except ContractError as exc:
             raise ApiError("bad_request", str(exc), 400) from exc
-
 
 def _date_filter(value, name, end_of_day=False):
     if not value:
@@ -86,14 +1112,12 @@ def _date_filter(value, name, end_of_day=False):
     except (TypeError, ValueError):
         raise ApiError("bad_request", "'%s' must be an ISO date or timestamp." % name, 400)
 
-
 def _entry_time(value):
     try:
         parsed = datetime.fromisoformat(str(value).replace("Z", "+00:00"))
         return parsed.replace(tzinfo=timezone.utc) if parsed.tzinfo is None else parsed.astimezone(timezone.utc)
     except (TypeError, ValueError):
         return datetime.min.replace(tzinfo=timezone.utc)
-
 
 def _page_window(items, limit, cursor):
     try:
@@ -106,18 +1130,15 @@ def _page_window(items, limit, cursor):
     next_cursor = str(offset + len(page)) if offset + len(page) < len(items) else None
     return page, next_cursor
 
-
 def _query_text(name, max_length=256):
     value = request.args.get(name, "").strip()
     if len(value) > max_length:
         raise ApiError("bad_request", "'%s' is too long." % name, 400)
     return value
 
-
 def _severity_rollup(alerts):
     rank = {"NORMAL": 0, "LOW": 1, "MEDIUM": 2, "HIGH": 3}
     return max((alert.get("severity", "NORMAL") for alert in alerts), key=lambda value: rank.get(value, 0), default="NORMAL")
-
 
 def _timeline(alerts, forecasts, actions):
     rows = []
@@ -134,7 +1155,6 @@ def _timeline(alerts, forecasts, actions):
             rows.append({"kind": "containment", "ts": action["confirmed_at"], "label": "Simulated containment %s for %s" % (action["status"], host), "ref_id": action["action_id"], "host": host})
     rows.sort(key=lambda row: (_entry_time(row["ts"]), row["ref_id"], row["kind"]))
     return rows
-
 
 def _incident_from_session(record):
     alerts = record.get("alerts", [])
@@ -171,7 +1191,6 @@ def _incident_from_session(record):
         "timeline": _timeline(alerts, forecasts, actions), "notes": record.get("notes", []),
     }
 
-
 def _session_report(record):
     alerts = record.get("alerts", [])
     forecasts = record.get("forecasts", [])
@@ -195,7 +1214,6 @@ def _session_report(record):
         "timeline": _timeline(alerts, forecasts, actions),
     }
 
-
 def _incident_records(ctx):
     records = []
     for session_record in ctx["world"].incident_sessions():
@@ -203,81 +1221,6 @@ def _incident_records(ctx):
             records.append(_incident_from_session(session_record))
     records.sort(key=lambda item: (_entry_time(item["started_at"]), item["incident_id"]), reverse=True)
     return records
-
-
-@bp.errorhandler(Exception)
-def _handle_errors(exc):
-    
-    if isinstance(exc, ApiError):
-        return jsonify(exc.to_dict()), exc.status
-    
-    if isinstance(exc, HTTPException):
-        return jsonify({"error": {"code": exc.name.lower().replace(" ", "_"), "message": exc.description}}), exc.code
-    
-    current_app.logger.exception("Unexpected error in /api/x")
-    
-    return jsonify({"error": {"code": "internal_error", "message": "Something went wrong on the server."}}), 500
-
-
-# ---------- health and login ----------
-@bp.get("/health")
-def health():
-    ctx = _ctx()
-    
-    return jsonify({
-        "status": "ok", "data_mode": ctx["config"].data_mode, "version": ctx["world"].version,
-        "hooks": ctx["hooks"].registered(), "modules": ctx["load_report"],
-    })
-
-
-@bp.post("/login")
-def login():
-    data = _body()
-    user = auth.check_login(_ctx()["nids"], data.get("username"), data.get("password"))
-    
-    if user is None:
-        raise ApiError("invalid_credentials", "Wrong username or password.", 401)
-    auth.do_login(user)
-    return jsonify(_out("operator_profile", auth.operator_profile(user)))
-
-
-@bp.post("/logout")
-def logout():
-    auth.do_logout()
-    return jsonify({"status": "ok"})
-
-
-@bp.get("/me")
-@auth.json_login_required
-def me():
-    return jsonify(_out("operator_profile", auth.operator_profile(current_user)))
-
-
-# ---------- reading the state ----------
-@bp.get("/state")
-@auth.json_login_required
-def state():
-    since = request.args.get("since")
-    if since is not None:
-        try:
-            since = int(since)
-        except ValueError:
-            raise ApiError("bad_request", "'since' must be a whole number.", 400)
-    return jsonify(_out("world_state", _ctx()["world"].snapshot(since)))
-
-
-@bp.get("/alerts")
-@auth.json_login_required
-def alerts():
-    
-    try:
-        limit = int(request.args.get("limit", 50))
-    except ValueError:
-        raise ApiError("bad_request", "'limit' must be a whole number.", 400)
-    
-    limit = max(1, min(limit, MAX_ALERT_LIMIT))
-    return jsonify(_ctx()["world"].alerts(limit))
-
 
 @bp.get("/alerts/search")
 @auth.json_login_required
@@ -335,17 +1278,6 @@ def alerts_search():
     payload = {"items": page, "total": total, "next_cursor": next_cursor, "limit": limit, "filters": filters}
     return jsonify(_out("alert_page", payload))
 
-
-@bp.get("/alerts/<event_id>")
-@auth.json_login_required
-
-def alert(event_id):
-    found = _ctx()["world"].get_alert(event_id)
-    if found is None:
-        raise ApiError("not_found", "No alert with id %s." % event_id, 404)
-    return jsonify(found)
-
-
 @bp.get("/assets")
 @auth.json_login_required
 def assets():
@@ -374,7 +1306,6 @@ def assets():
             "state_history": ctx["world"].host_state_history(host_id),
         })
     return jsonify(_out("host_inventory", {"items": items, "total": len(items)}))
-
 
 @bp.get("/audit")
 @auth.json_login_required
@@ -416,72 +1347,14 @@ def audit_entries():
     page, next_cursor = _page_window(rows, limit, request.args.get("cursor", ""))
     return jsonify(_out("audit_page", {"items": page, "total": total, "next_cursor": next_cursor, "limit": limit, "filters": filters}))
 
-
-@bp.get("/incidents")
-@auth.json_login_required
-def incidents():
-    try:
-        limit = int(request.args.get("limit", 50))
-    except ValueError:
-        raise ApiError("bad_request", "'limit' must be a whole number.", 400)
-    limit = max(1, min(limit, MAX_ALERT_LIMIT))
-    status = request.args.get("status", "")
-    severity = request.args.get("severity", "").upper()
-    if status and status not in INCIDENT_STATUSES:
-        raise ApiError("bad_request", "'status' must be one of: %s." % ", ".join(INCIDENT_STATUSES), 400)
-    if severity and severity not in ALERT_SEVERITIES:
-        raise ApiError("bad_request", "'severity' must be one of: %s." % ", ".join(ALERT_SEVERITIES), 400)
-    filters = {"q": _query_text("q"), "status": status, "severity": severity}
-    query = filters["q"].casefold()
-    rows = []
-    for incident in _incident_records(_ctx()):
-        searchable = " ".join((incident["incident_id"], incident["title"], incident["summary"], " ".join(incident["hosts"]), " ".join(item["technique_id"] for item in incident["techniques"]))).casefold()
-        if status and incident["status"] != status:
-            continue
-        if severity and incident["severity"] != severity:
-            continue
-        if query and query not in searchable:
-            continue
-        rows.append(incident)
-    page, next_cursor = _page_window(rows, limit, request.args.get("cursor", ""))
-    payload = {"items": page, "total": len(rows), "next_cursor": next_cursor, "limit": limit, "filters": filters}
-    return jsonify(_out("incident_page", payload))
-
-
 def _find_incident(incident_id):
     return next((item for item in _incident_records(_ctx()) if item["incident_id"] == incident_id), None)
-
 
 def _audit_incident(incident_id, summary):
     events = _ctx()["hooks"].get("events")
     recorder = getattr(events, "audit_record", None) if events is not None else None
     if recorder is not None:
         recorder("incident", incident_id, summary)
-
-
-@bp.get("/incidents/<incident_id>")
-@auth.json_login_required
-def incident_detail(incident_id):
-    found = _find_incident(incident_id)
-    if found is None:
-        raise ApiError("not_found", "No incident with id %s." % incident_id, 404)
-    return jsonify(_out("incident_detail", found))
-
-
-@bp.post("/incidents/<incident_id>/notes")
-@auth.json_login_required
-def incident_add_note(incident_id):
-    if _find_incident(incident_id) is None:
-        raise ApiError("not_found", "No incident with id %s." % incident_id, 404)
-    text = _text(_body(), "text")
-    if len(text) > 2000:
-        raise ApiError("bad_request", "Incident notes must be 2000 characters or fewer.", 400)
-    note = {"note_id": "note-%s" % uuid.uuid4().hex, "created_at": datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"), "author": current_user.username, "text": text}
-    _out("incident_note", note)
-    _ctx()["world"].add_incident_note(incident_id, note)
-    _audit_incident(incident_id, "Analyst note added to simulated incident.")
-    return jsonify(note), 201
-
 
 @bp.patch("/incidents/<incident_id>/status")
 @auth.json_login_required
@@ -496,7 +1369,6 @@ def incident_set_status(incident_id):
     found = _find_incident(incident_id)
     return jsonify(_out("incident_detail", found))
 
-
 @bp.get("/reports")
 @auth.json_login_required
 def reports():
@@ -509,7 +1381,6 @@ def reports():
     payload = {"items": items, "total": len(items)}
     return jsonify(_out("report_page", payload))
 
-
 @bp.get("/reports/<session_id>")
 @auth.json_login_required
 def report_detail(session_id):
@@ -517,7 +1388,6 @@ def report_detail(session_id):
     if record is None:
         raise ApiError("not_found", "No replay session with id %s." % session_id, 404)
     return jsonify(_out("session_report", _session_report(record)))
-
 
 @bp.get("/system")
 @auth.json_login_required
@@ -532,52 +1402,6 @@ def system_status():
         "checks": {"contract_validation": ctx["contracts"] is not None, "audit_log_available": bool(audit_path and (audit_path.is_file() or audit_path.parent.is_dir()))},
     }
     return jsonify(_out("system_status", payload))
-
-
-@bp.get("/graph")
-@auth.json_login_required
-
-def graph():
-    return jsonify(_out("graph_snapshot", _ctx()["world"].graph()))
-
-
-
-@bp.get("/forecasts")
-@auth.json_login_required
-def forecasts():
-    status = request.args.get("status")
-    if status is not None and status not in FORECAST_STATUSES:
-        raise ApiError("bad_request", "'status' must be one of: %s." % ", ".join(FORECAST_STATUSES), 400)
-    source = request.args.get("source")
-    if source is not None and source not in ("repo", "lookup"):
-        raise ApiError("bad_request", "'source' must be 'repo' or 'lookup'.", 400)
-    include_archived = request.args.get("include_archived", "0")
-    if include_archived not in ("0", "1"):
-        raise ApiError("bad_request", "'include_archived' must be 0 or 1.", 400)
-    session_id = request.args.get("session_id")
-    from_host = request.args.get("from_host")
-    items = _ctx()["world"].forecasts(status, include_archived=include_archived == "1")
-    if source is not None:
-        items = [item for item in items if item.get("source") == source]
-    if session_id:
-        items = [item for item in items if item.get("session_id") == session_id]
-    if from_host:
-        items = [item for item in items if item.get("from_host") == from_host]
-    return jsonify(items)
-
-
-@bp.get("/forecasts/current")
-@auth.json_login_required
-def forecast_current():
-    
-    
-    found = _ctx()["world"].current_forecast()
-    
-    if found is None:
-    
-        raise ApiError("no_forecast", "No forecast is pending.", 404)
-    return jsonify(found)
-
 
 @bp.get("/forecasts/what-if")
 @auth.json_login_required
@@ -598,15 +1422,36 @@ def forecast_what_if():
     candidates = graph.feasible_targets(from_host)
     if not candidates:
         raise ApiError("no_candidates", "No feasible predicted targets remain for this host.", 409)
-    preview = engine.preview(from_host, candidates)
-    payload = {
-        "from_host": from_host,
+    model = engine.model
+    probabilities = model.probabilities(from_host, candidates) if model is not None else {}
+    if not probabilities:
+        weights = {host_id: max(float(graph.topology.edge_probability(from_host, host_id)), 0.01) for host_id in candidates}
+        total = sum(weights.values()) or 1.0
+        probabilities = {host_id: weight / total for host_id, weight in weights.items()}
+    ranked = sorted(probabilities.items(), key=lambda item: (-item[1], item[0]))
+    targets = [{"rank": index + 1, "host_id": host_id, "confidence": round(probability, 4)}
+               for index, (host_id, probability) in enumerate(ranked[:3])]
+    weights = {host_id: max(float(graph.topology.edge_probability(from_host, host_id)), 0.01) for host_id in candidates}
+    weight_total = sum(weights.values()) or 1.0
+    rule = {host_id: weight / weight_total for host_id, weight in weights.items()}
+    rule_order = {host_id: index + 1 for index, (host_id, _) in enumerate(sorted(rule.items(), key=lambda item: (-item[1], item[0])))}
+    model_order = {host_id: index + 1 for index, (host_id, _) in enumerate(ranked)}
+    uniform_order = {host_id: index + 1 for index, host_id in enumerate(sorted(candidates))}
+    alpha = model.alpha if model is not None else 0.0
+    counts = model.counts.get(from_host, {}) if model is not None else {}
+    candidate_set = [{"host_id": host_id, "transition_count": int(counts.get(host_id, 0)),
+        "model_probability": round(probabilities[host_id], 6), "model_rank": model_order[host_id],
+        "rule_based_probability": round(rule[host_id], 6), "rule_based_rank": rule_order[host_id],
+        "uniform_probability": round(1 / len(candidates), 6), "uniform_rank": uniform_order[host_id]}
+        for host_id in candidates]
+    hint, hint_source = engine.layer.hint(engine._last_technique(from_host)) if engine.layer else (None, "lookup")
+    payload = {"from_host": from_host,
         "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        **preview,
-        "note": "Read-only simulation preview. This does not create a forecast, change host state, or affect the replay.",
-    }
+        "targets": targets, "technique_hint": hint, "source": getattr(engine.layer, "default_source", "lookup"),
+        "explanation": {"model": {"name": "markov" if model is not None else "rule-based", "alpha": alpha},
+            "technique_hint_source": hint_source, "candidate_count": len(candidates), "candidate_set": candidate_set},
+        "note": "Read-only simulation preview. This does not create a forecast, change host state, or affect the replay."}
     return jsonify(_out("what_if_forecast", payload))
-
 
 @bp.get("/forecasts/<forecast_id>")
 @auth.json_login_required
@@ -615,51 +1460,6 @@ def forecast_detail(forecast_id):
     if found is None:
         raise ApiError("not_found", "No forecast with id %s." % forecast_id, 404)
     return jsonify(_out("forecast", found))
-
-
-# ---------- containment (needs the VIZ module) ----------
-@bp.post("/containment/propose")
-@auth.demo_role_required("analyst", "admin")
-
-def containment_propose():
-    ctx = _ctx()
-    data = _body()
-    target = _text(data, "target_host")
-    forecast_id = _text(data, "forecast_id", required=False)
-    requested_by = data.get("requested_by", "console")
-    
-    if requested_by not in REQUESTERS:
-        raise ApiError("bad_request", "'requested_by' must be 'console' or 'mobile'.", 400)
-    action = ctx["hooks"].require("containment").propose(ctx["world"], target, forecast_id, requested_by)
-    
-    return jsonify(_out("containment_action", action))
-
-
-@bp.post("/containment/confirm")
-@auth.demo_role_required("analyst", "admin")
-def containment_confirm():
-    ctx = _ctx()
-    action = ctx["hooks"].require("containment").confirm(ctx["world"], _text(_body(), "action_id"))
-    
-    return jsonify(_out("containment_action", action))
-
-
-@bp.post("/containment/cancel")
-@auth.demo_role_required("analyst", "admin")
-def containment_cancel():
-    ctx = _ctx()
-    action = ctx["hooks"].require("containment").cancel(ctx["world"], _text(_body(), "action_id"))
-    return jsonify(_out("containment_action", action))
-
-
-@bp.get("/containment/actions")
-@auth.json_login_required
-def containment_actions():
-    include_archived = request.args.get("include_archived", "0")
-    if include_archived not in ("0", "1"):
-        raise ApiError("bad_request", "'include_archived' must be 0 or 1.", 400)
-    return jsonify(_ctx()["world"].actions(include_archived=include_archived == "1"))
-
 
 @bp.post("/containment/playbooks/propose")
 @auth.demo_role_required("analyst", "admin")
@@ -697,7 +1497,6 @@ def containment_playbook_propose():
     action = ctx["hooks"].require("containment").propose_many(ctx["world"], targets, forecast_id, "console", playbook)
     return jsonify(_out("containment_action", action))
 
-
 @bp.post("/containment/release/propose")
 @auth.demo_role_required("admin")
 def containment_release_propose():
@@ -706,23 +1505,6 @@ def containment_release_propose():
         _ctx()["world"], _text(data, "containment_action_id"), "console"
     )
     return jsonify(_out("containment_action", action))
-
-
-# ---------- session and metrics ----------
-@bp.get("/session")
-@auth.json_login_required
-def session():
-    found = _ctx()["world"].session()
-    if found is None:
-        raise ApiError("no_session", "There is no session yet.", 404)
-    return jsonify(found)
-
-
-@bp.get("/sessions")
-@auth.json_login_required
-def sessions():
-    return jsonify(_ctx()["world"].sessions())
-
 
 def _session_comparison_item(record):
     alerts = record.get("alerts", [])
@@ -743,7 +1525,6 @@ def _session_comparison_item(record):
         "containment_actions": sum(item.get("operation", "contain") == "contain" for item in actions),
         "successful_containments": sum(item.get("operation", "contain") == "contain" and item.get("status") == "executed" for item in actions),
     }
-
 
 @bp.get("/sessions/compare")
 @auth.json_login_required
@@ -767,7 +1548,6 @@ def compare_sessions():
     }
     return jsonify(_out("session_comparison", payload))
 
-
 @bp.get("/time-travel")
 @auth.json_login_required
 def time_travel():
@@ -781,25 +1561,8 @@ def time_travel():
     snapshots = _ctx()["world"].time_travel(session_id=session_id, limit=limit)
     return jsonify([_out("time_travel_snapshot", item) for item in snapshots])
 
-
-@bp.get("/metrics/precog")
-@auth.json_login_required
-def metrics_precog():
-    return jsonify(_out("session_metrics", _ctx()["world"].metrics()))
-
-
-@bp.get("/metrics/detection")
-@auth.json_login_required
-def metrics_detection():
-    found = _ctx()["world"].detection_report()
-    if found is None:
-        raise ApiError("no_report", "No detection report has been loaded.", 404)
-    return jsonify(found)
-
-
 def _metric_summary(record):
     return {key: record[key] for key in ("forecasts", "precision_at_1", "precision_at_1_std_error", "precision_at_3", "expected_calibration_error")}
-
 
 @bp.get("/analytics")
 @auth.json_login_required
@@ -866,14 +1629,6 @@ def forecast_analytics():
     }
     return jsonify(_out("forecast_analytics", payload))
 
-
-# ---------- replay (needs the GRAPH module) ----------
-@bp.get("/replay/scenarios")
-@auth.json_login_required
-def replay_scenarios():
-    return jsonify(_ctx()["hooks"].require("replay").list_scenarios())
-
-
 @bp.get("/replay/scenarios/<scenario_id>")
 @auth.json_login_required
 def replay_scenario_detail(scenario_id):
@@ -881,7 +1636,6 @@ def replay_scenario_detail(scenario_id):
     if scenario is None:
         raise ApiError("not_found", "No scenario with id %s." % scenario_id, 404)
     return jsonify(scenario)
-
 
 @bp.post("/replay/scenarios")
 @auth.demo_role_required("analyst", "admin")
@@ -895,71 +1649,6 @@ def replay_scenario_save():
         raise ApiError("invalid_scenario", str(exc), 400)
     return jsonify(scenario), 201
 
-
-@bp.get("/replay/status")
-@auth.json_login_required
-def replay_status():
-    ctx = _ctx()
-    replay = ctx["hooks"].get("replay")
-    return jsonify(_out("replay_status", replay.status() if replay else ctx["world"].replay()))
-
-
-@bp.post("/replay/start")
-@auth.demo_role_required("analyst", "admin")
-def replay_start():
-    data = _body()
-    scenario_id = _text(data, "scenario_id")
-    speed = data.get("speed", 1.0)
-    if isinstance(speed, bool) or not isinstance(speed, (int, float)) or speed <= 0:
-        raise ApiError("bad_request", "'speed' must be a number above 0.", 400)
-    return jsonify(_out("replay_status", _ctx()["hooks"].require("replay").start(scenario_id, float(speed))))
-
-
-def _replay_action(name):
-    status = getattr(_ctx()["hooks"].require("replay"), name)()
-    return jsonify(_out("replay_status", status))
-
-
-@bp.post("/replay/pause")
-@auth.demo_role_required("analyst", "admin")
-def replay_pause():
-    return _replay_action("pause")
-
-
-@bp.post("/replay/resume")
-@auth.demo_role_required("analyst", "admin")
-def replay_resume():
-    return _replay_action("resume")
-
-
-@bp.post("/replay/step")
-@auth.demo_role_required("analyst", "admin")
-def replay_step():
-    return _replay_action("step")
-
-
-@bp.post("/replay/restart")
-@auth.demo_role_required("admin")
-def replay_restart():
-    return _replay_action("restart")
-
-
-# ---------- push ----------
-@bp.post("/push/register")
-@auth.json_login_required
-def push_register():
-    ctx = _ctx()
-    token = _text(_body(), "token")
-    if len(token) > 4096:
-        raise ApiError("bad_request", "That push token is too long.", 400)
-    count = ctx["world"].add_push_token(token)
-    push = ctx["hooks"].get("push")
-    if push is not None:
-        push.register(token)
-    return jsonify({"status": "ok", "count": count})
-
-
-# ---------- anything else under /api/x ----------
 @bp.route("/<path:rest>", methods=["GET", "POST", "PUT", "PATCH", "DELETE"])
 def not_found(rest):
     raise ApiError("not_found", "There is no endpoint '/api/x/%s' for this method." % rest, 404)

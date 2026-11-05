@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/scenario_draft.schema.json",
+  "title": "Saved replay scenario",
+  "type": "object",
+  "required": ["scenario", "source", "editable", "updated_at"],
+  "properties": {
+    "scenario": {"type": "object"},
+    "source": {"type": "string", "enum": ["shipped", "user"]},
+    "editable": {"type": "boolean"},
+    "updated_at": {"type": ["string", "null"], "format": "date-time"}
+  },
+  "additionalProperties": false
+}

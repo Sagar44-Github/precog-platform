@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/topology.schema.json",
+  "title": "Network digital twin topology",
+  "type": "object",
+  "required": ["hosts", "zones", "feasible_edges", "observed_edges", "compromised_path", "engine", "risk_basis", "basis"],
+  "properties": {
+    "hosts": {"type": "array", "items": {"$ref": "#/$defs/host"}},
+    "zones": {"type": "array", "items": {"type": "object", "required": ["zone", "host_ids"], "properties": {"zone": {"type": "string"}, "host_ids": {"type": "array", "items": {"type": "string"}}}, "additionalProperties": false}},
+    "feasible_edges": {"type": "array", "items": {"$ref": "#/$defs/edge"}},
+    "observed_edges": {"type": "array", "items": {"type": "object", "required": ["from_host", "to_host", "first_seen"], "properties": {"from_host": {"type": "string"}, "to_host": {"type": "string"}, "first_seen": {"type": ["string", "null"]}}, "additionalProperties": false}},
+    "compromised_path": {"type": "array", "items": {"type": "string"}},
+    "engine": {"enum": ["attackgraph", "networkx-fallback"]},
+    "risk_basis": {"type": "string"},
+    "basis": {"type": "string"}
+  },
+  "$defs": {
+    "host": {"type": "object", "required": ["host_id", "name", "zone", "address", "role", "state", "services", "weaknesses", "criticality", "risk", "exposure"], "properties": {
+      "host_id": {"type": "string"}, "name": {"type": "string"}, "zone": {"type": "string"}, "address": {"type": "string"}, "role": {"type": "string"},
+      "state": {"enum": ["normal", "compromised", "contained"]}, "services": {"type": "array", "items": {"type": "string"}},
+      "weaknesses": {"type": "array", "items": {"type": "object", "required": ["weakness_id", "service", "cvss", "description", "simulated"], "properties": {"weakness_id": {"type": "string", "pattern": "^DEMO-"}, "service": {"type": "string"}, "cvss": {"type": "number", "minimum": 0, "maximum": 10}, "description": {"type": "string"}, "simulated": {"const": true}}, "additionalProperties": false}},
+      "criticality": {"type": "number", "minimum": 0, "maximum": 1}, "risk": {"type": "number", "minimum": 0, "maximum": 10}, "exposure": {"type": "integer", "minimum": 0}
+    }, "additionalProperties": false},
+    "edge": {"type": "object", "required": ["from_host", "to_host", "likelihood"], "properties": {"from_host": {"type": "string"}, "to_host": {"type": "string"}, "likelihood": {"type": "number", "minimum": 0, "maximum": 1}}, "additionalProperties": false}
+  },
+  "additionalProperties": false
+}

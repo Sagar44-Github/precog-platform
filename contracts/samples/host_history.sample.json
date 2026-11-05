@@ -1,0 +1,5 @@
+{
+  "host_id": "server-b",
+  "events": [{"event_id": "RUN-000001:state:state:normal", "kind": "state", "occurred_at": "2026-01-01T00:00:00Z", "summary": "Web Server B state: normal", "reference_id": null, "run_id": "RUN-000001", "state": "normal"}],
+  "total": 1
+}

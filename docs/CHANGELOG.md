@@ -1,5 +1,15 @@
 # Changelog
 
+## Phase B1.5 — Interactive 3D landing experience (2026-11-05)
+
+- Replaced the app's public default redirect with a public Precog SOC landing route. Authenticated console and phone routes remain protected.
+- Made the 3D Golden Path network the main demonstration: users can orbit it, select hosts, step or scrub through detection, reconstruction, forecasting, and simulated containment.
+- Added a designed SVG fallback for reduced motion and low-power browsing, with the same controls and copy.
+- Generated forecasts, evaluation results, detector limitations, host details, topology, and credits from repository sources at build time.
+- Added evidence and license notes, semantic/keyboard support, a browser audit, and screenshots under `docs/audit/screenshots/landing/interactive/`.
+- Changed `/` to open the public landing page and made `/api/x/me` return a null identity for signed-out visitors; protected data routes still require login.
+- No NIDS files or data contracts changed.
+
 ## Phase B1 — App shell and design system (2026-11-04)
 
 - Added a persistent desktop workspace rail, operator actions, shared SIMULATION label, breadcrumbs, and a compact command launcher.

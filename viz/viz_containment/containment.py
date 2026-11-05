@@ -35,6 +35,37 @@ class ContainmentService:
         self._pending = {}      # action_id -> {"timer": Timer, "expires": monotonic seconds}
         self._reeval = {}
         self._stopped = threading.Event()
+        self._generation = 0
+
+    def reset_for_replay(self):
+        """Clear replay-local action ids and timers so repeated scenarios stay deterministic."""
+        with self._lock:
+            self._generation += 1
+            for entry in self._pending.values():
+                entry["timer"].cancel()
+            self._pending.clear()
+            self._counter = 0
+            self._reeval = {}
+
+    def checkpoint_state(self):
+        with self._lock:
+            return {"counter": self._counter, "reeval": dict(self._reeval)}
+
+    def restore_checkpoint(self, state):
+        with self._lock:
+            self._generation += 1
+            for entry in self._pending.values():
+                entry["timer"].cancel()
+            self._pending.clear()
+            self._counter = int(state.get("counter", 0))
+            self._reeval = dict(state.get("reeval", {}))
+            for action in self.world.actions():
+                if action.get("status") != "pending_confirmation":
+                    continue
+                timer = threading.Timer(self.confirm_seconds, self._expire, args=(action["action_id"],))
+                timer.daemon = True
+                self._pending[action["action_id"]] = {"timer": timer}
+                timer.start()
 
     # ---------- the hook interface ----------
     def propose(self, world, target_host, forecast_id, requested_by):
@@ -241,19 +272,22 @@ class ContainmentService:
 
     # ---------- re-evaluation ----------
     def _start_reeval(self, action_id):
-        thread = threading.Thread(target=self._reeval_loop, args=(action_id,), name="reeval-" + action_id, daemon=True)
+        generation = self._generation
+        thread = threading.Thread(target=self._reeval_loop, args=(action_id, generation), name="reeval-" + action_id, daemon=True)
         thread.start()
 
-    def _reeval_loop(self, action_id):
+    def _reeval_loop(self, action_id, generation=None):
         end = time.monotonic() + self.reeval_wait
         while time.monotonic() < end and not self._stopped.is_set():
             with self._lock:
+                if generation is not None and generation != self._generation:
+                    return
                 action = self._get(action_id)
                 if action is None:
                     return
                 forecast = self._resolved_forecast(action)
                 if forecast is not None:
-                    self._write_reeval(action, forecast)
+                    self._write_reeval(action, forecast, generation)
                     return
             time.sleep(self.poll)
 
@@ -263,7 +297,9 @@ class ContainmentService:
                 return forecast
         return None
 
-    def _write_reeval(self, action, forecast):
+    def _write_reeval(self, action, forecast, generation=None):
+        if generation is not None and generation != self._generation:
+            return
         graph = self.hooks.get("graph")
         outcome = forecast["outcome"]
         where = self._name(graph, outcome["attempted_host"]) if graph is not None else outcome["attempted_host"]

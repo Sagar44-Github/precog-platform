@@ -20,7 +20,13 @@ class Checker:
 
     def _http(self, method, path, body=None, timeout=90):
         data = json.dumps(body).encode() if body is not None else None
-        request = urllib.request.Request(self.base + path, data=data, method=method, headers={"Content-Type": "application/json"} if data else {})
+        headers = {"Content-Type": "application/json"} if data is not None else {}
+        if method.upper() in ("POST", "PUT", "PATCH", "DELETE") and path != "/api/x/login":
+            headers["X-Precog-Request"] = "1"
+            if data is None:
+                data = b"{}"
+                headers["Content-Type"] = "application/json"
+        request = urllib.request.Request(self.base + path, data=data, method=method, headers=headers)
         try:
             with self._opener.open(request, timeout=timeout) as reply:
                 return reply.status, dict(reply.headers), reply.read()
@@ -42,7 +48,7 @@ class Checker:
             return False
         health = json.loads(body)
         self.check("data mode is live", health.get("data_mode") == "live", str(health.get("data_mode")))
-        needed = {"events", "graph", "replay", "containment", "precog", "push"}
+        needed = {"events", "graph", "replay", "containment", "precog", "push", "incidents"}
         self.check("every part is registered", needed <= set(health.get("hooks", [])), "missing: %s" % sorted(needed - set(health.get("hooks", []))))
         bad = {k: v for k, v in health.get("modules", {}).items() if v != "registered"}
         self.check("no part failed to load", not bad, str(bad))

@@ -18,12 +18,12 @@
     "description": {
       "type": "string",
       "minLength": 1,
-      "maxLength": 300
+      "maxLength": 500
     },
     "events": {
       "type": "array",
       "minItems": 1,
-      "maxItems": 100,
+      "maxItems": 200,
       "items": {
         "oneOf": [
           {
@@ -57,7 +57,8 @@
         },
         "offset_ms": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "maximum": 7200000
         },
         "pause_for_decision": {
           "type": "boolean"
@@ -78,6 +79,10 @@
         },
         "compromise": {
           "type": "boolean"
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["HIGH", "MEDIUM", "LOW"]
         }
       }
     },
@@ -97,10 +102,15 @@
         },
         "offset_ms": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "maximum": 7200000
         },
         "pause_for_decision": {
           "type": "boolean"
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["HIGH", "MEDIUM", "LOW"]
         },
         "kind": {
           "const": "traffic"
@@ -180,7 +190,8 @@
         },
         "offset_ms": {
           "type": "integer",
-          "minimum": 0
+          "minimum": 0,
+          "maximum": 7200000
         },
         "pause_for_decision": {
           "type": "boolean"
@@ -202,6 +213,10 @@
         },
         "note": {
           "type": "string"
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["HIGH", "MEDIUM", "LOW"]
         }
       }
     }

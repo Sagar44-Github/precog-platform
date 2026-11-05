@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/feed_versions.schema.json",
+  "title": "Domain feed versions",
+  "type": "object",
+  "properties": {
+    "revision": { "type": "integer", "minimum": 0 },
+    "changed": { "type": "boolean" },
+    "versions": {
+      "type": "object",
+      "properties": {
+        "incidents": { "type": "integer", "minimum": 0 },
+        "runs": { "type": "integer", "minimum": 0 },
+        "actions": { "type": "integer", "minimum": 0 },
+        "notes": { "type": "integer", "minimum": 0 }
+      },
+      "required": ["incidents", "runs", "actions", "notes"],
+      "additionalProperties": false
+    }
+  },
+  "required": ["revision", "changed", "versions"],
+  "additionalProperties": false
+}

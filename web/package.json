@@ -5,10 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "build-landing-data": "node scripts/build-landing-data.mjs",
+    "check-landing-data": "node scripts/build-landing-data.mjs --check",
+    "prebuild": "npm run build-landing-data",
     "build": "vite build",
     "preview": "vite preview --port 4173",
+    "pretest": "npm run build-landing-data",
     "test": "node --test scripts/run-tests-paths.test.mjs && node scripts/run-tests.mjs",
-    "audit:browser": "node scripts/browser-audit.mjs"
+    "audit:browser": "node scripts/browser-audit.mjs",
+    "audit:landing": "node scripts/landing-browser-audit.mjs"
   },
   "dependencies": {
     "3d-force-graph": "^1.80.1",
@@ -22,6 +27,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",
+    "axe-core": "^4.14.0",
     "esbuild": "^0.21.5",
     "playwright": "1.64.1",
     "pngjs": "7.0.0",

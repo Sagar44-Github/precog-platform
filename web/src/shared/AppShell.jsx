@@ -4,6 +4,7 @@ import { useAuth } from './AuthContext.jsx'
 import { SimulationBadge } from './components.jsx'
 import { Icon } from './icons.jsx'
 import { ThemeToggle, useTheme } from './theme-context.jsx'
+import { apiGet } from './api.js'
 import GuidedTour from './GuidedTour.jsx'
 import './app-shell.css'
 
@@ -25,34 +26,10 @@ function commandEvent(detail) {
   window.dispatchEvent(new CustomEvent('precog:console-command', { detail }))
 }
 
-function pageTitle(pathname) {
-  if (pathname === '/console/topology') return 'Topology explorer'
-  if (pathname === '/help') return 'Help & walkthrough'
-  if (pathname === '/about') return 'About Precog SOC'
-  if (pathname.startsWith('/forecasts/')) return 'Forecast detail'
-  if (pathname === '/forecasts') return 'Forecast ledger'
-  if (pathname === '/analytics') return 'Model analytics'
-  if (pathname === '/containment') return 'Containment'
-  if (pathname === '/replay') return 'Replay studio'
-  if (pathname === '/scenarios') return 'Scenario builder'
-  if (pathname.startsWith('/alerts/')) return 'Alert detail'
-  if (pathname === '/alerts') return 'Alerts'
-  if (pathname.startsWith('/incidents/')) return 'Incident detail'
-  if (pathname === '/incidents') return 'Incidents'
-  if (pathname.startsWith('/reports/')) return 'Session report'
-  if (pathname === '/reports') return 'Reports'
-  if (pathname.startsWith('/hosts/')) return 'Asset detail'
-  if (pathname === '/hosts') return 'Hosts & assets'
-  if (pathname === '/audit') return 'Audit log'
-  if (pathname === '/system') return 'System health'
-  if (pathname === '/settings') return 'Settings'
-  if (pathname.startsWith('/mobile')) return 'Mobile SOC'
-  return 'Live console'
-}
-
-export function CommandPalette({ open, onClose, permissions }) {
+export function CommandPalette({ open, onClose }) {
   const navigate = useNavigate()
   const { theme, toggleTheme } = useTheme()
+  const { role } = useAuth()
   const [query, setQuery] = useState('')
   const [active, setActive] = useState(0)
   const inputRef = useRef(null)
@@ -60,27 +37,21 @@ export function CommandPalette({ open, onClose, permissions }) {
 
   const commands = useMemo(() => [
     { label: 'Open live console', detail: 'Go to the 3D replay console', icon: 'activity', keywords: 'workspace desktop', run: () => navigate('/console') },
-    { label: 'Open topology explorer', detail: 'Explore the 3D network map, overlays, and history', icon: 'hosts', keywords: 'topology network map 3d lite', run: () => navigate('/console/topology') },
-    { label: 'Open operator help', detail: 'Start the Golden Path walkthrough and review SOC terms', icon: 'help', keywords: 'help tour guide walkthrough glossary shortcuts', run: () => navigate('/help') },
-    { label: 'About Precog SOC', detail: 'Review the simulation notice, architecture, and limits', icon: 'info', keywords: 'about ethics limitations architecture license credits', run: () => navigate('/about') },
     { label: 'Open mobile SOC', detail: 'Open the phone PWA screens', icon: 'smartphone', keywords: 'phone pwa', run: () => navigate('/mobile') },
-    { label: 'Open alerts workspace', detail: 'Search and review security events', icon: 'alerts', keywords: 'alerts incidents events', run: () => navigate('/alerts') },
-    { label: 'Open incidents', detail: 'Review attack chains, notes, and status', icon: 'alerts', keywords: 'incident case triage', run: () => navigate('/incidents') },
-    { label: 'Open forecast ledger', detail: 'Review predictions and their outcomes', icon: 'activity', keywords: 'forecast predictions explainability', run: () => navigate('/forecasts') },
-    { label: 'Open model analytics', detail: 'Compare held-out results, baselines, and calibration', icon: 'audit', keywords: 'analytics model calibration baselines', run: () => navigate('/analytics') },
-    { label: 'Open containment', detail: 'Review simulated playbooks and response history', icon: 'shield', keywords: 'containment response release playbook', run: () => navigate('/containment') },
-    { label: 'Open replay studio', detail: 'Control scenarios, step events, and compare sessions', icon: 'activity', keywords: 'replay time travel sessions compare', run: () => navigate('/replay') },
-    { label: 'Open scenario builder', detail: 'Create and validate a simulated event sequence', icon: 'sliders', keywords: 'scenario library builder events', run: () => navigate('/scenarios') },
-    { label: 'Open session reports', detail: 'Review and print replay reports', icon: 'audit', keywords: 'reports export print', run: () => navigate('/reports') },
-    { label: 'Open hosts and assets', detail: 'Review the simulated network inventory', icon: 'hosts', keywords: 'assets inventory devices', run: () => navigate('/hosts') },
-    { label: 'Open audit log', detail: 'Review detection and response records', icon: 'audit', keywords: 'audit history log', run: () => navigate('/audit') },
-    { label: 'Open system health', detail: 'Inspect backend modules and runtime', icon: 'system', keywords: 'health status modules', run: () => navigate('/system') },
-    { label: 'Open settings', detail: 'Set theme, density, and alert defaults', icon: 'settings', keywords: 'preferences appearance', run: () => navigate('/settings') },
+    { label: 'Open incident investigations', detail: 'Review correlated alerts and analyst notes', icon: 'shield', keywords: 'cases incident investigation', run: () => navigate('/incidents') },
+    { label: 'Open Precog forecasts', detail: 'Review ranked estimates and their observed outcomes', icon: 'activity', keywords: 'forecast prediction explainability', run: () => navigate('/forecasts') },
+    { label: 'Open what-if lab', detail: 'Explore containment counterfactuals without changing the replay', icon: 'sliders', keywords: 'what if counterfactual containment', run: () => navigate('/lab') },
+    { label: 'Open model analytics', detail: 'Review calibration and run held-out experiments', icon: 'clock', keywords: 'evaluation metrics model calibration', run: () => navigate('/analytics') },
+    { label: 'Open response governance', detail: 'Preview and confirm simulation-only response playbooks', icon: 'shield', keywords: 'containment actions approvals releases playbooks', run: () => navigate('/containment') },
+    { label: 'Open network twin', detail: 'Explore demo assets, paths and recorded states', icon: 'network', keywords: 'hosts topology digital twin', run: () => navigate('/twin') },
+    { label: 'Open replay studio', detail: 'Step through a scripted replay and compare runs', icon: 'play', keywords: 'replay studio runs timeline', run: () => navigate('/replay') },
+    { label: 'Open scenario library', detail: 'Choose or build a scripted scenario', icon: 'layers', keywords: 'scenario builder library', run: () => navigate('/scenarios') },
+    { label: 'Open run history', detail: 'Review completed runs and compare outcomes', icon: 'clock', keywords: 'runs history compare', run: () => navigate('/runs') },
     { label: 'Show alert stream', detail: 'Open alerts in the console panel', icon: 'activity', keywords: 'alerts events', run: () => commandEvent({ type: 'view', view: 'alerts' }) },
     { label: 'Show session report', detail: 'Open the current session report panel', icon: 'sliders', keywords: 'reports metrics', run: () => commandEvent({ type: 'view', view: 'reports' }) },
-    ...(permissions?.can_run_replay ? [{ label: 'Start Golden Path replay', detail: 'Start the deterministic simulation', icon: 'play', keywords: 'demo replay simulation', run: () => commandEvent({ type: 'start-demo' }) }] : []),
+    ...(role === 'viewer' ? [] : [{ label: 'Start Golden Path replay', detail: 'Start the deterministic simulation', icon: 'play', keywords: 'demo replay simulation', run: () => commandEvent({ type: 'start-demo' }) }]),
     { label: `Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`, detail: 'Change the display theme', icon: theme === 'dark' ? 'sun' : 'moon', keywords: 'appearance color', run: toggleTheme },
-  ], [navigate, theme, toggleTheme, permissions?.can_run_replay])
+  ], [navigate, role, theme, toggleTheme])
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase()
     if (!needle) return commands
@@ -170,12 +141,60 @@ export function ConsoleHandoff() {
 }
 
 export default function AppShell({ children }) {
-  const { username, roleName, permissions, logout } = useAuth()
+  const { username, role, logout } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const [paletteOpen, setPaletteOpen] = useState(false)
-  const handoff = useConsoleHandoff()
+  const [openIncidents, setOpenIncidents] = useState(0)
+  const [incidentNotice, setIncidentNotice] = useState(false)
+  const [pendingResponses, setPendingResponses] = useState(0)
+  const handoff = useConsoleHandoff() && location.pathname.startsWith('/console')
+  const pageTitle = location.pathname.startsWith('/replay') ? 'Replay studio'
+    : location.pathname.startsWith('/twin') ? 'Network twin'
+      : location.pathname.startsWith('/hosts') ? 'Asset directory'
+    : location.pathname.includes('/edit') || location.pathname.endsWith('/new') ? 'Scenario builder'
+      : location.pathname.startsWith('/scenarios') ? 'Scenario library'
+    : location.pathname.startsWith('/forecasts') ? (location.pathname.split('/').length > 2 ? 'Forecast explanation' : 'Precog forecasts')
+      : location.pathname.startsWith('/lab') ? 'What-if lab'
+        : location.pathname.startsWith('/analytics') ? 'Model analytics'
+      : location.pathname.startsWith('/containment') ? 'Response governance'
+    : location.pathname.includes('/compare') ? 'Run comparison'
+          : location.pathname.startsWith('/runs') ? 'Run history' : 'Live console'
   const closePalette = () => setPaletteOpen(false)
+
+  useEffect(() => {
+    if (!username) return undefined
+    let alive = true
+    const refresh = async () => {
+      try {
+        const result = await apiGet('/api/x/incidents?status=open&limit=1')
+        if (!alive) return
+        setOpenIncidents((previous) => {
+          if (result.total > previous) setIncidentNotice(true)
+          return result.total
+        })
+      } catch { /* the console still works if incident polling is unavailable */ }
+    }
+    refresh()
+    const timer = window.setInterval(refresh, 5000)
+    return () => { alive = false; window.clearInterval(timer) }
+  }, [username])
+
+  useEffect(() => {
+    if (!username) return undefined
+    let alive = true
+    const refresh = async () => {
+      try {
+        const records = await apiGet('/api/x/containment/governance?limit=100')
+        if (!alive) return
+        const pending = [...records.approvals, ...records.releases].filter((item) => ['pending_approval', 'pending_confirmation'].includes(item.status)).length
+        setPendingResponses(pending)
+      } catch { /* governance can be opened directly if polling is unavailable */ }
+    }
+    refresh()
+    const timer = window.setInterval(refresh, 5000)
+    return () => { alive = false; window.clearInterval(timer) }
+  }, [username])
 
   useEffect(() => {
     const onKeyDown = (event) => {
@@ -192,55 +211,72 @@ export default function AppShell({ children }) {
     try { await logout() } finally { navigate('/login', { replace: true }) }
   }
 
-  if (handoff && location.pathname === '/console') return <ConsoleHandoff />
-
-  const currentPage = pageTitle(location.pathname)
-  const navigation = [
-    { to: '/console', label: 'Live console', icon: 'activity', end: true },
-    { to: '/console/topology', label: 'Topology explorer', icon: 'hosts' },
-    { to: '/alerts', label: 'Alerts', icon: 'alerts' },
-    { to: '/incidents', label: 'Incidents', icon: 'alerts' },
-    { to: '/forecasts', label: 'Forecasts', icon: 'activity' },
-    { to: '/analytics', label: 'Analytics', icon: 'audit' },
-    { to: '/containment', label: 'Containment', icon: 'shield' },
-    { to: '/replay', label: 'Replay studio', icon: 'activity' },
-    { to: '/scenarios', label: 'Scenario builder', icon: 'sliders' },
-    { to: '/reports', label: 'Reports', icon: 'audit' },
-    { to: '/hosts', label: 'Hosts & assets', icon: 'hosts' },
-    { to: '/audit', label: 'Audit log', icon: 'audit' },
-    { to: '/system', label: 'System health', icon: 'system' },
-    { to: '/settings', label: 'Settings', icon: 'settings' },
-    { to: '/mobile', label: 'Mobile SOC', icon: 'smartphone' },
-    { to: '/help', label: 'Help & walkthrough', icon: 'help' },
-    { to: '/about', label: 'About Precog SOC', icon: 'info' },
-  ]
+  if (handoff) return <ConsoleHandoff />
 
   return (
     <div className="app-shell">
-      <a className="app-skip-link" href="#main-content">Skip to main content</a>
       <aside className="app-sidebar" aria-label="Workspace navigation">
-        <Link to="/console" className="app-brand" aria-label="Precog SOC home">
+        <Link to="/console" className="app-brand">
           <span className="brand-mark"><Icon name="activity" size={21} /></span>
           <span className="brand-copy"><b>Precog <strong>SOC</strong></b><small>SIMULATION LAB</small></span>
         </Link>
-        <p className="app-nav-caption">OPERATIONS</p>
+        <p className="app-nav-caption">WORKSPACE</p>
         <nav className="app-primary-nav" aria-label="Main navigation">
-          {navigation.map(({ to, label, icon, end }) => <NavLink key={to} to={to} end={end} title={label} aria-label={label} className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
-            <Icon name={icon} /><span>{label}</span>
-          </NavLink>)}
+          <NavLink to="/console" end className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
+            <Icon name="activity" /><span>Live console</span><kbd>1</kbd>
+          </NavLink>
+          <NavLink to="/mobile" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
+            <Icon name="smartphone" /><span>Mobile SOC</span><kbd>2</kbd>
+          </NavLink>
+          <NavLink to="/incidents" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
+            <Icon name="shield" /><span>Incidents</span>{openIncidents > 0 && <b className="app-nav-count" aria-label={`${openIncidents} open incidents`}>{openIncidents}</b>}
+          </NavLink>
+          <NavLink to="/twin" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
+            <Icon name="network" /><span>Network twin</span>
+          </NavLink>
+          <NavLink to="/hosts" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
+            <Icon name="server" /><span>Hosts & assets</span>
+          </NavLink>
+          <NavLink to="/replay" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
+            <Icon name="play" /><span>Replay studio</span>
+          </NavLink>
+          <NavLink to="/scenarios" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
+            <Icon name="layers" /><span>Scenarios</span>
+          </NavLink>
+          <NavLink to="/runs" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
+            <Icon name="clock" /><span>Run history</span>
+          </NavLink>
+          <NavLink to="/forecasts" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
+            <Icon name="activity" /><span>Forecasts</span>
+          </NavLink>
+          <NavLink to="/lab" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
+            <Icon name="sliders" /><span>What-if lab</span>
+          </NavLink>
+          <NavLink to="/analytics" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
+            <Icon name="clock" /><span>Analytics</span>
+          </NavLink>
+          <NavLink to="/containment" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
+            <Icon name="shield" /><span>Response governance</span>{pendingResponses > 0 && <b className="app-nav-count" aria-label={`${pendingResponses} pending response approvals`}>{pendingResponses}</b>}
+          </NavLink>
+          <NavLink to="/alerts" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}><Icon name="alerts" /><span>Alerts</span></NavLink>
+          <NavLink to="/reports" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}><Icon name="audit" /><span>Reports</span></NavLink>
+          <NavLink to="/audit" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}><Icon name="audit" /><span>Audit log</span></NavLink>
+          <NavLink to="/system" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}><Icon name="system" /><span>System health</span></NavLink>
+          <NavLink to="/settings" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}><Icon name="settings" /><span>Settings</span></NavLink>
         </nav>
         <div className="app-sidebar-spacer" />
         <div className="app-simulation-note"><span className="status-square" /> SIMULATED ENVIRONMENT</div>
         <div className="app-account">
           <span className="account-avatar" aria-hidden="true">{(username || 'A').slice(0, 1).toUpperCase()}</span>
-          <span className="account-copy"><b>{username || 'Operator'}</b><small>{roleName.toUpperCase()}</small></span>
+          <span className="account-copy"><b>{username || 'Operator'}</b><small>{(role || 'operator').toUpperCase()} ROLE</small></span>
           <button type="button" className="icon-button account-logout" onClick={signOut} aria-label="Sign out" title="Sign out"><Icon name="logout" size={17} /></button>
         </div>
       </aside>
       <div className="app-main">
         <header className="app-topbar">
-          <div className="app-breadcrumb"><span>Workspace</span><Icon name="chevron" size={15} /><h1>{currentPage}</h1></div>
+          <div className="app-breadcrumb"><span>Workspace</span><Icon name="chevron" size={15} /><h1>{pageTitle}</h1></div>
           <div className="app-top-actions">
+            {incidentNotice && <Link className="incident-notice" to="/incidents" onClick={() => setIncidentNotice(false)}>New incident <span aria-hidden="true">↗</span></Link>}
             <button type="button" className="command-trigger" onClick={() => setPaletteOpen(true)} aria-haspopup="dialog" aria-expanded={paletteOpen}>
               <Icon name="search" size={17} /><span>Search commands</span><kbd><Icon name="command" size={12} /> K</kbd>
             </button>
@@ -248,10 +284,10 @@ export default function AppShell({ children }) {
             <SimulationBadge />
           </div>
         </header>
-        <div className="app-shell-content" id="main-content" tabIndex="-1">{children}</div>
+        <div className="app-shell-content">{children}</div>
+        <GuidedTour />
       </div>
-      <CommandPalette open={paletteOpen} onClose={closePalette} permissions={permissions} />
-      <GuidedTour />
+      <CommandPalette open={paletteOpen} onClose={closePalette} />
     </div>
   )
 }

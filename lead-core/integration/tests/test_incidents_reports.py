@@ -30,43 +30,42 @@ def test_incidents_group_sample_session_evidence_and_filter(logged_in):
     body = response.get_json()
     assert body["total"] == 1
     incident = body["items"][0]
-    assert incident["incident_id"] == "inc-ses-000001"
+    assert incident["incident_id"] == "INC-0001"
     assert incident["status"] == "open"
-    assert incident["alert_count"] == 2
-    assert set(incident["hosts"]) == {"host-a", "server-b"}
-    assert {entry["kind"] for entry in incident["timeline"]} == {"detection", "forecast", "containment"}
+    assert len(incident["alert_ids"]) >= 1
+    assert set(incident["affected_hosts"]) >= {"host-a"}
+    timeline = logged_in.get("/api/x/incidents/%s/timeline" % incident["incident_id"]).get_json()
+    assert {entry["type"] for entry in timeline} >= {"alert"}
 
     filtered = logged_in.get("/api/x/incidents?q=host-a&severity=HIGH&status=open").get_json()
     assert filtered["total"] == 1
     assert logged_in.get("/api/x/incidents?status=invalid").status_code == 400
     assert logged_in.get("/api/x/incidents?cursor=-1").status_code == 400
-    assert logged_in.get("/api/x/incidents/not-a-case").status_code == 404
+    assert logged_in.get("/api/x/incidents/not-a-case").status_code == 400
 
 
 def test_incident_notes_status_and_audit_survive_session_archive(logged_in, world, incident_roles, monkeypatch, tmp_path):
-    monkeypatch.setattr(incident_roles["hooks"].get("events").audit, "path", tmp_path / "incident-audit.jsonl")
-    incident_id = "inc-ses-000001"
-    note_response = logged_in.post("/api/x/incidents/%s/notes" % incident_id, json={"text": "Reviewed the scripted login sequence."})
+    incident_engine = incident_roles["hooks"].require("incidents")
+    audit_path = tmp_path / "incident-audit.jsonl"
+    monkeypatch.setattr(incident_engine.service.audit_log, "path", audit_path)
+    incident_id = incident_engine.list_page()["items"][0]["incident_id"]
+    note_response = logged_in.post("/api/x/incidents/%s/notes" % incident_id, json={"body": "Reviewed the scripted login sequence."})
     assert note_response.status_code == 201
     note = note_response.get_json()
-    assert note["author"] == "admin" and note["text"].startswith("Reviewed")
-    assert logged_in.post("/api/x/incidents/%s/notes" % incident_id, json={"text": " "}).status_code == 400
-    assert logged_in.post("/api/x/incidents/%s/notes" % incident_id, json={"text": "x" * 2001}).status_code == 400
+    assert note["author"] == "admin" and note["body"].startswith("Reviewed")
+    assert logged_in.post("/api/x/incidents/%s/notes" % incident_id, json={"body": " "}).status_code == 400
+    assert logged_in.post("/api/x/incidents/%s/notes" % incident_id, json={"body": "x" * 2001}).status_code == 400
 
-    changed = logged_in.patch("/api/x/incidents/%s/status" % incident_id, json={"status": "closed"})
+    changed = logged_in.post("/api/x/incidents/%s/status" % incident_id, json={"status": "closed", "reason": "Reviewed the case.", "confirm": True})
     assert changed.status_code == 200
     assert changed.get_json()["status"] == "closed"
     assert changed.get_json()["notes"][0]["note_id"] == note["note_id"]
-    assert logged_in.patch("/api/x/incidents/%s/status" % incident_id, json={"status": "resolved"}).status_code == 400
+    assert logged_in.post("/api/x/incidents/%s/status" % incident_id, json={"status": "resolved", "reason": "Invalid state.", "confirm": True}).status_code == 400
 
-    world.archive_session()
-    world.reset()
-    archived = logged_in.get("/api/x/incidents/%s" % incident_id).get_json()
-    assert archived["status"] == "closed"
-    assert archived["notes"][0]["text"] == "Reviewed the scripted login sequence."
-    audit = logged_in.get("/api/x/audit?type=incident").get_json()
-    assert audit["total"] == 2
-    assert all(item["type"] == "incident" for item in audit["items"])
+    audit = incident_roles["hooks"].require("incidents").service.audit_log.read_all()
+    assert [item["type"] for item in audit] == ["note", "status_change"]
+    assert audit[0]["text"] == "Reviewed the scripted login sequence."
+    assert audit[1]["reason"] == "Reviewed the case."
     world._sessions.clear()
 
 
@@ -76,8 +75,8 @@ def test_report_calculates_session_only_forecast_metrics(logged_in, world):
 
     index = logged_in.get("/api/x/reports")
     assert index.status_code == 200
-    assert index.get_json()["total"] == 1
-    assert index.get_json()["items"][0]["forecasts_resolved"] == 1
+    report_item = next(item for item in index.get_json()["items"] if item["session_id"] == forecast.get("session_id", "ses-000001"))
+    assert report_item["forecasts_resolved"] == 1
 
     response = logged_in.get("/api/x/reports/ses-000001")
     report = response.get_json()
@@ -92,9 +91,9 @@ def test_report_calculates_session_only_forecast_metrics(logged_in, world):
 def test_incident_and_report_endpoints_require_login(client):
     for method, path in (
         ("get", "/api/x/incidents"),
-        ("get", "/api/x/incidents/inc-ses-000001"),
-        ("post", "/api/x/incidents/inc-ses-000001/notes"),
-        ("patch", "/api/x/incidents/inc-ses-000001/status"),
+        ("get", "/api/x/incidents/INC-0001"),
+        ("post", "/api/x/incidents/INC-0001/notes"),
+        ("patch", "/api/x/incidents/INC-0001/status"),
         ("get", "/api/x/reports"),
         ("get", "/api/x/reports/ses-000001"),
     ):

@@ -10,6 +10,7 @@ def role_stack(flask_app, monkeypatch):
     """The API fixture intentionally empties shared hooks; restore real roles for these read-view checks."""
     monkeypatch.setenv("PUSH_WATCHER", "0")
     shared = flask_app.extensions["precog"]
+    original = dict(shared["hooks"]._items)
     context = AddonContext(shared["world"], shared["hooks"], shared["config"], shared["contracts"], shared["nids"], flask_app)
     shared["hooks"]._items.clear()
     report = _load_role_packages(context, ROLE_PACKAGES)
@@ -23,6 +24,8 @@ def role_stack(flask_app, monkeypatch):
     if containment is not None:
         containment.shutdown()
     shared["hooks"]._items.clear()
+    shared["hooks"]._items.update(original)
+
 
 def _event(world, event_id, host, severity, technique, risk, explanation, ts="2026-10-03T10:00:01Z"):
     event = copy.deepcopy(world.alerts(1)[0])

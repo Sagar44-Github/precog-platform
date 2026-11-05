@@ -45,48 +45,46 @@ def main():
             "PUSH_WATCHER": "0",
         })
         env.pop("WEB_DIST", None)
-        log_path = temp_path / "backend.log"
-        with log_path.open("w", encoding="utf-8") as log:
-            flags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
-            server = subprocess.Popen(
-                [str(PYTHON), str(REPO_ROOT / "lead-core" / "backend" / "run_app.py")],
-                cwd=REPO_ROOT,
-                env=env,
-                stdout=log,
-                stderr=subprocess.STDOUT,
-                creationflags=flags,
-            )
-            try:
-                url = "http://127.0.0.1:%d" % port
-                deadline = time.monotonic() + 60
-                while time.monotonic() < deadline:
-                    if server.poll() is not None:
-                        break
-                    try:
-                        with urllib.request.urlopen(url + "/api/x/health", timeout=2) as response:
-                            if response.status == 200:
-                                break
-                    except (urllib.error.URLError, TimeoutError):
-                        time.sleep(0.25)
-                else:
-                    raise RuntimeError("The local backend did not become ready.")
-
+        flags = getattr(subprocess, "CREATE_NO_WINDOW", 0)
+        server = subprocess.Popen(
+            [str(PYTHON), str(REPO_ROOT / "lead-core" / "backend" / "run_app.py")],
+            cwd=REPO_ROOT,
+            env=env,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.STDOUT,
+            creationflags=flags,
+        )
+        try:
+            url = "http://127.0.0.1:%d" % port
+            deadline = time.monotonic() + 60
+            while time.monotonic() < deadline:
                 if server.poll() is not None:
-                    raise RuntimeError("The local backend exited before readiness.")
-                sys.path.insert(0, str(REPO_ROOT / "lead-core" / "integration"))
-                from check_hosted import Checker
+                    break
+                try:
+                    with urllib.request.urlopen(url + "/api/x/health", timeout=2) as response:
+                        if response.status == 200:
+                            break
+                except (urllib.error.URLError, TimeoutError):
+                    time.sleep(0.25)
+            else:
+                raise RuntimeError("The local backend did not become ready.")
 
-                ready = Checker(url).run(password)
-                print("READY for the demo" if ready else "NOT ready: fix the lines marked FAIL")
-                return 0 if ready else 1
-            finally:
-                if server.poll() is None:
-                    server.terminate()
-                    try:
-                        server.wait(timeout=5)
-                    except subprocess.TimeoutExpired:
-                        server.kill()
-                        server.wait(timeout=5)
+            if server.poll() is not None:
+                raise RuntimeError("The local backend exited before readiness.")
+            sys.path.insert(0, str(REPO_ROOT / "lead-core" / "integration"))
+            from check_hosted import Checker
+
+            ready = Checker(url).run(password)
+            print("READY for the demo" if ready else "NOT ready: fix the lines marked FAIL")
+            return 0 if ready else 1
+        finally:
+            if server.poll() is None:
+                server.terminate()
+                try:
+                    server.wait(timeout=5)
+                except subprocess.TimeoutExpired:
+                    server.kill()
+                    server.wait(timeout=5)
 
 
 if __name__ == "__main__":

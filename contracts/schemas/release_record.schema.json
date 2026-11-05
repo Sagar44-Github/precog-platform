@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/release_record.schema.json",
+  "title": "Governed simulated host release record",
+  "type": "object",
+  "properties": {
+    "action_id": { "type": "string", "pattern": "^PB-ACT-[0-9]{6}$" },
+    "playbook_id": { "const": "release-host" },
+    "status": { "type": "string", "enum": ["pending_confirmation", "released", "cancelled", "expired"] },
+    "proposed_by": { "type": "string", "minLength": 1, "maxLength": 80 },
+    "proposed_role": { "type": "string", "enum": ["admin"] },
+    "proposed_at": { "type": "string", "minLength": 1 },
+    "expires_at": { "type": "string", "minLength": 1 },
+    "reason": { "type": "string", "minLength": 1, "maxLength": 500 },
+    "preview_snapshot": { "$ref": "playbook_preview.schema.json" },
+    "run_id": { "type": ["string", "null"] },
+    "host_id": { "type": "string", "minLength": 1 },
+    "host_name": { "type": "string", "minLength": 1 },
+    "previous_state": { "const": "contained" },
+    "confirmed_by": { "type": ["string", "null"], "maxLength": 80 },
+    "confirmed_role": { "type": ["string", "null"], "enum": ["admin", null] },
+    "confirmed_at": { "type": ["string", "null"] },
+    "execution_summary": { "type": ["string", "null"], "maxLength": 300 },
+    "updated_at": { "type": ["string", "null"] },
+    "cancelled_by": { "type": ["string", "null"], "maxLength": 80 },
+    "cancelled_role": { "type": ["string", "null"], "enum": ["admin", null] },
+    "cancellation_reason": { "type": ["string", "null"], "maxLength": 500 }
+  },
+  "required": ["action_id", "playbook_id", "status", "proposed_by", "proposed_role", "proposed_at", "expires_at", "reason", "preview_snapshot", "run_id", "host_id", "host_name", "previous_state", "confirmed_by", "confirmed_role", "confirmed_at", "execution_summary", "updated_at", "cancelled_by", "cancelled_role", "cancellation_reason"],
+  "additionalProperties": false
+}
