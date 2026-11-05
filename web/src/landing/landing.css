@@ -20,8 +20,12 @@
 .landing-skip:focus { transform: translateY(0); }
 
 .landing-header { position: sticky; z-index: 20; top: 0; display: grid; grid-template-columns: 1fr auto auto auto; align-items: center; gap: clamp(18px, 3vw, 44px); min-height: 68px; padding: 0 max(32px, calc((100vw - 1480px) / 2)); border-bottom: 1px solid var(--border); background: var(--bg); }
-.landing-brand { color: var(--text); font: 500 12px var(--landing-mono); letter-spacing: 0.13em; text-decoration: none; white-space: nowrap; }
-.landing-brand span { color: var(--text-muted); }
+.landing-brand { display: inline-flex; align-items: center; gap: 10px; color: var(--text); font: 500 12px var(--landing-mono); letter-spacing: 0.13em; text-decoration: none; white-space: nowrap; }
+.landing-brand-logo { display: block; width: 26px; height: 26px; object-fit: contain; }
+.landing-brand-copy { color: var(--text); }
+.landing-brand-copy i { color: var(--text-muted); font-style: normal; }
+.landing-header-controls { display: flex; align-items: center; gap: 8px; }
+.landing-header-controls .landing-theme-toggle { min-height: 36px; }
 .landing-nav { display: flex; align-items: center; gap: clamp(14px, 2.2vw, 32px); }
 .landing-nav a { color: var(--text-muted); font-size: 12px; text-decoration: none; }
 .landing-nav a:hover { color: var(--text); }
@@ -142,7 +146,10 @@
   .landing-simulation { grid-column: 2; grid-row: 1; justify-self: end; padding: 5px 7px; font-size: 9px; }
   .landing-nav { grid-column: 1; grid-row: 2; gap: 15px; }
   .landing-nav a { font-size: 10px; }
-  .landing-mode-toggle { grid-column: 2; grid-row: 2; justify-self: end; min-height: 31px; padding-inline: 8px; font-size: 9px; }
+  .landing-header-controls { grid-column: 2; grid-row: 2; justify-self: end; gap: 5px; }
+  .landing-header-controls .landing-theme-toggle { width: 33px; min-width: 33px; min-height: 31px; padding: 0; }
+  .landing-header-controls .landing-theme-toggle span { display: none; }
+  .landing-header-controls .landing-mode-toggle { min-height: 31px; padding-inline: 8px; font-size: 9px; }
   .landing-hero { grid-template-columns: 1fr; gap: 30px; min-height: auto; padding: 34px 0 50px; }
   .landing-intro { max-width: 570px; }
   .landing-intro h1 { max-width: 10ch; font-size: clamp(42px, 11vw, 58px); }
@@ -165,6 +172,44 @@
   .landing-evidence-row { grid-template-columns: minmax(115px, 1fr) 58px 68px; gap: 7px; font-size: 11px; }
   .landing-evidence-row small { font-size: 9px; }
   .landing-footer { font-size: 9px; }
+}
+
+/* Light theme keeps the immersive layout while giving the network and copy a cleaner surface. */
+:root[data-theme="light"] .landing-header {
+  border-bottom-color: var(--border);
+  background: var(--bg);
+  backdrop-filter: none;
+}
+:root[data-theme="light"] .landing-stage-visual { background: var(--bg); }
+:root[data-theme="light"] .landing-scene-atmosphere { display: none; }
+:root[data-theme="light"] .landing-intro {
+  padding: 20px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-l);
+  background: var(--surface);
+}
+:root[data-theme="light"] .landing-forecast-panel {
+  border-color: var(--border);
+  border-radius: var(--radius-l);
+  background: var(--surface);
+  box-shadow: 0 8px 24px var(--shadow-soft);
+  backdrop-filter: none;
+}
+:root[data-theme="light"] .landing-hud-bottom {
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+:root[data-theme="light"] .landing-controls { border-top-color: var(--border); }
+:root[data-theme="light"] .landing-step-list button { border-bottom-color: var(--border); }
+:root[data-theme="light"] .landing-step-list button[aria-pressed="true"] { border-bottom-color: var(--forecast); }
+:root[data-theme="light"] .lite-zones polygon { fill: var(--surface-raised); stroke: var(--border-strong); }
+:root[data-theme="light"] .lite-edges line { stroke: var(--border-strong); opacity: 0.72; }
+:root[data-theme="light"] .lite-host { stroke: var(--surface); stroke-width: 3; }
+:root[data-theme="light"] .lite-forecast { opacity: 0.88; }
+
+@media (max-width: 700px) {
+  :root[data-theme="light"] .landing-intro { padding: 12px; }
+  :root[data-theme="light"] .landing-intro-actions .landing-primary { gap: 5px; white-space: nowrap; }
 }
 
 @media (prefers-reduced-motion: reduce) {

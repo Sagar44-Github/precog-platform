@@ -1,9 +1,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from './AuthContext.jsx'
 import { SimulationBadge } from './components.jsx'
 import { Icon } from './icons.jsx'
 import { ThemeToggle, useTheme } from './theme-context.jsx'
+import ThemeLogo from './ThemeLogo.jsx'
 import { apiGet } from './api.js'
 import GuidedTour from './GuidedTour.jsx'
 import './app-shell.css'
@@ -106,6 +108,152 @@ export function CommandPalette({ open, onClose }) {
   )
 }
 
+const MONITORING_LINKS = [
+  { to: '/alerts', label: 'Alerts', icon: 'alerts' },
+  { to: '/reports', label: 'Reports', icon: 'reports' },
+  { to: '/audit', label: 'Audit log', icon: 'audit' },
+  { to: '/system', label: 'System health', icon: 'system' },
+]
+
+function MonitoringOperationsNav() {
+  const location = useLocation()
+  const triggerRef = useRef(null)
+  const menuRef = useRef(null)
+  const closeTimer = useRef(null)
+  const [open, setOpen] = useState(false)
+  const [position, setPosition] = useState(null)
+  const active = MONITORING_LINKS.some(({ to }) => location.pathname === to || location.pathname.startsWith(`${to}/`))
+
+  function clearCloseTimer() {
+    if (closeTimer.current) window.clearTimeout(closeTimer.current)
+    closeTimer.current = null
+  }
+
+  function scheduleClose(delay = 170) {
+    clearCloseTimer()
+    closeTimer.current = window.setTimeout(() => setOpen(false), delay)
+  }
+
+  function openAndFocus(index = 0) {
+    clearCloseTimer()
+    setOpen(true)
+    window.requestAnimationFrame(() => menuRef.current?.querySelectorAll('[role="menuitem"]')[index]?.focus())
+  }
+
+  useEffect(() => {
+    setOpen(false)
+  }, [location.pathname])
+
+  useEffect(() => () => clearCloseTimer(), [])
+
+  useEffect(() => {
+    if (!open) return undefined
+    const update = () => {
+      const rect = triggerRef.current?.getBoundingClientRect()
+      if (!rect) return
+      const menuHeight = menuRef.current?.getBoundingClientRect().height || 190
+      setPosition({
+        left: Math.min(rect.right + 8, window.innerWidth - 232),
+        top: Math.max(8, Math.min(rect.top, window.innerHeight - menuHeight - 8)),
+      })
+    }
+    update()
+    window.addEventListener('resize', update)
+    document.addEventListener('scroll', update, true)
+    const closeOnOutsidePointer = (event) => {
+      if (triggerRef.current?.contains(event.target) || menuRef.current?.contains(event.target)) return
+      setOpen(false)
+    }
+    const closeOnEscape = (event) => {
+      if (event.key !== 'Escape') return
+      event.preventDefault()
+      setOpen(false)
+      triggerRef.current?.focus()
+    }
+    document.addEventListener('pointerdown', closeOnOutsidePointer)
+    window.addEventListener('keydown', closeOnEscape)
+    return () => {
+      window.removeEventListener('resize', update)
+      document.removeEventListener('scroll', update, true)
+      document.removeEventListener('pointerdown', closeOnOutsidePointer)
+      window.removeEventListener('keydown', closeOnEscape)
+    }
+  }, [open])
+
+  function onTriggerKeyDown(event) {
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault()
+      openAndFocus(event.key === 'ArrowUp' ? MONITORING_LINKS.length - 1 : 0)
+    } else if (event.key === 'Escape' && open) {
+      event.preventDefault()
+      setOpen(false)
+    }
+  }
+
+  function onMenuKeyDown(event) {
+    const items = Array.from(menuRef.current?.querySelectorAll('[role="menuitem"]') || [])
+    const current = items.indexOf(document.activeElement)
+    let next = null
+    if (event.key === 'ArrowDown') next = (current + 1) % items.length
+    else if (event.key === 'ArrowUp') next = (current - 1 + items.length) % items.length
+    else if (event.key === 'Home') next = 0
+    else if (event.key === 'End') next = items.length - 1
+    else if (event.key === 'Escape') {
+      event.preventDefault()
+      setOpen(false)
+      triggerRef.current?.focus()
+      return
+    }
+    if (next !== null) {
+      event.preventDefault()
+      items[next]?.focus()
+    }
+  }
+
+  function closeIfFocusLeaves(event) {
+    if (event.relatedTarget === triggerRef.current || menuRef.current?.contains(event.relatedTarget)) return
+    scheduleClose(0)
+  }
+
+  return <>
+    <button
+      ref={triggerRef}
+      type="button"
+      className={`app-nav-link app-nav-category-trigger${active ? ' is-active' : ''}`}
+      aria-haspopup="menu"
+      aria-expanded={open}
+      aria-label="Monitoring & Operations"
+      onClick={() => { clearCloseTimer(); setOpen(true) }}
+      onPointerEnter={(event) => { if (event.pointerType === 'mouse') { clearCloseTimer(); setOpen(true) } }}
+      onPointerLeave={(event) => { if (event.pointerType === 'mouse') scheduleClose() }}
+      onFocus={() => { clearCloseTimer(); setOpen(true) }}
+      onBlur={closeIfFocusLeaves}
+      onKeyDown={onTriggerKeyDown}
+    >
+      <Icon name="system" /><span>Monitoring &amp; Operations</span><Icon className="app-nav-chevron" name="chevron" size={14} />
+    </button>
+    {open && typeof document !== 'undefined' && createPortal(
+      <div
+        ref={menuRef}
+        id="monitoring-operations-menu"
+        className="app-nav-menu"
+        style={position ? { left: position.left, top: position.top } : undefined}
+        role="menu"
+        aria-label="Monitoring & Operations pages"
+        onMouseEnter={clearCloseTimer}
+        onMouseLeave={() => scheduleClose()}
+        onFocus={clearCloseTimer}
+        onBlur={closeIfFocusLeaves}
+        onKeyDown={onMenuKeyDown}
+      >
+        {MONITORING_LINKS.map(({ to, label, icon }) => <NavLink key={to} to={to} role="menuitem" className={({ isActive }) => `app-nav-menu-link${isActive ? ' is-active' : ''}`} onClick={() => setOpen(false)}>
+          <Icon name={icon} size={17} /><span>{label}</span>
+        </NavLink>)}
+      </div>, document.body,
+    )}
+  </>
+}
+
 export default function AppShell({ children }) {
   const { username, role, logout } = useAuth()
   const navigate = useNavigate()
@@ -188,7 +336,7 @@ export default function AppShell({ children }) {
     <div className="app-shell">
       <aside className="app-sidebar" aria-label="Workspace navigation">
         <Link to="/" className="app-brand" title="Return to landing page">
-          <span className="brand-mark"><Icon name="activity" size={21} /></span>
+          <ThemeLogo className="brand-mark" />
           <span className="brand-copy"><b>Precog <strong>SOC</strong></b><small>SIMULATION LAB</small></span>
         </Link>
         <p className="app-nav-caption">WORKSPACE</p>
@@ -226,10 +374,7 @@ export default function AppShell({ children }) {
           <NavLink to="/containment" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
             <Icon name="shield" /><span>Response governance</span>{pendingResponses > 0 && <b className="app-nav-count" aria-label={`${pendingResponses} pending response approvals`}>{pendingResponses}</b>}
           </NavLink>
-          <NavLink to="/alerts" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}><Icon name="alerts" /><span>Alerts</span></NavLink>
-          <NavLink to="/reports" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}><Icon name="audit" /><span>Reports</span></NavLink>
-          <NavLink to="/audit" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}><Icon name="audit" /><span>Audit log</span></NavLink>
-          <NavLink to="/system" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}><Icon name="system" /><span>System health</span></NavLink>
+          <MonitoringOperationsNav />
           <NavLink to="/settings" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}><Icon name="settings" /><span>Settings</span></NavLink>
         </nav>
         <div className="app-sidebar-spacer" />

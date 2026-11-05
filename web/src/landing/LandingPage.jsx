@@ -2,6 +2,8 @@ import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } fro
 import { useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../shared/AuthContext.jsx'
 import { api } from '../shared/api.js'
+import { ThemeToggle, useTheme } from '../shared/theme-context.jsx'
+import ThemeLogo from '../shared/ThemeLogo.jsx'
 import data from './data.generated.json'
 import { DEMO_STEPS, demoState, normalizeDemoStep } from './demoState.js'
 import './landing.css'
@@ -93,6 +95,7 @@ export default function LandingPage() {
   const navigate = useNavigate()
   const location = useLocation()
   const { username } = useAuth()
+  const { theme } = useTheme()
   const [mode, setMode] = useState(preferredMode)
   const [activeStep, setActiveStep] = useState(3)
   const [playing, setPlaying] = useState(false)
@@ -163,12 +166,12 @@ export default function LandingPage() {
   return <div className={`landing-page${entering ? ' is-entering' : ''}`}>
     <a className="landing-skip" href="#main-content">Skip to content</a>
     <header className="landing-header">
-      <a className="landing-brand" href="/app/" aria-label="Precog SOC home">PRECOG <span>/ SOC</span></a>
+      <a className="landing-brand" href="/app/" aria-label="Precog SOC home"><ThemeLogo className="landing-brand-logo" /><span className="landing-brand-copy">PRECOG <i>/ SOC</i></span></a>
       <nav className="landing-nav" aria-label="Main navigation">
         <a href="#demonstration">Demonstration</a><a href="#evidence">Evidence</a><a href="#method">Method</a>
       </nav>
       <span className="landing-simulation">SIMULATION</span>
-      <button className="landing-mode-toggle" type="button" onClick={() => setMode((current) => current === 'full' ? 'lite' : 'full')}>{mode === 'full' ? 'Reduced version' : '3D version'}</button>
+      <div className="landing-header-controls"><ThemeToggle className="landing-theme-toggle" /><button className="landing-mode-toggle" type="button" onClick={() => setMode((current) => current === 'full' ? 'lite' : 'full')}>{mode === 'full' ? 'Reduced version' : '3D version'}</button></div>
     </header>
 
     <main id="main-content" tabIndex="-1">
@@ -176,7 +179,7 @@ export default function LandingPage() {
         <figure className={`landing-stage-wrap mode-${mode}`} id="demonstration" aria-label="Interactive 3D network replay">
           <div className="landing-stage-visual">
             {mode === 'full'
-              ? <Suspense fallback={<LiteDiagram activeStep={activeStep} />}><LandingStage activeStep={activeStep} onSelectHost={(host) => setSelectedHostId(host.host_id)} onFailure={onFailure} /></Suspense>
+              ? <Suspense fallback={<LiteDiagram activeStep={activeStep} />}><LandingStage key={theme} activeStep={activeStep} onSelectHost={(host) => setSelectedHostId(host.host_id)} onFailure={onFailure} /></Suspense>
               : <LiteDiagram activeStep={activeStep} />}
             <div className="landing-scene-atmosphere" aria-hidden="true" />
             <div className="landing-stage-heading">

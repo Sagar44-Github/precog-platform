@@ -38,24 +38,24 @@ function addLine(scene, from, to, color, opacity = 0.52) {
   return line
 }
 
-function makeHost(host, colors, styles, detail) {
+function makeHost(host, colors, styles, detail, lightMode) {
   const group = new THREE.Group()
   group.userData.hostId = host.host_id
   group.name = `host-${host.host_id}`
   const radius = 0.48
-  const pedestal = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.78, 0.18, 28), new THREE.MeshStandardMaterial({ color: colors.surface, metalness: 0.5, roughness: 0.42, emissive: colors.normal, emissiveIntensity: 0.08 }))
+  const pedestal = new THREE.Mesh(new THREE.CylinderGeometry(0.62, 0.78, 0.18, 28), new THREE.MeshStandardMaterial({ color: colors.surface, metalness: lightMode ? 0.04 : 0.5, roughness: lightMode ? 0.76 : 0.42, emissive: colors.normal, emissiveIntensity: lightMode ? 0 : 0.08 }))
   pedestal.position.y = 0.08
   const baseRing = new THREE.Mesh(new THREE.TorusGeometry(0.69, 0.026, 6, 36), new THREE.MeshBasicMaterial({ color: colors.normal, transparent: true, opacity: 0.74 }))
   baseRing.rotation.x = Math.PI / 2
   baseRing.position.y = 0.18
-  const sphere = new THREE.Mesh(new THREE.SphereGeometry(radius, detail, detail), new THREE.MeshStandardMaterial({ color: colors.normal, roughness: 0.25, metalness: 0.22, emissive: colors.normal, emissiveIntensity: 0.18 }))
+  const sphere = new THREE.Mesh(new THREE.SphereGeometry(radius, detail, detail), new THREE.MeshStandardMaterial({ color: colors.normal, roughness: lightMode ? 0.48 : 0.25, metalness: lightMode ? 0.03 : 0.22, emissive: colors.normal, emissiveIntensity: lightMode ? 0.015 : 0.18 }))
   sphere.position.y = 0.76
   sphere.name = 'normal-sphere'
-  const octahedron = new THREE.Mesh(new THREE.OctahedronGeometry(radius * 1.22, 0), new THREE.MeshStandardMaterial({ color: colors.compromised, roughness: 0.2, metalness: 0.25, emissive: colors.compromised, emissiveIntensity: 0.55 }))
+  const octahedron = new THREE.Mesh(new THREE.OctahedronGeometry(radius * 1.22, 0), new THREE.MeshStandardMaterial({ color: colors.compromised, roughness: lightMode ? 0.46 : 0.2, metalness: lightMode ? 0.04 : 0.25, emissive: colors.compromised, emissiveIntensity: lightMode ? 0.07 : 0.55 }))
   octahedron.position.y = 0.79
   octahedron.name = 'compromised-octahedron'
   octahedron.visible = false
-  const cube = new THREE.Mesh(new THREE.BoxGeometry(radius * 1.8, radius * 1.8, radius * 1.8), new THREE.MeshStandardMaterial({ color: colors.contained, roughness: 0.19, metalness: 0.28, emissive: colors.contained, emissiveIntensity: 0.42 }))
+  const cube = new THREE.Mesh(new THREE.BoxGeometry(radius * 1.8, radius * 1.8, radius * 1.8), new THREE.MeshStandardMaterial({ color: colors.contained, roughness: lightMode ? 0.46 : 0.19, metalness: lightMode ? 0.04 : 0.28, emissive: colors.contained, emissiveIntensity: lightMode ? 0.06 : 0.42 }))
   cube.position.y = 0.78
   cube.name = 'contained-cube'
   cube.visible = false
@@ -63,21 +63,22 @@ function makeHost(host, colors, styles, detail) {
   ring.rotation.x = Math.PI / 2
   ring.position.y = 0.23
   ring.visible = false
-  const label = makeLabel(host.name, 0.39, styles.text, '--font-ui')
+  const label = makeLabel(host.name, lightMode ? 0.31 : 0.39, styles.text, '--font-ui')
   label.position.y = 1.56
   group.add(pedestal, baseRing, sphere, octahedron, cube, ring, label)
   group.position.set(host.position[0], 0, host.position[1])
   return { group, sphere, octahedron, cube, ring, host }
 }
 
-function makeZone(scene, zoneId, hosts, colors, styles) {
+function makeZone(scene, zoneId, hosts, colors, styles, lightMode) {
   const xs = hosts.map((host) => host.position[0])
   const zs = hosts.map((host) => host.position[1])
   const centerX = (Math.min(...xs) + Math.max(...xs)) / 2
   const centerZ = (Math.min(...zs) + Math.max(...zs)) / 2
   const width = Math.max(3.8, Math.max(...xs) - Math.min(...xs) + 3.2)
   const depth = Math.max(3.8, Math.max(...zs) - Math.min(...zs) + 3.4)
-  const plane = new THREE.Mesh(new THREE.BoxGeometry(width, 0.24, depth), new THREE.MeshStandardMaterial({ color: colors.surface, metalness: 0.28, roughness: 0.5, emissive: colors.forecast, emissiveIntensity: 0.025 }))
+  const zoneColor = lightMode ? colors.surface.clone().lerp(colors.border, 0.22) : colors.surface
+  const plane = new THREE.Mesh(new THREE.BoxGeometry(width, 0.24, depth), new THREE.MeshStandardMaterial({ color: zoneColor, metalness: lightMode ? 0 : 0.28, roughness: lightMode ? 0.82 : 0.5, emissive: colors.forecast, emissiveIntensity: lightMode ? 0 : 0.025 }))
   plane.position.set(centerX, -0.16, centerZ)
   plane.name = `zone-surface-${zoneId}`
   scene.add(plane)
@@ -87,7 +88,7 @@ function makeZone(scene, zoneId, hosts, colors, styles) {
   )
   outline.position.set(centerX, -0.16, centerZ)
   scene.add(outline)
-  const label = makeLabel(zoneId.toUpperCase(), 0.38, styles.muted)
+  const label = makeLabel(zoneId.toUpperCase(), lightMode ? 0.28 : 0.38, styles.muted)
   label.position.set(centerX - width * 0.42, 0.02, centerZ - depth * 0.39)
   scene.add(label)
 }
@@ -100,6 +101,7 @@ function curveBetween(from, to, lift = 0.7) {
 }
 
 function createScene(canvas, { activeStep, onSelectHost, theme }) {
+  const lightMode = theme === 'light'
   const styles = readBrowserTokenStyles()
   const colors = readBrowserTokenColors()
   canvas.dataset.theme = theme
@@ -129,25 +131,25 @@ function createScene(canvas, { activeStep, onSelectHost, theme }) {
   const camera = new THREE.PerspectiveCamera(38, 1, 0.1, 100)
   camera.position.set(centerX + 8, 9, centerZ + 11)
   camera.lookAt(centerX, 0, centerZ)
-  const ambient = new THREE.HemisphereLight(colors.text, colors.surface, 1.45)
+  const ambient = new THREE.HemisphereLight(lightMode ? colors.surface : colors.text, lightMode ? colors.background : colors.surface, lightMode ? 1.2 : 1.45)
   scene.add(ambient)
-  const keyLight = new THREE.DirectionalLight(colors.text, 2.3)
+  const keyLight = new THREE.DirectionalLight(lightMode ? colors.surface : colors.text, lightMode ? 1.25 : 2.3)
   keyLight.position.set(centerX - 7, 12, centerZ + 8)
   keyLight.castShadow = settings().shadows
   keyLight.shadow.mapSize.set(512, 512)
   scene.add(keyLight)
-  const forecastLight = new THREE.PointLight(colors.forecast, 21, 26, 2)
+  const forecastLight = new THREE.PointLight(colors.forecast, lightMode ? 0.12 : 21, 26, 2)
   forecastLight.position.set(centerX + 1, 5, centerZ - 1)
   scene.add(forecastLight)
   const grid = new THREE.GridHelper(36, 36, colors.border, colors.surface)
   grid.position.y = -0.31
   grid.material.transparent = true
-  grid.material.opacity = 0.36
+  grid.material.opacity = lightMode ? 0.22 : 0.36
   scene.add(grid)
 
   const hostsById = new Map(data.simulation.hosts.map((host) => [host.host_id, host]))
-  for (const zone of data.simulation.zones) makeZone(scene, zone, data.simulation.hosts.filter((host) => host.zone === zone), colors, styles)
-  const hosts = new Map(data.simulation.hosts.map((host) => [host.host_id, makeHost(host, colors, styles, settings().maxHostSegments)]))
+  for (const zone of data.simulation.zones) makeZone(scene, zone, data.simulation.hosts.filter((host) => host.zone === zone), colors, styles, lightMode)
+  const hosts = new Map(data.simulation.hosts.map((host) => [host.host_id, makeHost(host, colors, styles, settings().maxHostSegments, lightMode)]))
   for (const { group } of hosts.values()) scene.add(group)
   for (const edge of data.simulation.edges) {
     const a = hostsById.get(edge.from)
@@ -174,12 +176,12 @@ function createScene(canvas, { activeStep, onSelectHost, theme }) {
     const radius = 0.075 + candidate.confidence * 0.22
     const path = new THREE.Mesh(
       new THREE.TubeGeometry(curve, 36, radius, 7, false),
-      new THREE.MeshStandardMaterial({ color: colors.forecast, roughness: 0.25, metalness: 0.3, emissive: colors.forecast, emissiveIntensity: 0.7, transparent: true, opacity: 0.86, depthWrite: false }),
+      new THREE.MeshStandardMaterial({ color: colors.forecast, roughness: lightMode ? 0.68 : 0.25, metalness: lightMode ? 0 : 0.3, emissive: colors.forecast, emissiveIntensity: lightMode ? 0.06 : 0.7, transparent: true, opacity: lightMode ? 0.82 : 0.86, depthWrite: false }),
     )
     path.name = `forecast-path-${candidate.hostId}`
     path.visible = false
     scene.add(path)
-    const label = makeLabel(`${candidate.percent}%`, 0.28, styles.forecast)
+    const label = makeLabel(`${candidate.percent}%`, lightMode ? 0.22 : 0.28, styles.forecast)
     label.position.set(host.position[0], 1.65, host.position[1])
     label.visible = false
     scene.add(label)
@@ -238,6 +240,10 @@ function createScene(canvas, { activeStep, onSelectHost, theme }) {
       // Keep the hero copy clear on phones by placing the network below it.
       controls.target.set(centerX, 2.3, centerZ)
       camera.fov = 42
+    } else if (lightMode) {
+      camera.position.set(centerX + 6, 10.5, centerZ + 14)
+      controls.target.set(centerX - 1.8, 0, centerZ)
+      camera.fov = 43
     } else {
       camera.position.set(centerX + 8, 9, centerZ + 11)
       controls.target.set(centerX, 0, centerZ)

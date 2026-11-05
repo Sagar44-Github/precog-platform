@@ -49,6 +49,7 @@ export const apiDelete = (path) => request('DELETE', path)
 // Named helpers, one per backend endpoint the screens need. Names match docs: TRD section 11.
 export const api = {
   health: () => apiGet('/api/x/health'),
+  system: () => apiGet('/api/x/system'),
   login: (username, password) => apiPost('/api/x/login', { username, password }),
   logout: () => apiPost('/api/x/logout'),
   me: () => apiGet('/api/x/me'),
@@ -64,6 +65,13 @@ export const api = {
   },
   reports: () => apiGet('/api/x/reports'),
   report: (sessionId) => apiGet(`/api/x/reports/${encodeURIComponent(sessionId)}`),
+  audit: (filters = {}) => {
+    const query = new URLSearchParams()
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && String(value) !== '') query.set(key, String(value))
+    })
+    return apiGet(`/api/x/audit?${query.toString()}`)
+  },
   graph: () => apiGet('/api/x/graph'),
   forecasts: (status) => apiGet(status ? `/api/x/forecasts?status=${status}` : '/api/x/forecasts'),
   currentForecast: () => apiGet('/api/x/forecasts/current'),

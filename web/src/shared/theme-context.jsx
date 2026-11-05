@@ -20,6 +20,10 @@ export function ThemeProvider({ children }) {
   useBrowserLayoutEffect(() => {
     document.documentElement.dataset.theme = theme
     document.documentElement.style.colorScheme = theme
+    const logoPath = `/app/brand/project-logo-${theme}.svg`
+    document.querySelectorAll('[data-theme-icon]').forEach((element) => { element.href = logoPath })
+    const themeColor = document.querySelector('meta[name="theme-color"]')
+    if (themeColor) themeColor.content = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()
     try { window.localStorage.setItem(STORAGE_KEY, theme) } catch { /* Theme still works without storage. */ }
   }, [theme])
 

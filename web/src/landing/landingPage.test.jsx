@@ -10,6 +10,8 @@ test('public landing page has one h1, ordered sections, a skip link, and accessi
   assert.equal((html.match(/<h1\b/g) || []).length, 1)
   assert.equal((html.match(/<h2\b/g) || []).length, 3)
   assert.ok(html.indexOf('Skip to content') < html.indexOf('landing-brand'))
+  assert.match(html, /landing-brand-logo[^>]+project-logo-dark\.svg/)
+  assert.match(html, /Switch to light theme/)
   assert.match(html, /aria-label="Interactive 3D network replay"/)
   assert.match(html, /id="landing-step-range"/)
   assert.match(html, /id="landing-host-select"/)

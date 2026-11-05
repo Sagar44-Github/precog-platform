@@ -11,7 +11,7 @@ export function useResource(load, key) {
   useEffect(() => {
     let active = true
     setLoading(true)
-    load().then((value) => {
+    Promise.resolve().then(load).then((value) => {
       if (!active) return
       setData(value)
       setError('')
