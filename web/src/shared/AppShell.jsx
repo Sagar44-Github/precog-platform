@@ -38,6 +38,7 @@ export function CommandPalette({ open, onClose }) {
     { label: 'Open live console', detail: 'Go to the 3D replay console', icon: 'activity', keywords: 'workspace desktop', run: () => navigate('/console') },
     { label: 'Open mobile SOC', detail: 'Open the phone PWA screens', icon: 'smartphone', keywords: 'phone pwa', run: () => navigate('/mobile') },
     { label: 'Open incident investigations', detail: 'Review correlated alerts and analyst notes', icon: 'shield', keywords: 'cases incident investigation', run: () => navigate('/incidents') },
+    { label: 'Open network twin', detail: 'Explore demo assets, paths and recorded states', icon: 'network', keywords: 'hosts topology digital twin', run: () => navigate('/twin') },
     { label: 'Open replay studio', detail: 'Step through a scripted replay and compare runs', icon: 'play', keywords: 'replay studio runs timeline', run: () => navigate('/replay') },
     { label: 'Open scenario library', detail: 'Choose or build a scripted scenario', icon: 'layers', keywords: 'scenario builder library', run: () => navigate('/scenarios') },
     { label: 'Open run history', detail: 'Review completed runs and compare outcomes', icon: 'clock', keywords: 'runs history compare', run: () => navigate('/runs') },
@@ -143,6 +144,8 @@ export default function AppShell({ children }) {
   const [incidentNotice, setIncidentNotice] = useState(false)
   const handoff = useConsoleHandoff() && location.pathname.startsWith('/console')
   const pageTitle = location.pathname.startsWith('/replay') ? 'Replay studio'
+    : location.pathname.startsWith('/twin') ? 'Network twin'
+      : location.pathname.startsWith('/hosts') ? 'Asset directory'
     : location.pathname.includes('/edit') || location.pathname.endsWith('/new') ? 'Scenario builder'
       : location.pathname.startsWith('/scenarios') ? 'Scenario library'
         : location.pathname.includes('/compare') ? 'Run comparison'
@@ -201,6 +204,12 @@ export default function AppShell({ children }) {
           </NavLink>
           <NavLink to="/incidents" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
             <Icon name="shield" /><span>Incidents</span>{openIncidents > 0 && <b className="app-nav-count" aria-label={`${openIncidents} open incidents`}>{openIncidents}</b>}
+          </NavLink>
+          <NavLink to="/twin" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
+            <Icon name="network" /><span>Network twin</span>
+          </NavLink>
+          <NavLink to="/hosts" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
+            <Icon name="server" /><span>Hosts</span>
           </NavLink>
           <NavLink to="/replay" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
             <Icon name="play" /><span>Replay studio</span>

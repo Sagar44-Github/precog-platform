@@ -88,5 +88,10 @@ export const api = {
   runSnapshots: (id) => apiGet(`/api/x/runs/${encodeURIComponent(id)}/snapshots`),
   runSnapshot: (id, version) => apiGet(`/api/x/snapshots?run=${encodeURIComponent(id)}&version=${version}`),
   compareRuns: (a, b) => apiGet(`/api/x/runs/compare?a=${encodeURIComponent(a)}&b=${encodeURIComponent(b)}`),
+  topology: () => apiGet('/api/x/topology'),
+  topologyPaths: (from, to, limit = 10) => apiGet(`/api/x/topology/paths?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&limit=${limit}`),
+  segmentationPreview: (from, removeFrom, removeTo) => apiGet(`/api/x/topology/segmentation-preview?from=${encodeURIComponent(from)}&remove_from=${encodeURIComponent(removeFrom)}&remove_to=${encodeURIComponent(removeTo)}`),
+  host: (id) => apiGet(`/api/x/hosts/${encodeURIComponent(id)}`),
+  hostHistory: (id, limit = 200) => apiGet(`/api/x/hosts/${encodeURIComponent(id)}/history?limit=${limit}`),
   registerPush: (token) => apiPost('/api/x/push/register', { token }),
 }

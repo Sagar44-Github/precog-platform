@@ -14,9 +14,50 @@ function line(points, color, opacity) {
 }
 
 /** A restrained 3D stage: ground grid, zone fields, orbital guides and a deterministic star field. */
-export function createSceneDecorations(colors) {
+export function createSceneDecorations(colors, { twin = false, zones = [] } = {}) {
   const stage = new THREE.Group()
   stage.name = 'precog-scene-atmosphere'
+
+  if (twin) {
+    const twinZones = zones.length ? zones : [
+      { zone: 'user', label: 'USER ZONE', x: -150 },
+      { zone: 'dmz', label: 'DMZ', x: 0 },
+      { zone: 'internal', label: 'INTERNAL', x: 150 },
+    ]
+    twinZones.forEach((zone, index) => {
+      const tint = index === 1 ? colors.forecast : colors.accent
+      const slab = new THREE.Mesh(
+        new THREE.BoxGeometry(132, 5, 185),
+        new THREE.MeshBasicMaterial({ color: tint, transparent: true, opacity: 0.09, depthWrite: false }),
+      )
+      slab.name = `zone-slab-${zone.zone}`
+      slab.position.set(zone.x, -36, 0)
+      stage.add(slab)
+      const outline = new THREE.LineSegments(
+        new THREE.EdgesGeometry(slab.geometry),
+        new THREE.LineBasicMaterial({ color: tint, transparent: true, opacity: 0.45 }),
+      )
+      outline.name = `zone-outline-${zone.zone}`
+      outline.position.copy(slab.position)
+      stage.add(outline)
+      const label = makeLabel(zone.label || zone.zone.toUpperCase(), colors.text, 4)
+      if (label) {
+        label.name = `zone-label-${zone.zone}`
+        label.position.set(zone.x, -26, -98)
+        stage.add(label)
+      }
+    })
+    const grid = new THREE.GridHelper(560, 28, colors.muted, colors.muted)
+    grid.name = 'twin-floor-grid'
+    grid.position.set(0, -40, 0)
+    for (const material of Array.isArray(grid.material) ? grid.material : [grid.material]) {
+      material.transparent = true
+      material.opacity = 0.12
+      material.depthWrite = false
+    }
+    stage.add(grid)
+    return stage
+  }
 
   const grid = new THREE.GridHelper(620, 40, colors.muted, colors.muted)
   grid.name = 'ground-grid'

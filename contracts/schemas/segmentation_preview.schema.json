@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/segmentation_preview.schema.json",
+  "title": "Read-only network segmentation preview",
+  "type": "object",
+  "required": ["source_host", "removed_edge", "reachable_before", "reachable_after", "newly_unreachable", "basis"],
+  "properties": {
+    "source_host": {"type": "string"},
+    "removed_edge": {"type": "object", "required": ["from_host", "to_host"], "properties": {"from_host": {"type": "string"}, "to_host": {"type": "string"}}, "additionalProperties": false},
+    "reachable_before": {"type": "array", "items": {"type": "string"}}, "reachable_after": {"type": "array", "items": {"type": "string"}},
+    "newly_unreachable": {"type": "array", "items": {"type": "string"}}, "basis": {"type": "string"}
+  },
+  "additionalProperties": false
+}

@@ -68,7 +68,25 @@ export function makeHostObject(node, colors) {
     const percentLabel = makeLabel(`${node.predicted} %`, colors.forecast, 4)
     if (percentLabel) { percentLabel.position.set(0, node.radius * 3.2, 0); group.add(percentLabel) }
   }
-  const name = makeLabel(node.name, colors.text, 3.5)
+  if (node.overlay === 'risk' || node.overlay === 'exposure') {
+    const label = makeLabel(node.overlay === 'risk' ? `RISK ${Number(node.risk || 0).toFixed(1)}` : `LINKS ${node.exposure || 0}`, colors.text, 2.8)
+    if (label) { label.position.set(0, node.radius * 2.35, 0); group.add(label) }
+  }
+  if (node.overlay === 'forecast' && node.predicted !== null) {
+    const label = makeLabel(`EST ${node.predicted}%`, colors.forecast, 3)
+    if (label) { label.position.set(0, node.radius * 3.8, 0); group.add(label) }
+  }
+  if (Array.isArray(node.services) && node.services.length) {
+    node.services.slice(0, 4).forEach((service, index) => {
+      const marker = new THREE.Mesh(new THREE.SphereGeometry(node.twin ? 1.8 : 1.35, 10, 8), new THREE.MeshBasicMaterial({ color: colors.accent }))
+      const angle = (index / Math.min(node.services.length, 4)) * Math.PI * 2
+      marker.position.set(Math.cos(angle) * (node.radius + 4), 0, Math.sin(angle) * (node.radius + 4))
+      marker.name = `service-marker-${index}`
+      marker.userData.service = service
+      group.add(marker)
+    })
+  }
+  const name = makeLabel(node.name, colors.text, node.twin ? 5 : 3.5)
   if (name) { name.position.set(0, -node.radius * 2.2, 0); group.add(name) }
   return group
 }

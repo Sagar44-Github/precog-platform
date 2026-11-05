@@ -789,6 +789,76 @@ def snapshot_get():
     return jsonify(result)
 
 
+# ---------- read-only network digital twin ----------
+def _twin():
+    return _ctx()["hooks"].require("twin")
+
+
+@bp.get("/topology")
+@auth.json_login_required
+def topology_get():
+    return jsonify(_out("topology", _twin().topology_view()))
+
+
+@bp.get("/topology/paths")
+@auth.json_login_required
+@auth.rate_limit(max_requests=30, window_seconds=60)
+def topology_paths_get():
+    source, target = request.args.get("from", ""), request.args.get("to", "")
+    if not source or not target:
+        raise ApiError("bad_request", "Supply from and to host ids.", 400)
+    try:
+        limit = int(request.args.get("limit", "10"))
+        result = _twin().paths(source, target, limit)
+    except ValueError as exc:
+        raise ApiError("bad_request", str(exc), 400)
+    except KeyError as exc:
+        raise ApiError("not_found", "Unknown demo host %s." % exc.args[0], 404)
+    return jsonify(_out("topology_paths", result))
+
+
+@bp.get("/topology/segmentation-preview")
+@auth.json_login_required
+@auth.rate_limit(max_requests=20, window_seconds=60)
+def topology_segmentation_preview():
+    source = request.args.get("from", "")
+    remove_from = request.args.get("remove_from", "")
+    remove_to = request.args.get("remove_to", "")
+    if not source or not remove_from or not remove_to:
+        raise ApiError("bad_request", "Supply from, remove_from and remove_to host ids.", 400)
+    try:
+        result = _twin().segmentation_preview(source, remove_from, remove_to)
+    except ValueError as exc:
+        raise ApiError("bad_request", str(exc), 400)
+    except KeyError as exc:
+        raise ApiError("not_found", "Unknown demo host %s." % exc.args[0], 404)
+    return jsonify(_out("segmentation_preview", result))
+
+
+@bp.get("/hosts/<host_id>")
+@auth.json_login_required
+def host_detail_get(host_id):
+    try:
+        result = _twin().host_detail(host_id)
+    except KeyError:
+        raise ApiError("not_found", "There is no host with id %s." % host_id, 404)
+    return jsonify(_out("host_detail", result))
+
+
+@bp.get("/hosts/<host_id>/history")
+@auth.json_login_required
+@auth.rate_limit(max_requests=20, window_seconds=60)
+def host_history_get(host_id):
+    try:
+        limit = int(request.args.get("limit", "200"))
+        result = _twin().host_history(host_id, limit)
+    except ValueError as exc:
+        raise ApiError("bad_request", str(exc), 400)
+    except KeyError:
+        raise ApiError("not_found", "There is no host with id %s." % host_id, 404)
+    return jsonify(_out("host_history", result))
+
+
 # ---------- anything else under /api/x ----------
 @bp.route("/<path:rest>", methods=["GET", "POST", "PUT", "PATCH", "DELETE"])
 def not_found(rest):

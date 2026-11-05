@@ -1,0 +1,13 @@
+{
+  "hosts": [
+    {"host_id": "host-a", "name": "Workstation A", "zone": "user", "address": "192.168.1.11", "role": "User workstation (entry point)", "state": "normal", "services": ["ssh/22", "smb/445"], "weaknesses": [{"weakness_id": "DEMO-0001", "service": "ssh/22", "cvss": 6.5, "description": "Simulated weak remote-login password policy", "simulated": true}], "criticality": 0.3, "risk": 1.95, "exposure": 4},
+    {"host_id": "server-b", "name": "Web Server B", "zone": "dmz", "address": "192.168.1.20", "role": "Web server", "state": "normal", "services": ["http/80", "ssh/22"], "weaknesses": [{"weakness_id": "DEMO-0003", "service": "http/80", "cvss": 9.8, "description": "Simulated flaw in a public web application", "simulated": true}], "criticality": 0.7, "risk": 6.86, "exposure": 4}
+  ],
+  "zones": [{"zone": "dmz", "host_ids": ["server-b"]}, {"zone": "user", "host_ids": ["host-a"]}],
+  "feasible_edges": [{"from_host": "host-a", "to_host": "server-b", "likelihood": 0.98}],
+  "observed_edges": [],
+  "compromised_path": [],
+  "engine": "networkx-fallback",
+  "risk_basis": "networkx fallback with simulated CVSS and asset criticality",
+  "basis": "Risk and edge likelihoods are estimates from the six-host scripted demo topology and its simulated weaknesses."
+}

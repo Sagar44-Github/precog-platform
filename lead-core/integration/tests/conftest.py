@@ -34,6 +34,7 @@ os.environ["VALIDATE_CONTRACTS"] = "1"
 os.environ["AUTO_TRAIN_MODEL"] = "1"
 
 os.environ["WEB_DIST"] = str(Path(_tmp) / "no-dist-here")
+os.environ["PRECOG_DATA_DIR"] = str(Path(_tmp) / "addon-data")
 
 sys.path.insert(0, str(BACKEND))
 

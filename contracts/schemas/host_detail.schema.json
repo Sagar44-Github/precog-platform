@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/host_detail.schema.json",
+  "title": "Network twin host detail",
+  "type": "object",
+  "required": ["host", "alerts", "forecasts", "actions", "incidents", "basis"],
+  "properties": {
+    "host": {"$ref": "topology.schema.json#/$defs/host"},
+    "alerts": {"type": "array", "items": {"$ref": "security_event.schema.json"}},
+    "forecasts": {"type": "array", "items": {"$ref": "forecast.schema.json"}},
+    "actions": {"type": "array", "items": {"$ref": "containment_action.schema.json"}},
+    "incidents": {"type": "array", "items": {"type": "object", "required": ["incident_id", "title", "severity", "status", "created_at", "updated_at"], "properties": {"incident_id": {"type": "string"}, "title": {"type": "string"}, "severity": {"enum": ["LOW", "MEDIUM", "HIGH"]}, "status": {"enum": ["open", "contained", "closed", "reopened"]}, "created_at": {"type": "string"}, "updated_at": {"type": "string"}}, "additionalProperties": false}},
+    "basis": {"type": "string"}
+  },
+  "additionalProperties": false
+}

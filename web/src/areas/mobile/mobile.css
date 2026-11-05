@@ -54,7 +54,7 @@
 .m-filters { display: flex; gap: var(--space-2); flex-wrap: wrap; }
 .m-filter[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
 
-.m-tabs { position: fixed; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(4, 1fr); background: var(--surface); border-top: 1px solid var(--border); padding-bottom: env(safe-area-inset-bottom, 0); z-index: 10; }
+.m-tabs { position: fixed; left: 0; right: 0; bottom: 0; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); background: var(--surface); border-top: 1px solid var(--border); padding-bottom: env(safe-area-inset-bottom, 0); z-index: 10; }
 .m-tab { min-height: 56px; display: grid; place-items: center; align-content: center; gap: 2px; text-decoration: none; color: var(--text-muted); font-size: 12px; border-top: 2px solid transparent; position: relative; }
 .m-tab[aria-current="page"] { color: var(--accent); border-top-color: var(--accent); }
 .m-tab-badge { position: absolute; top: 4px; right: 22%; background: var(--severity-high); color: var(--bg); border-radius: 999px; font-size: 11px; min-width: 18px; text-align: center; font-weight: 700; }

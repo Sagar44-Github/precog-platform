@@ -39,8 +39,8 @@ def test_the_samples_use_the_same_hosts_and_zones(hosts):
     assert listed == sampled
 
 
-def test_all_eight_hooks_are_known():
-    assert KNOWN_HOOKS == ("replay", "events", "graph", "precog", "containment", "push", "incidents", "studio")
+def test_all_nine_hooks_are_known():
+    assert KNOWN_HOOKS == ("replay", "events", "graph", "precog", "containment", "push", "incidents", "studio", "twin")
 
 
 @pytest.mark.parametrize("name", KNOWN_HOOKS)

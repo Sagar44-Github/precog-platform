@@ -1,0 +1,6 @@
+{
+  "from_host": "host-a",
+  "to_host": "server-b",
+  "paths": [{"hosts": ["host-a", "server-b"], "edges": [{"from_host": "host-a", "to_host": "server-b", "likelihood": 0.98}], "likelihood": 0.98}],
+  "basis": "Product of simulated edge likelihood estimates; routes are feasible in the demo topology."
+}

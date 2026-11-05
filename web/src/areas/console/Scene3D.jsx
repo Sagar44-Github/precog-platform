@@ -9,7 +9,7 @@ import { useTheme } from '../../shared/theme-context.jsx'
 
 /** The 3D picture of the network (owner: VIZ). It draws the plain-data model made by sceneModel.js.
  *  Hosts have fixed positions, so the picture is calm. It cannot be tested without a graphics card: check it by eye (guide step D8). */
-export default function Scene3D({ model, pendingForecast, onSelect }) {
+export default function Scene3D({ model, pendingForecast, onSelect, mode = 'console', cameraPreset = 'isometric', focusHostId = null }) {
   const { theme } = useTheme()
   const holder = useRef(null)
   const graphRef = useRef(null)
@@ -32,18 +32,18 @@ export default function Scene3D({ model, pendingForecast, onSelect }) {
       .nodeThreeObjectExtend(false)
       .linkColor((link) => (link.onPath ? colors.compromised : colors.muted))
       .linkOpacity(0.5)
-      .linkWidth((link) => (link.onPath ? 1.2 : 0.4))
+      .linkWidth((link) => (link.onPath ? 1.8 : 0.7))
       .linkDirectionalParticles((link) => (reduced || !link.onPath ? 0 : 2))
       .linkDirectionalParticleWidth(1.6)
       .cooldownTicks(0)
       .onNodeClick((node) => onSelect && onSelect(node.id))
       .onBackgroundClick(() => onSelect && onSelect(null))
-    graph.cameraPosition({ x: 0, y: 90, z: 280 })
+    graph.cameraPosition(mode === 'twin' ? { x: 0, y: 190, z: 300 } : { x: 0, y: 90, z: 280 })
     const controls = graph.controls()
-    controls.autoRotate = !reduced
+    controls.autoRotate = mode !== 'twin' && !reduced
     controls.autoRotateSpeed = 0.67          // about one turn every 90 seconds
     graphRef.current = graph
-    const atmosphere = createSceneDecorations(colors)
+    const atmosphere = createSceneDecorations(colors, { twin: mode === 'twin', zones: live.current.model.zones })
     graph.scene().add(atmosphere)
     const coneGroup = new THREE.Group()
     graph.scene().add(coneGroup)
@@ -78,7 +78,7 @@ export default function Scene3D({ model, pendingForecast, onSelect }) {
         placeCone(current.cones[i], from, to, w.confidence)
         current.cones[i].material.opacity = w.opacity * (reduced ? 1 : 1 + 0.08 * Math.sin(((now - start) / 2400) * Math.PI * 2))
       })
-      controls.autoRotate = !reduced && !current.pendingForecast       // keep the cones still while a decision is pending
+      controls.autoRotate = mode !== 'twin' && !reduced && !current.pendingForecast       // keep the cones still while a decision is pending
       frame = requestAnimationFrame(tick)
     }
     frame = requestAnimationFrame(tick)
@@ -93,7 +93,7 @@ export default function Scene3D({ model, pendingForecast, onSelect }) {
       graph._destructor()
       graphRef.current = null
     }
-  }, [theme])  // Rebuild the small six-host scene when the CSS theme changes.
+  }, [theme, mode])  // Rebuild the small six-host scene when the CSS theme changes.
 
   // feed new data into the scene
   useEffect(() => {
@@ -102,6 +102,19 @@ export default function Scene3D({ model, pendingForecast, onSelect }) {
     const nodes = model.nodes.map((n) => ({ ...n, fx: n.x, fy: n.y, fz: n.z }))
     graph.graphData({ nodes, links: model.links.map((l) => ({ ...l })) })
   }, [model])
+
+  useEffect(() => {
+    const graph = graphRef.current
+    if (!graph || mode !== 'twin') return
+    const selected = model.nodes.find((node) => node.id === focusHostId)
+    const lookAt = selected ? { x: selected.x, y: selected.y, z: selected.z } : { x: 0, y: 0, z: 0 }
+    const positions = {
+      isometric: { x: lookAt.x, y: 190, z: lookAt.z + 300 },
+      top: { x: lookAt.x, y: 330, z: lookAt.z + 4 },
+      side: { x: lookAt.x + 320, y: 75, z: lookAt.z + 5 },
+    }
+    graph.cameraPosition(positions[cameraPreset] || positions.isometric, lookAt, 750)
+  }, [cameraPreset, focusHostId, mode, model])
 
   return <div ref={holder} className="c-scene" role="presentation" />
 }

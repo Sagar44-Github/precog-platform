@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { NavLink, Navigate, Route, Routes } from 'react-router-dom'
 import { SimulationBadge, StaleBanner, ToastProvider } from '../../shared/components.jsx'
 import { ThemeToggle } from '../../shared/theme-context.jsx'
@@ -7,13 +8,15 @@ import { highAlertCount } from './logic.js'
 import { useAuth } from '../../shared/AuthContext.jsx'
 import './mobile.css'
 
+const MobileHostsPage = lazy(() => import('../twin/MobileHosts.jsx'))
+
 // The phone app (owner: GRAPH). App.jsx imports the default export. VIZ imports the named components below.
 export { AccuracyCounter, AttackPath2D, ForecastBars, OutcomeCard, SeverityBadge, StateChip } from './components.jsx'
 
 export function TabBar({ state }) {
   const high = state ? highAlertCount(state.alerts) : 0
   const pending = Boolean(state && state.forecast)
-  const tabs = [['/mobile', 'Home', '⌂', true], ['/mobile/alerts', 'Alerts', '△', false], ['/mobile/forecast', 'Forecast', '◌', false], ['/mobile/history', 'History', '◷', false]]
+  const tabs = [['/mobile', 'Home', '⌂', true], ['/mobile/alerts', 'Alerts', '△', false], ['/mobile/forecast', 'Forecast', '◌', false], ['/mobile/hosts', 'Hosts', '◉', false], ['/mobile/history', 'History', '◷', false]]
   return (
     <nav className="m-tabs" aria-label="Main">
       {tabs.map(([to, label, icon, end]) => (
@@ -43,6 +46,8 @@ export default function MobileApp() {
           <Route path="alerts/:id" element={<AlertDetailScreen state={state} />} />
           <Route path="forecast" element={<ForecastScreen state={state} canOperate={canOperate} />} />
           <Route path="history" element={<HistoryScreen state={state} />} />
+          <Route path="hosts" element={<Suspense fallback={<div className="m-screen">Loading hosts…</div>}><MobileHostsPage /></Suspense>} />
+          <Route path="hosts/:id" element={<Suspense fallback={<div className="m-screen">Loading host…</div>}><MobileHostsPage /></Suspense>} />
           <Route path="*" element={<Navigate to="/mobile" replace />} />
         </Routes>
         <TabBar state={state} />

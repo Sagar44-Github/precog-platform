@@ -33,6 +33,10 @@ const routeSpecs = [
   ['scenario-library', '/app/scenarios'],
   ['scenario-builder', '/app/scenarios/new'],
   ['run-history', '/app/runs'],
+  ['network-twin', '/app/twin'],
+  ['asset-directory', '/app/hosts'],
+  ['host-detail', '/app/hosts/host-a'],
+  ['mobile-hosts', '/app/mobile/hosts'],
   ['console', '/app/console'],
 ]
 const report = { browser: 'Playwright Chromium (SwiftShader)', modes: {} }
@@ -97,6 +101,10 @@ async function stopBackend(child) {
 async function checkViewport(page, mode, routeName, path, size) {
   await page.setViewportSize({ width: size.width, height: size.height })
   await page.goto(path, { waitUntil: 'domcontentloaded', timeout: 30000 })
+  if (routeName === 'network-twin') await page.locator('.twin-page-head h1').waitFor({ timeout: 12000 }).catch(() => {})
+  if (routeName === 'asset-directory') await page.locator('.twin-directory-card, .twin-error').first().waitFor({ timeout: 12000 }).catch(() => {})
+  if (routeName === 'host-detail') await page.locator('.twin-host-detail h1, .twin-error').first().waitFor({ timeout: 12000 }).catch(() => {})
+  if (routeName === 'mobile-hosts') await page.locator('.m-host-card, .m-title').first().waitFor({ timeout: 12000 }).catch(() => {})
   if (routeName === 'console' && size.width >= 1024) {
     await page.locator('.c-app').waitFor({ timeout: 8000 }).catch(() => {})
     await page.waitForFunction(() => document.querySelector('.c-scene canvas'), null, { timeout: 15000 }).catch(() => {})
@@ -122,7 +130,7 @@ async function checkViewport(page, mode, routeName, path, size) {
   if (!state.hasSimulationLabel) failures.push('SIMULATION label missing')
   if (routeName === 'console' && size.width < 1024 && !state.hasConsoleHandoff) failures.push('narrow console handoff is missing')
   if (routeName === 'console' && size.width >= 1024 && !state.hasCommandTrigger) failures.push('desktop command palette trigger is missing')
-  if (['incidents', 'incident-detail', 'replay-studio', 'scenario-library', 'scenario-builder', 'scenario-edit', 'run-history', 'run-detail', 'run-compare'].includes(routeName)) {
+  if (['incidents', 'incident-detail', 'replay-studio', 'scenario-library', 'scenario-builder', 'scenario-edit', 'run-history', 'run-detail', 'run-compare', 'network-twin', 'asset-directory', 'host-detail', 'mobile-hosts'].includes(routeName)) {
     await page.addScriptTag({ path: join(repoRoot, 'web', 'node_modules', 'axe-core', 'axe.min.js') })
     const accessibility = await page.evaluate(async () => {
       const result = await window.axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] } })
@@ -307,10 +315,55 @@ async function runMode(browser, mode, port, dbDir, errors) {
         } else if (routeName === 'console') {
           check.canvas = { rendered: false, reason: 'console handoff is shown below 1024px' }
         }
+        if (routeName === 'network-twin' && size.width >= 1024) {
+          check.twin = await page.evaluate(() => ({
+            canvasCount: document.querySelectorAll('.twin-map-viewport canvas').length,
+            liteMap: Boolean(document.querySelector('.twin-lite-map')),
+            hostRows: document.querySelectorAll('.twin-host-row').length,
+            heading: document.querySelector('.twin-page-head h1')?.textContent || '',
+          }))
+          if (!check.twin.heading.includes('Network digital twin') || check.twin.hostRows !== 6 || (!check.twin.canvasCount && !check.twin.liteMap)) failures.push('network twin did not render its topology view and six demo hosts')
+          check.twin.frameProbe = await page.evaluate(() => new Promise((resolve) => {
+            const intervals = []
+            let previous = performance.now()
+            const sample = (now) => {
+              intervals.push(now - previous)
+              previous = now
+              if (intervals.length >= 24) {
+                const sorted = [...intervals].sort((a, b) => a - b)
+                resolve({ renderer: 'Playwright Chromium with SwiftShader', frames: intervals.length, meanIntervalMs: Number((intervals.reduce((sum, value) => sum + value, 0) / intervals.length).toFixed(2)), p95IntervalMs: Number(sorted[Math.floor(sorted.length * 0.95)].toFixed(2)) })
+              } else requestAnimationFrame(sample)
+            }
+            requestAnimationFrame(sample)
+          }))
+        }
         if (failures.length) check.failure = failures.join('; ')
         checks.push(check)
       }
     }
+
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await page.goto(`${base}/app/twin`, { waitUntil: 'domcontentloaded' })
+    await page.locator('.twin-map-viewport').waitFor({ timeout: 12000 })
+    await page.locator('.twin-host-row').first().waitFor({ timeout: 12000 })
+    await page.getByRole('combobox', { name: 'Topology overlay' }).selectOption('risk')
+    await page.getByRole('combobox', { name: 'Camera preset' }).selectOption('top')
+    await page.getByRole('combobox', { name: 'Fly to host' }).selectOption('server-b')
+    await page.getByRole('complementary', { name: /Web Server B inspector/ }).waitFor({ timeout: 8000 })
+    await page.getByRole('button', { name: 'Trace routes' }).click()
+    await page.getByText(/Model-based likelihood estimate/).first().waitFor({ timeout: 8000 })
+    await page.getByRole('button', { name: 'Lite view' }).click()
+    await page.locator('.twin-lite-map').waitFor({ timeout: 5000 })
+    const slider = page.getByRole('slider', { name: 'Recorded snapshot' })
+    if (await slider.isEnabled()) {
+      await slider.evaluate((element) => {
+        element.value = element.min
+        element.dispatchEvent(new Event('input', { bubbles: true }))
+        element.dispatchEvent(new Event('change', { bubbles: true }))
+      })
+      await page.waitForTimeout(120)
+    }
+    report.digitalTwinFlow = 'selected Web Server B, inspected the asset, traced feasible routes, switched to Lite view and scrubbed the recorded snapshot control'
 
     if (mode === 'sample') {
       if (incidentId) {

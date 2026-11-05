@@ -1,0 +1,2565 @@
+{
+  "browser": "Playwright Chromium (SwiftShader)",
+  "modes": {
+    "sample": {
+      "health": {
+        "data_mode": "sample",
+        "hooks": [
+          "containment",
+          "events",
+          "graph",
+          "incidents",
+          "precog",
+          "push",
+          "replay",
+          "studio",
+          "twin"
+        ],
+        "modules": {
+          "addons.incident_engine": "registered",
+          "addons.network_twin": "registered",
+          "addons.replay_studio": "registered",
+          "detect_events": "registered",
+          "graph_net": "registered",
+          "graph_replay": "registered",
+          "precog_engine": "registered",
+          "viz_containment": "registered"
+        },
+        "status": "ok",
+        "version": 3
+      },
+      "checks": [
+        {
+          "mode": "sample",
+          "route": "login",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Light theme\n◈\n\nTHREAT OPERATIONS · REPLAY LAB\n\nPrecog SOC\n\nSee the next move before it happens.\n\nSIMULATION ENVIRONMENT\nOPERATOR ID\nACCESS KEY\nEnter command center\n↗\n\nLocal replay mode · Human-confirmed containment",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "sample-login-390x844.png"
+        },
+        {
+          "mode": "sample",
+          "route": "login",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Light theme\n◈\n\nTHREAT OPERATIONS · REPLAY LAB\n\nPrecog SOC\n\nSee the next move before it happens.\n\nSIMULATION ENVIRONMENT\nOPERATOR ID\nACCESS KEY\nEnter command center\n↗\n\nLocal replay mode · Human-confirmed containment\n\nPREC0G / SOC v1.0\nLOCAL NODE · SECURE SESSION",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "sample-login-820x1180.png"
+        },
+        {
+          "mode": "sample",
+          "route": "login",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Light theme\n◈\n\nTHREAT OPERATIONS · REPLAY LAB\n\nPrecog SOC\n\nSee the next move before it happens.\n\nSIMULATION ENVIRONMENT\nOPERATOR ID\nACCESS KEY\nEnter command center\n↗\n\nLocal replay mode · Human-confirmed containment\n\nPREC0G / SOC v1.0\nLOCAL NODE · SECURE SESSION",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "sample-login-1440x900.png"
+        },
+        {
+          "mode": "sample",
+          "route": "mobile",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\n\n◆ Watching\n\n3 alerts\n\nPrecog predicts the next target\n\nNo forecast right now. Precog predicts the next target after a host is compromised.\n\nLatest alert\n▲\nHigh\n17:43:09\n\nDatabase Server shows activity matching OS Credential Dumping (T1003), part of the credential access stage of an attack.\n\nOS Credential Dumping · T1003 · scripted\ndb-s",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "sample-mobile-390x844.png"
+        },
+        {
+          "mode": "sample",
+          "route": "mobile-alerts",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\nAlerts\nAll\nHigh\nMedium\nLow\n▲\nHigh\n17:43:09\n\nDatabase Server shows activity matching OS Credential Dumping (T1003), part of the credential access stage of an attack.\n\nOS Credential Dumping · T1003 · scripted\ndb-server ›\n▲\nHigh\n17:43:09\n\nDatabase Server sent a 600-byte TCP packet to port 445 (SMB, Windows file sharing) on Domain Controlle",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "sample-mobile-alerts-390x844.png"
+        },
+        {
+          "mode": "sample",
+          "route": "mobile-alert-detail",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\n‹ Back\n▲\nHigh\n17:43:09\nDatabase Server\n\ndb-server · \n○\nNormal\n\nWhat happened\n\nDatabase Server shows activity matching OS Credential Dumping (T1003), part of the credential access stage of an attack.\n\nAttack technique\n\nOS Credential Dumping (T1003)\n\nOpen MITRE page ↗\n\nWhere it is in the attack\n\nNo host is compromised.\n\nRisk score 90 / 10",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "sample-mobile-alert-detail-390x844.png"
+        },
+        {
+          "mode": "sample",
+          "route": "mobile-forecast",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\nForecast\nPrecog predicts the next target\n\nNo forecast right now. Precog predicts the next target after a host is compromised.\n\nAttack path\n\nNo host is compromised.\n\n⌂\nHome\n△\nAlerts\n3\n◌\nForecast\n◉\nHosts\n◷\nHistory",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "sample-mobile-forecast-390x844.png"
+        },
+        {
+          "mode": "sample",
+          "route": "mobile-history",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\nHistory\n\nPrecog accuracy this session\n\nNo forecasts resolved yet\n\nSession counter, not the model's overall accuracy.\n\nNo forecasts resolved yet.\nAlert volume\nPast sessions\n\nuser-browser-audit-sample\n0 / 0\n\nOffline detection test\n\nExample model (sample values only)\n\nPrecision 0 · Recall 0 · F1 0 · False-positive rate 0\n\nSample file. Real",
+          "canvasCount": 1,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "sample-mobile-history-390x844.png"
+        },
+        {
+          "mode": "sample",
+          "route": "incidents",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Workspace\nIncident response\nLight theme\nSIMULATION\n\nCASE MANAGEMENT · LIVE REPLAY\n\nIncident investigations\n\nRelated scripted alerts become one case with evidence, attack path, forecast outcome and analyst decisions.\n\nAlert stream\nRun a replay\nVISIBLE CASES\n1\nmatching the current view\nHIGH SEVERITY\n1\nrequires analyst review\nOPEN\n1\nawaiting disposition\nWITH FO",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "sample-incidents-390x844.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "incident-detail",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Workspace\nIncident response\nLight theme\nSIMULATION\n← All incidents\n/ INC-0001\nExport Markdown\nExport JSON\n\nINCIDENT INC-0001 · user-browser-audit-sample\n\nReconnaissance from Workstation A\n\nInvestigation record assembled from scripted detections, the replay graph and simulated response history.\n\nOPEN\n\nCASE SUMMARY\n\nAt a glance\nHIGH\n3\nalerts\n2\naffected hosts\n0",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "sample-incident-detail-390x844.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "replay-studio",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nReplay studio\nSearch commands\n\nREPLAY CONTROL · DETERMINISTIC SIMULATION\n\nReplay studio\n\nRun a scenario at presentation speed, stop on events, and step through the reconstructed response.\n\nScenario library\n\nSIMULATION · Scripted demo data on",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "sample-replay-studio-390x844.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "scenario-library",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nScenario library\nSearch commands\n\nREPLAY LIBRARY\n\nScenarios\n\nFour shipped rehearsals plus your saved scripts. Every event references a demo host id.\n\nBuild scenario\n\nSIMULATION · Scripted demo data only. No real traffic or systems are affect",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "sample-scenario-library-390x844.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "scenario-builder",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nScenario builder\nSearch commands\n\nSCRIPT EDITOR · HOST LANES\n\nScenario builder\n\nCompose a timeline from scripted techniques, packet traffic, and movement attempts.\n\nBack to scenarios\n\nSIMULATION · Scripted demo data only. No real traffic or ",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [
+            {
+              "tag": "div",
+              "className": "scenario-lane",
+              "left": 82,
+              "right": 642,
+              "width": 560
+            },
+            {
+              "tag": "div",
+              "className": "",
+              "left": 232,
+              "right": 642,
+              "width": 410
+            }
+          ],
+          "screenshot": "sample-scenario-builder-390x844.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "run-history",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nRun history\nSearch commands\n\nRUN ARCHIVE · LAST 50 FINISHED\n\nRun history\n\nCompare outcomes from repeatable scenarios. Timestamps vary; scripted sequence identifiers restart for each run.\n\nOpen replay studio\n\nSIMULATION · Scripted demo data o",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [
+            {
+              "tag": "table",
+              "className": "runs-table",
+              "left": 69,
+              "right": 889,
+              "width": 820
+            },
+            {
+              "tag": "thead",
+              "className": "",
+              "left": 69,
+              "right": 889,
+              "width": 820
+            },
+            {
+              "tag": "tr",
+              "className": "",
+              "left": 69,
+              "right": 889,
+              "width": 820
+            },
+            {
+              "tag": "th",
+              "className": "",
+              "left": 385,
+              "right": 475,
+              "width": 90
+            },
+            {
+              "tag": "th",
+              "className": "",
+              "left": 475,
+              "right": 537,
+              "width": 62
+            },
+            {
+              "tag": "th",
+              "className": "",
+              "left": 537,
+              "right": 618,
+              "width": 81
+            },
+            {
+              "tag": "th",
+              "className": "",
+              "left": 618,
+              "right": 700,
+              "width": 81
+            },
+            {
+              "tag": "th",
+              "className": "",
+              "left": 700,
+              "right": 768,
+              "width": 68
+            }
+          ],
+          "screenshot": "sample-run-history-390x844.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "network-twin",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nNetwork twin\nSearch commands\n\nASSET & TOPOLOGY EXPLORER · READ ONLY\n\nNetwork digital twin\n\nExplore the six-host simulated network, trace feasible paths and inspect recorded state over time.\n\nAsset directory\n↗\n06 DEMO ASSETS\n03 ZONES\n11 FEASI",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "sample-network-twin-390x844.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "asset-directory",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nAsset directory\nSearch commands\n\nSIMULATED ASSET INVENTORY\n\nAsset directory\n\nHosts, services and model-based exposure estimates from the demo topology.\n\nOpen network twin ↗\n◇\n\nUSER · host-a\n\nWorkstation A\n\nUser workstation (entry point)\n\nssh",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "sample-asset-directory-390x844.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "host-detail",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nAsset directory\nSearch commands\n← Asset directory\n\nUSER · host-a\n\nWorkstation A\n\nUser workstation (entry point) · 192.168.1.11\n\nView in network twin ↗\nnormal\nSimulation state\n2.34/10\nEstimated risk\n30%\nCriticality\n4\nExposure count\nServices\ns",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "sample-host-detail-390x844.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "mobile-hosts",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\n\nNETWORK TWIN · SIX DEMO HOSTS\n\nHosts\n\nRead-only inventory. Risk, exposure and weaknesses are estimates from the scripted demo network.\n\nWorkstation A\nnormal\n\nUSER · 2 services · estimated risk 2.34/10\n\nWorkstation B\nnormal\n\nUSER · 2 services · estimated risk 2.34/10\n\nWeb Server B\nnormal\n\nDMZ · 2 services · estimated risk 9.6/10\n\nFile S",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "sample-mobile-hosts-390x844.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "console",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\n\nDESKTOP WORKSPACE · 1024 PX MINIMUM\n\nOpen the console on a wider screen\n\nThe 3D topology is designed for a desktop workspace. The mobile SOC keeps alerts, forecasts and session history ready on this device.\n\nOpen mobile SOC\n\nAll events and responses shown here are simulated.",
+          "canvasCount": 0,
+          "hasConsoleHandoff": true,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "sample-console-390x844.png",
+          "canvas": {
+            "rendered": false,
+            "reason": "console handoff is shown below 1024px"
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "scenario-edit",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nScenario builder\nSearch commands\n\nSCRIPT EDITOR · HOST LANES\n\nEdit scenario\n\nCompose a timeline from scripted techniques, packet traffic, and movement attempts.\n\nBack to scenarios\n\nSIMULATION · Scripted demo data only. No real traffic or sys",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [
+            {
+              "tag": "div",
+              "className": "scenario-lane",
+              "left": 82,
+              "right": 642,
+              "width": 560
+            },
+            {
+              "tag": "div",
+              "className": "",
+              "left": 232,
+              "right": 642,
+              "width": 410
+            },
+            {
+              "tag": "div",
+              "className": "scenario-lane",
+              "left": 82,
+              "right": 642,
+              "width": 560
+            },
+            {
+              "tag": "div",
+              "className": "",
+              "left": 232,
+              "right": 642,
+              "width": 410
+            },
+            {
+              "tag": "span",
+              "className": "lane-event lane-technique",
+              "left": 343,
+              "right": 449,
+              "width": 106
+            },
+            {
+              "tag": "small",
+              "className": "",
+              "left": 353,
+              "right": 440,
+              "width": 87
+            },
+            {
+              "tag": "strong",
+              "className": "",
+              "left": 353,
+              "right": 440,
+              "width": 87
+            },
+            {
+              "tag": "div",
+              "className": "scenario-lane",
+              "left": 82,
+              "right": 642,
+              "width": 560
+            }
+          ],
+          "screenshot": "sample-scenario-edit-390x844.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "run-detail",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nRun history\nSearch commands\n\nRUN REPORT · RUN-000001\n\nuser-browser-audit-sample\n\nBrowser audit scripted replay\n\nBack to run history\n\nSIMULATION · Scripted demo data only. No real traffic or systems are affected.\n\nOUTCOME\ncompleted\nALERTS\n3\nI",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "sample-run-detail-390x844.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "run-compare",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nRun comparison\nSearch commands\n\nSIDE-BY-SIDE · SCRIPTED RUNS\n\nRun comparison\n\nWall-clock fields are excluded; alert, incident, forecast, action, outcome and metric differences remain visible.\n\nRun history\n\nSIMULATION · Scripted demo data onl",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "sample-run-compare-390x844.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "mobile",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\n\n◆ Watching\n\n3 alerts\n\nPrecog predicts the next target\n\nNo forecast right now. Precog predicts the next target after a host is compromised.\n\nLatest alert\n▲\nHigh\n17:43:09\n\nDatabase Server shows activity matching OS Credential Dumping (T1003), part of the credential access stage of an attack.\n\nOS Credential Dumping · T1003 · scripted\ndb-s",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "sample-mobile-820x1180.png"
+        },
+        {
+          "mode": "sample",
+          "route": "mobile-alerts",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\nAlerts\nAll\nHigh\nMedium\nLow\n▲\nHigh\n17:43:09\n\nDatabase Server shows activity matching OS Credential Dumping (T1003), part of the credential access stage of an attack.\n\nOS Credential Dumping · T1003 · scripted\ndb-server ›\n▲\nHigh\n17:43:09\n\nDatabase Server sent a 600-byte TCP packet to port 445 (SMB, Windows file sharing) on Domain Controlle",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "sample-mobile-alerts-820x1180.png"
+        },
+        {
+          "mode": "sample",
+          "route": "mobile-alert-detail",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\n‹ Back\n▲\nHigh\n17:43:09\nDatabase Server\n\ndb-server · \n○\nNormal\n\nWhat happened\n\nDatabase Server shows activity matching OS Credential Dumping (T1003), part of the credential access stage of an attack.\n\nAttack technique\n\nOS Credential Dumping (T1003)\n\nOpen MITRE page ↗\n\nWhere it is in the attack\n\nNo host is compromised.\n\nRisk score 90 / 10",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "sample-mobile-alert-detail-820x1180.png"
+        },
+        {
+          "mode": "sample",
+          "route": "mobile-forecast",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\nForecast\nPrecog predicts the next target\n\nNo forecast right now. Precog predicts the next target after a host is compromised.\n\nAttack path\n\nNo host is compromised.\n\n⌂\nHome\n△\nAlerts\n3\n◌\nForecast\n◉\nHosts\n◷\nHistory",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "sample-mobile-forecast-820x1180.png"
+        },
+        {
+          "mode": "sample",
+          "route": "mobile-history",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\nHistory\n\nPrecog accuracy this session\n\nNo forecasts resolved yet\n\nSession counter, not the model's overall accuracy.\n\nNo forecasts resolved yet.\nAlert volume\nPast sessions\n\nuser-browser-audit-sample\n0 / 0\n\nOffline detection test\n\nExample model (sample values only)\n\nPrecision 0 · Recall 0 · F1 0 · False-positive rate 0\n\nSample file. Real",
+          "canvasCount": 1,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "sample-mobile-history-820x1180.png"
+        },
+        {
+          "mode": "sample",
+          "route": "incidents",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "PRECOG SOC\nSIMULATION LAB\nLive console\nIncidents\nMobile SOC\nA\nWorkspace\nIncident response\nADMIN\nLight theme\nSIMULATION\n\nCASE MANAGEMENT · LIVE REPLAY\n\nIncident investigations\n\nRelated scripted alerts become one case with evidence, attack path, forecast outcome and analyst decisions.\n\nAlert stream\nRun a replay\nVISIBLE CASES\n1\nmatching the current view\nHIGH SE",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "sample-incidents-820x1180.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "incident-detail",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "PRECOG SOC\nSIMULATION LAB\nLive console\nIncidents\nMobile SOC\nA\nWorkspace\nIncident response\nADMIN\nLight theme\nSIMULATION\n← All incidents\n/ INC-0001\nExport Markdown\nExport JSON\n\nINCIDENT INC-0001 · user-browser-audit-sample\n\nReconnaissance from Workstation A\n\nInvestigation record assembled from scripted detections, the replay graph and simulated response histor",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "sample-incident-detail-820x1180.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "replay-studio",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nWorkspace\nReplay studio\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n\nREPLAY CONTROL · DETERMINISTIC SIMULATION\n\nReplay studio\n\nRun a scenario at presentation speed, stop on events, and step through the reconstructed response.\n\nSc",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "sample-replay-studio-820x1180.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "scenario-library",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nWorkspace\nScenario library\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n\nREPLAY LIBRARY\n\nScenarios\n\nFour shipped rehearsals plus your saved scripts. Every event references a demo host id.\n\nBuild scenario\n\nSIMULATION · Scripted dem",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "sample-scenario-library-820x1180.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "scenario-builder",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nWorkspace\nScenario builder\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n\nSCRIPT EDITOR · HOST LANES\n\nScenario builder\n\nCompose a timeline from scripted techniques, packet traffic, and movement attempts.\n\nBack to scenarios\n\nSIMULAT",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "sample-scenario-builder-820x1180.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "run-history",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nWorkspace\nRun history\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n\nRUN ARCHIVE · LAST 50 FINISHED\n\nRun history\n\nCompare outcomes from repeatable scenarios. Timestamps vary; scripted sequence identifiers restart for each run.\n\nOpe",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [
+            {
+              "tag": "table",
+              "className": "runs-table",
+              "left": 75,
+              "right": 895,
+              "width": 820
+            },
+            {
+              "tag": "thead",
+              "className": "",
+              "left": 75,
+              "right": 895,
+              "width": 820
+            },
+            {
+              "tag": "tr",
+              "className": "",
+              "left": 75,
+              "right": 895,
+              "width": 820
+            },
+            {
+              "tag": "th",
+              "className": "",
+              "left": 774,
+              "right": 830,
+              "width": 56
+            },
+            {
+              "tag": "th",
+              "className": "",
+              "left": 830,
+              "right": 895,
+              "width": 65
+            },
+            {
+              "tag": "tbody",
+              "className": "",
+              "left": 75,
+              "right": 895,
+              "width": 820
+            },
+            {
+              "tag": "tr",
+              "className": "",
+              "left": 75,
+              "right": 895,
+              "width": 820
+            },
+            {
+              "tag": "td",
+              "className": "",
+              "left": 774,
+              "right": 830,
+              "width": 56
+            }
+          ],
+          "screenshot": "sample-run-history-820x1180.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "network-twin",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nWorkspace\nNetwork twin\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n\nASSET & TOPOLOGY EXPLORER · READ ONLY\n\nNetwork digital twin\n\nExplore the six-host simulated network, trace feasible paths and inspect recorded state over time.\n\n",
+          "canvasCount": 1,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "sample-network-twin-820x1180.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "asset-directory",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nWorkspace\nAsset directory\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n\nSIMULATED ASSET INVENTORY\n\nAsset directory\n\nHosts, services and model-based exposure estimates from the demo topology.\n\nOpen network twin ↗\n◇\n\nUSER · host-a\n\n",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "sample-asset-directory-820x1180.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "host-detail",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nWorkspace\nAsset directory\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n← Asset directory\n\nUSER · host-a\n\nWorkstation A\n\nUser workstation (entry point) · 192.168.1.11\n\nView in network twin ↗\nnormal\nSimulation state\n2.34/10\nEstimate",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "sample-host-detail-820x1180.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "mobile-hosts",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\n\nNETWORK TWIN · SIX DEMO HOSTS\n\nHosts\n\nRead-only inventory. Risk, exposure and weaknesses are estimates from the scripted demo network.\n\nWorkstation A\nnormal\n\nUSER · 2 services · estimated risk 2.34/10\n\nWorkstation B\nnormal\n\nUSER · 2 services · estimated risk 2.34/10\n\nWeb Server B\nnormal\n\nDMZ · 2 services · estimated risk 9.6/10\n\nFile S",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "sample-mobile-hosts-820x1180.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "console",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\n\nDESKTOP WORKSPACE · 1024 PX MINIMUM\n\nOpen the console on a wider screen\n\nThe 3D topology is designed for a desktop workspace. The mobile SOC keeps alerts, forecasts and session history ready on this device.\n\nOpen mobile SOC\n\nAll events and responses shown here are simulated.",
+          "canvasCount": 0,
+          "hasConsoleHandoff": true,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "sample-console-820x1180.png",
+          "canvas": {
+            "rendered": false,
+            "reason": "console handoff is shown below 1024px"
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "scenario-edit",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nWorkspace\nScenario builder\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n\nSCRIPT EDITOR · HOST LANES\n\nEdit scenario\n\nCompose a timeline from scripted techniques, packet traffic, and movement attempts.\n\nBack to scenarios\n\nSIMULATION",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "sample-scenario-edit-820x1180.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "run-detail",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nWorkspace\nRun history\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n\nRUN REPORT · RUN-000001\n\nuser-browser-audit-sample\n\nBrowser audit scripted replay\n\nBack to run history\n\nSIMULATION · Scripted demo data only. No real traffic or s",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "sample-run-detail-820x1180.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "run-compare",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nWorkspace\nRun comparison\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n\nSIDE-BY-SIDE · SCRIPTED RUNS\n\nRun comparison\n\nWall-clock fields are excluded; alert, incident, forecast, action, outcome and metric differences remain visible.",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "sample-run-compare-820x1180.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "mobile",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\n\n◆ Watching\n\n3 alerts\n\nPrecog predicts the next target\n\nNo forecast right now. Precog predicts the next target after a host is compromised.\n\nLatest alert\n▲\nHigh\n17:43:09\n\nDatabase Server shows activity matching OS Credential Dumping (T1003), part of the credential access stage of an attack.\n\nOS Credential Dumping · T1003 · scripted\ndb-s",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "sample-mobile-1440x900.png"
+        },
+        {
+          "mode": "sample",
+          "route": "mobile-alerts",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\nAlerts\nAll\nHigh\nMedium\nLow\n▲\nHigh\n17:43:09\n\nDatabase Server shows activity matching OS Credential Dumping (T1003), part of the credential access stage of an attack.\n\nOS Credential Dumping · T1003 · scripted\ndb-server ›\n▲\nHigh\n17:43:09\n\nDatabase Server sent a 600-byte TCP packet to port 445 (SMB, Windows file sharing) on Domain Controlle",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "sample-mobile-alerts-1440x900.png"
+        },
+        {
+          "mode": "sample",
+          "route": "mobile-alert-detail",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\n‹ Back\n▲\nHigh\n17:43:09\nDatabase Server\n\ndb-server · \n○\nNormal\n\nWhat happened\n\nDatabase Server shows activity matching OS Credential Dumping (T1003), part of the credential access stage of an attack.\n\nAttack technique\n\nOS Credential Dumping (T1003)\n\nOpen MITRE page ↗\n\nWhere it is in the attack\n\nNo host is compromised.\n\nRisk score 90 / 10",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "sample-mobile-alert-detail-1440x900.png"
+        },
+        {
+          "mode": "sample",
+          "route": "mobile-forecast",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\nForecast\nPrecog predicts the next target\n\nNo forecast right now. Precog predicts the next target after a host is compromised.\n\nAttack path\n\nNo host is compromised.\n\n⌂\nHome\n△\nAlerts\n3\n◌\nForecast\n◉\nHosts\n◷\nHistory",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "sample-mobile-forecast-1440x900.png"
+        },
+        {
+          "mode": "sample",
+          "route": "mobile-history",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\nHistory\n\nPrecog accuracy this session\n\nNo forecasts resolved yet\n\nSession counter, not the model's overall accuracy.\n\nNo forecasts resolved yet.\nAlert volume\nPast sessions\n\nuser-browser-audit-sample\n0 / 0\n\nOffline detection test\n\nExample model (sample values only)\n\nPrecision 0 · Recall 0 · F1 0 · False-positive rate 0\n\nSample file. Real",
+          "canvasCount": 1,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "sample-mobile-history-1440x900.png"
+        },
+        {
+          "mode": "sample",
+          "route": "incidents",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "PRECOG SOC\nSIMULATION LAB\n\nINVESTIGATE\n\nLive console\nIncidents\nMobile SOC\nSCRIPTED ENVIRONMENT\nIn-memory response only\nA\nadmin\nADMIN ROLE\nWorkspace\nIncident response\nADMIN\nLight theme\nSIMULATION\n\nCASE MANAGEMENT · LIVE REPLAY\n\nIncident investigations\n\nRelated scripted alerts become one case with evidence, attack path, forecast outcome and analyst decisions.\n",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "sample-incidents-1440x900.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "incident-detail",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "PRECOG SOC\nSIMULATION LAB\n\nINVESTIGATE\n\nLive console\nIncidents\nMobile SOC\nSCRIPTED ENVIRONMENT\nIn-memory response only\nA\nadmin\nADMIN ROLE\nWorkspace\nIncident response\nADMIN\nLight theme\nSIMULATION\n← All incidents\n/ INC-0001\nExport Markdown\nExport JSON\n\nINCIDENT INC-0001 · user-browser-audit-sample\n\nReconnaissance from Workstation A\n\nInvestigation record assemb",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "sample-incident-detail-1440x900.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "replay-studio",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\n\nWORKSPACE\n\nLive console\n1\nMobile SOC\n2\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nSIMULATED ENVIRONMENT\nA\nadmin\nADMIN ROLE\nWorkspace\nReplay studio\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n\nREPLAY CONTROL · DETERMINISTIC SIMULATION\n\nReplay studio\n\nRun a scenario at presentation speed, stop on e",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "sample-replay-studio-1440x900.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "scenario-library",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\n\nWORKSPACE\n\nLive console\n1\nMobile SOC\n2\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nSIMULATED ENVIRONMENT\nA\nadmin\nADMIN ROLE\nWorkspace\nScenario library\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n\nREPLAY LIBRARY\n\nScenarios\n\nFour shipped rehearsals plus your saved scripts. Every event references a d",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "sample-scenario-library-1440x900.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "scenario-builder",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\n\nWORKSPACE\n\nLive console\n1\nMobile SOC\n2\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nSIMULATED ENVIRONMENT\nA\nadmin\nADMIN ROLE\nWorkspace\nScenario builder\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n\nSCRIPT EDITOR · HOST LANES\n\nScenario builder\n\nCompose a timeline from scripted techniques, packet traf",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "sample-scenario-builder-1440x900.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "run-history",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\n\nWORKSPACE\n\nLive console\n1\nMobile SOC\n2\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nSIMULATED ENVIRONMENT\nA\nadmin\nADMIN ROLE\nWorkspace\nRun history\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n\nRUN ARCHIVE · LAST 50 FINISHED\n\nRun history\n\nCompare outcomes from repeatable scenarios. Timestamps vary; s",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "sample-run-history-1440x900.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "network-twin",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\n\nWORKSPACE\n\nLive console\n1\nMobile SOC\n2\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nSIMULATED ENVIRONMENT\nA\nadmin\nADMIN ROLE\nWorkspace\nNetwork twin\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n\nASSET & TOPOLOGY EXPLORER · READ ONLY\n\nNetwork digital twin\n\nExplore the six-host simulated network, trace",
+          "canvasCount": 1,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "sample-network-twin-1440x900.png",
+          "accessibility": {
+            "violations": []
+          },
+          "twin": {
+            "canvasCount": 1,
+            "liteMap": false,
+            "hostRows": 6,
+            "heading": "Network digital twin",
+            "frameProbe": {
+              "renderer": "Playwright Chromium with SwiftShader",
+              "frames": 24,
+              "meanIntervalMs": 16.06,
+              "p95IntervalMs": 16.7
+            }
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "asset-directory",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\n\nWORKSPACE\n\nLive console\n1\nMobile SOC\n2\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nSIMULATED ENVIRONMENT\nA\nadmin\nADMIN ROLE\nWorkspace\nAsset directory\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n\nSIMULATED ASSET INVENTORY\n\nAsset directory\n\nHosts, services and model-based exposure estimates from the",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "sample-asset-directory-1440x900.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "host-detail",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\n\nWORKSPACE\n\nLive console\n1\nMobile SOC\n2\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nSIMULATED ENVIRONMENT\nA\nadmin\nADMIN ROLE\nWorkspace\nAsset directory\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n← Asset directory\n\nUSER · host-a\n\nWorkstation A\n\nUser workstation (entry point) · 192.168.1.11\n\nView in ",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "sample-host-detail-1440x900.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "mobile-hosts",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\n\nNETWORK TWIN · SIX DEMO HOSTS\n\nHosts\n\nRead-only inventory. Risk, exposure and weaknesses are estimates from the scripted demo network.\n\nWorkstation A\nnormal\n\nUSER · 2 services · estimated risk 2.34/10\n\nWorkstation B\nnormal\n\nUSER · 2 services · estimated risk 2.34/10\n\nWeb Server B\nnormal\n\nDMZ · 2 services · estimated risk 9.6/10\n\nFile S",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "sample-mobile-hosts-1440x900.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "console",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\n\nWORKSPACE\n\nLive console\n1\nMobile SOC\n2\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nSIMULATED ENVIRONMENT\nA\nadmin\nADMIN ROLE\nWorkspace\nLive console\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n◆\nTHREAT LEVEL\nWatching\nREPLAY CONTROL\ndirect-hit\ngolden-path\nlateral-spread\nquiet-scan\nuser-browser-audit-",
+          "canvasCount": 1,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "sample-console-1440x900.png",
+          "canvas": {
+            "width": 784,
+            "height": 674,
+            "sampledColors": 144,
+            "visibleSamples": 5448,
+            "nonBlank": true,
+            "bounds": {
+              "x": 296,
+              "y": 138,
+              "width": 784,
+              "height": 674
+            }
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "scenario-edit",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\n\nWORKSPACE\n\nLive console\n1\nMobile SOC\n2\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nSIMULATED ENVIRONMENT\nA\nadmin\nADMIN ROLE\nWorkspace\nScenario builder\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n\nSCRIPT EDITOR · HOST LANES\n\nEdit scenario\n\nCompose a timeline from scripted techniques, packet traffic",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "sample-scenario-edit-1440x900.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "run-detail",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\n\nWORKSPACE\n\nLive console\n1\nMobile SOC\n2\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nSIMULATED ENVIRONMENT\nA\nadmin\nADMIN ROLE\nWorkspace\nRun history\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n\nRUN REPORT · RUN-000001\n\nuser-browser-audit-sample\n\nBrowser audit scripted replay\n\nBack to run history\n\nSIM",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "sample-run-detail-1440x900.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "sample",
+          "route": "run-compare",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\n\nWORKSPACE\n\nLive console\n1\nMobile SOC\n2\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nSIMULATED ENVIRONMENT\nA\nadmin\nADMIN ROLE\nWorkspace\nRun comparison\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n\nSIDE-BY-SIDE · SCRIPTED RUNS\n\nRun comparison\n\nWall-clock fields are excluded; alert, incident, forecast,",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "sample-run-compare-1440x900.png",
+          "accessibility": {
+            "violations": []
+          }
+        }
+      ],
+      "c2Flow": {
+        "result": "built, validated, dry-run, saved and stepped through a scripted scenario, then opened its report comparison",
+        "scenarioId": "user-browser-audit-sample",
+        "runIds": [
+          "RUN-000001",
+          "RUN-000001"
+        ],
+        "comparisonIdentical": true
+      }
+    },
+    "live": {
+      "health": {
+        "data_mode": "live",
+        "hooks": [
+          "containment",
+          "events",
+          "graph",
+          "incidents",
+          "precog",
+          "push",
+          "replay",
+          "studio",
+          "twin"
+        ],
+        "modules": {
+          "addons.incident_engine": "registered",
+          "addons.network_twin": "registered",
+          "addons.replay_studio": "registered",
+          "detect_events": "registered",
+          "graph_net": "registered",
+          "graph_replay": "registered",
+          "precog_engine": "registered",
+          "viz_containment": "registered"
+        },
+        "status": "ok",
+        "version": 2
+      },
+      "checks": [
+        {
+          "mode": "live",
+          "route": "login",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Light theme\n◈\n\nTHREAT OPERATIONS · REPLAY LAB\n\nPrecog SOC\n\nSee the next move before it happens.\n\nSIMULATION ENVIRONMENT\nOPERATOR ID\nACCESS KEY\nEnter command center\n↗\n\nLocal replay mode · Human-confirmed containment",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "live-login-390x844.png"
+        },
+        {
+          "mode": "live",
+          "route": "login",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Light theme\n◈\n\nTHREAT OPERATIONS · REPLAY LAB\n\nPrecog SOC\n\nSee the next move before it happens.\n\nSIMULATION ENVIRONMENT\nOPERATOR ID\nACCESS KEY\nEnter command center\n↗\n\nLocal replay mode · Human-confirmed containment\n\nPREC0G / SOC v1.0\nLOCAL NODE · SECURE SESSION",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "live-login-820x1180.png"
+        },
+        {
+          "mode": "live",
+          "route": "login",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Light theme\n◈\n\nTHREAT OPERATIONS · REPLAY LAB\n\nPrecog SOC\n\nSee the next move before it happens.\n\nSIMULATION ENVIRONMENT\nOPERATOR ID\nACCESS KEY\nEnter command center\n↗\n\nLocal replay mode · Human-confirmed containment\n\nPREC0G / SOC v1.0\nLOCAL NODE · SECURE SESSION",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "live-login-1440x900.png"
+        },
+        {
+          "mode": "live",
+          "route": "mobile",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\n\n⬣ Under attack\n\n1 host compromised, 1 forecast pending\n\nPrecog predicts the next target\n1\n45 %\nWeb Server B\n2\n39 %\nFile Server\n3\n16 %\nWorkstation B\n\nLikely next technique: Valid Accounts\n\nContain Web Server B\nLatest alert\n▲\nHigh\n17:44:08\n\nWorkstation A shows activity matching Brute Force (T1110), part of the credential access stage of ",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "live-mobile-390x844.png"
+        },
+        {
+          "mode": "live",
+          "route": "mobile-alerts",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\nAlerts\nAll\nHigh\nMedium\nLow\n▲\nHigh\n17:44:08\n\nWorkstation A shows activity matching Brute Force (T1110), part of the credential access stage of an attack. Repeated failed logins, then a successful one. Workstation A is now treated as compromised.\n\nBrute Force · T1110 · scripted\nhost-a ›\n▲\nHigh\n17:44:08\n\nWorkstation A sent a 600-byte TCP p",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "live-mobile-alerts-390x844.png"
+        },
+        {
+          "mode": "live",
+          "route": "mobile-alert-detail",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\n‹ Back\n▲\nHigh\n17:44:08\nWorkstation A\n\nhost-a · \n⬣\nCompromised\n\nWhat happened\n\nWorkstation A shows activity matching Network Service Discovery (T1046), part of the discovery stage of an attack. Scan of the user network.\n\nAttack technique\n\nNetwork Service Discovery (T1046)\n\nOpen MITRE page ↗\n\nWhere it is in the attack\n⬣\nCompromised\nWorkst",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "live-mobile-alert-detail-390x844.png"
+        },
+        {
+          "mode": "live",
+          "route": "mobile-forecast",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\nForecast\nPrecog predicts the next target\n1\n45 %\nWeb Server B\n2\n39 %\nFile Server\n3\n16 %\nWorkstation B\n\nLikely next technique: Valid Accounts\n\nContain Web Server B\nAttack path\n⬣\nCompromised\nWorkstation A\n⇢\nWeb Server B predicted, 45 %\n⌂\nHome\n△\nAlerts\n7\n◌\nForecast\n◉\nHosts\n◷\nHistory",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "live-mobile-forecast-390x844.png"
+        },
+        {
+          "mode": "live",
+          "route": "mobile-history",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\nHistory\n\nPrecog accuracy this session\n\nNo forecasts resolved yet\n\nSession counter, not the model's overall accuracy.\n\nNo forecasts resolved yet.\nAlert volume\nPast sessions\n\nuser-browser-audit-live\n0 / 0\n\nOffline detection test\n\nLCCDE ensemble (LightGBM + XGBoost + CatBoost), leaders chosen on a validation split\n\nPrecision 0.9978 · Recal",
+          "canvasCount": 1,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "live-mobile-history-390x844.png"
+        },
+        {
+          "mode": "live",
+          "route": "incidents",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Workspace\nIncident response\nLight theme\nSIMULATION\n\nCASE MANAGEMENT · LIVE REPLAY\n\nIncident investigations\n\nRelated scripted alerts become one case with evidence, attack path, forecast outcome and analyst decisions.\n\nAlert stream\nRun a replay\nVISIBLE CASES\n1\nmatching the current view\nHIGH SEVERITY\n1\nrequires analyst review\nOPEN\n1\nawaiting disposition\nWITH FO",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "live-incidents-390x844.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "incident-detail",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Workspace\nIncident response\nLight theme\nSIMULATION\n← All incidents\n/ INC-0001\nExport Markdown\nExport JSON\n\nINCIDENT INC-0001 · golden-path\n\nCredential attack from Workstation A\n\nInvestigation record assembled from scripted detections, the replay graph and simulated response history.\n\nOPEN\n\nCASE SUMMARY\n\nAt a glance\nHIGH\n7\nalerts\n1\naffected hosts\n1\nforecasts\n",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "live-incident-detail-390x844.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "replay-studio",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nReplay studio\nSearch commands\n\nREPLAY CONTROL · DETERMINISTIC SIMULATION\n\nReplay studio\n\nRun a scenario at presentation speed, stop on events, and step through the reconstructed response.\n\nScenario library\n\nSIMULATION · Scripted demo data on",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "live-replay-studio-390x844.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "scenario-library",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nScenario library\nSearch commands\n\nREPLAY LIBRARY\n\nScenarios\n\nFour shipped rehearsals plus your saved scripts. Every event references a demo host id.\n\nBuild scenario\n\nSIMULATION · Scripted demo data only. No real traffic or systems are affect",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "live-scenario-library-390x844.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "scenario-builder",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nScenario builder\nSearch commands\n\nSCRIPT EDITOR · HOST LANES\n\nScenario builder\n\nCompose a timeline from scripted techniques, packet traffic, and movement attempts.\n\nBack to scenarios\n\nSIMULATION · Scripted demo data only. No real traffic or ",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [
+            {
+              "tag": "div",
+              "className": "scenario-lane",
+              "left": 82,
+              "right": 642,
+              "width": 560
+            },
+            {
+              "tag": "div",
+              "className": "",
+              "left": 232,
+              "right": 642,
+              "width": 410
+            }
+          ],
+          "screenshot": "live-scenario-builder-390x844.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "run-history",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nRun history\nSearch commands\n\nRUN ARCHIVE · LAST 50 FINISHED\n\nRun history\n\nCompare outcomes from repeatable scenarios. Timestamps vary; scripted sequence identifiers restart for each run.\n\nOpen replay studio\n\nSIMULATION · Scripted demo data o",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [
+            {
+              "tag": "table",
+              "className": "runs-table",
+              "left": 69,
+              "right": 889,
+              "width": 820
+            },
+            {
+              "tag": "thead",
+              "className": "",
+              "left": 69,
+              "right": 889,
+              "width": 820
+            },
+            {
+              "tag": "tr",
+              "className": "",
+              "left": 69,
+              "right": 889,
+              "width": 820
+            },
+            {
+              "tag": "th",
+              "className": "",
+              "left": 373,
+              "right": 465,
+              "width": 92
+            },
+            {
+              "tag": "th",
+              "className": "",
+              "left": 465,
+              "right": 529,
+              "width": 64
+            },
+            {
+              "tag": "th",
+              "className": "",
+              "left": 529,
+              "right": 612,
+              "width": 83
+            },
+            {
+              "tag": "th",
+              "className": "",
+              "left": 612,
+              "right": 695,
+              "width": 83
+            },
+            {
+              "tag": "th",
+              "className": "",
+              "left": 695,
+              "right": 765,
+              "width": 70
+            }
+          ],
+          "screenshot": "live-run-history-390x844.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "network-twin",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nNetwork twin\nSearch commands\n\nASSET & TOPOLOGY EXPLORER · READ ONLY\n\nNetwork digital twin\n\nExplore the six-host simulated network, trace feasible paths and inspect recorded state over time.\n\nAsset directory\n↗\n06 DEMO ASSETS\n03 ZONES\n11 FEASI",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "live-network-twin-390x844.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "asset-directory",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nAsset directory\nSearch commands\n\nSIMULATED ASSET INVENTORY\n\nAsset directory\n\nHosts, services and model-based exposure estimates from the demo topology.\n\nOpen network twin ↗\n◇\n\nUSER · host-a\n\nWorkstation A\n\nUser workstation (entry point)\n\nssh",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "live-asset-directory-390x844.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "host-detail",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nAsset directory\nSearch commands\n← Asset directory\n\nUSER · host-a\n\nWorkstation A\n\nUser workstation (entry point) · 192.168.1.11\n\nView in network twin ↗\ncompromised\nSimulation state\n2.34/10\nEstimated risk\n30%\nCriticality\n4\nExposure count\nServi",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "live-host-detail-390x844.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "mobile-hosts",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\n\nNETWORK TWIN · SIX DEMO HOSTS\n\nHosts\n\nRead-only inventory. Risk, exposure and weaknesses are estimates from the scripted demo network.\n\nWorkstation A\ncompromised\n\nUSER · 2 services · estimated risk 2.34/10\n\nWorkstation B\nnormal\n\nUSER · 2 services · estimated risk 2.34/10\n\nWeb Server B\nnormal\n\nDMZ · 2 services · estimated risk 9.6/10\n\nF",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "live-mobile-hosts-390x844.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "console",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\n\nDESKTOP WORKSPACE · 1024 PX MINIMUM\n\nOpen the console on a wider screen\n\nThe 3D topology is designed for a desktop workspace. The mobile SOC keeps alerts, forecasts and session history ready on this device.\n\nOpen mobile SOC\n\nAll events and responses shown here are simulated.",
+          "canvasCount": 0,
+          "hasConsoleHandoff": true,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "live-console-390x844.png",
+          "canvas": {
+            "rendered": false,
+            "reason": "console handoff is shown below 1024px"
+          }
+        },
+        {
+          "mode": "live",
+          "route": "scenario-edit",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nScenario builder\nSearch commands\n\nSCRIPT EDITOR · HOST LANES\n\nEdit scenario\n\nCompose a timeline from scripted techniques, packet traffic, and movement attempts.\n\nBack to scenarios\n\nSIMULATION · Scripted demo data only. No real traffic or sys",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [
+            {
+              "tag": "div",
+              "className": "scenario-lane",
+              "left": 82,
+              "right": 642,
+              "width": 560
+            },
+            {
+              "tag": "div",
+              "className": "",
+              "left": 232,
+              "right": 642,
+              "width": 410
+            },
+            {
+              "tag": "div",
+              "className": "scenario-lane",
+              "left": 82,
+              "right": 642,
+              "width": 560
+            },
+            {
+              "tag": "div",
+              "className": "",
+              "left": 232,
+              "right": 642,
+              "width": 410
+            },
+            {
+              "tag": "span",
+              "className": "lane-event lane-technique",
+              "left": 343,
+              "right": 449,
+              "width": 106
+            },
+            {
+              "tag": "small",
+              "className": "",
+              "left": 353,
+              "right": 440,
+              "width": 87
+            },
+            {
+              "tag": "strong",
+              "className": "",
+              "left": 353,
+              "right": 440,
+              "width": 87
+            },
+            {
+              "tag": "div",
+              "className": "scenario-lane",
+              "left": 82,
+              "right": 642,
+              "width": 560
+            }
+          ],
+          "screenshot": "live-scenario-edit-390x844.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "run-detail",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nRun history\nSearch commands\n\nRUN REPORT · RUN-000001\n\nuser-browser-audit-live\n\nBrowser audit scripted replay\n\nBack to run history\n\nSIMULATION · Scripted demo data only. No real traffic or systems are affected.\n\nOUTCOME\ncompleted\nALERTS\n3\nINC",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "live-run-detail-390x844.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "run-compare",
+          "viewport": "390x844",
+          "width": 390,
+          "scrollWidth": 390,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nRun comparison\nSearch commands\n\nSIDE-BY-SIDE · SCRIPTED RUNS\n\nRun comparison\n\nWall-clock fields are excluded; alert, incident, forecast, action, outcome and metric differences remain visible.\n\nRun history\n\nSIMULATION · Scripted demo data onl",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "live-run-compare-390x844.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "mobile",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\n\n⬣ Under attack\n\n1 host compromised, 1 forecast pending\n\nPrecog predicts the next target\n1\n45 %\nWeb Server B\n2\n39 %\nFile Server\n3\n16 %\nWorkstation B\n\nLikely next technique: Valid Accounts\n\nContain Web Server B\nLatest alert\n▲\nHigh\n17:44:08\n\nWorkstation A shows activity matching Brute Force (T1110), part of the credential access stage of ",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "live-mobile-820x1180.png"
+        },
+        {
+          "mode": "live",
+          "route": "mobile-alerts",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\nAlerts\nAll\nHigh\nMedium\nLow\n▲\nHigh\n17:44:08\n\nWorkstation A shows activity matching Brute Force (T1110), part of the credential access stage of an attack. Repeated failed logins, then a successful one. Workstation A is now treated as compromised.\n\nBrute Force · T1110 · scripted\nhost-a ›\n▲\nHigh\n17:44:08\n\nWorkstation A sent a 600-byte TCP p",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "live-mobile-alerts-820x1180.png"
+        },
+        {
+          "mode": "live",
+          "route": "mobile-alert-detail",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\n‹ Back\n▲\nHigh\n17:44:08\nWorkstation A\n\nhost-a · \n⬣\nCompromised\n\nWhat happened\n\nWorkstation A shows activity matching Network Service Discovery (T1046), part of the discovery stage of an attack. Scan of the user network.\n\nAttack technique\n\nNetwork Service Discovery (T1046)\n\nOpen MITRE page ↗\n\nWhere it is in the attack\n⬣\nCompromised\nWorkst",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "live-mobile-alert-detail-820x1180.png"
+        },
+        {
+          "mode": "live",
+          "route": "mobile-forecast",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\nForecast\nPrecog predicts the next target\n1\n45 %\nWeb Server B\n2\n39 %\nFile Server\n3\n16 %\nWorkstation B\n\nLikely next technique: Valid Accounts\n\nContain Web Server B\nAttack path\n⬣\nCompromised\nWorkstation A\n⇢\nWeb Server B predicted, 45 %\n⌂\nHome\n△\nAlerts\n7\n◌\nForecast\n◉\nHosts\n◷\nHistory",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "live-mobile-forecast-820x1180.png"
+        },
+        {
+          "mode": "live",
+          "route": "mobile-history",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\nHistory\n\nPrecog accuracy this session\n\nNo forecasts resolved yet\n\nSession counter, not the model's overall accuracy.\n\nNo forecasts resolved yet.\nAlert volume\nPast sessions\n\nuser-browser-audit-live\n0 / 0\n\nOffline detection test\n\nLCCDE ensemble (LightGBM + XGBoost + CatBoost), leaders chosen on a validation split\n\nPrecision 0.9978 · Recal",
+          "canvasCount": 1,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "live-mobile-history-820x1180.png"
+        },
+        {
+          "mode": "live",
+          "route": "incidents",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "PRECOG SOC\nSIMULATION LAB\nLive console\nIncidents\nMobile SOC\nA\nWorkspace\nIncident response\nADMIN\nLight theme\nSIMULATION\n\nCASE MANAGEMENT · LIVE REPLAY\n\nIncident investigations\n\nRelated scripted alerts become one case with evidence, attack path, forecast outcome and analyst decisions.\n\nAlert stream\nRun a replay\nVISIBLE CASES\n1\nmatching the current view\nHIGH SE",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "live-incidents-820x1180.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "incident-detail",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "PRECOG SOC\nSIMULATION LAB\nLive console\nIncidents\nMobile SOC\nA\nWorkspace\nIncident response\nADMIN\nLight theme\nSIMULATION\n← All incidents\n/ INC-0001\nExport Markdown\nExport JSON\n\nINCIDENT INC-0001 · golden-path\n\nCredential attack from Workstation A\n\nInvestigation record assembled from scripted detections, the replay graph and simulated response history.\n\nOPEN\n\nC",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "live-incident-detail-820x1180.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "replay-studio",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nWorkspace\nReplay studio\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n\nREPLAY CONTROL · DETERMINISTIC SIMULATION\n\nReplay studio\n\nRun a scenario at presentation speed, stop on events, and step through the reconstructed response.\n\nSc",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "live-replay-studio-820x1180.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "scenario-library",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nWorkspace\nScenario library\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n\nREPLAY LIBRARY\n\nScenarios\n\nFour shipped rehearsals plus your saved scripts. Every event references a demo host id.\n\nBuild scenario\n\nSIMULATION · Scripted dem",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "live-scenario-library-820x1180.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "scenario-builder",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nWorkspace\nScenario builder\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n\nSCRIPT EDITOR · HOST LANES\n\nScenario builder\n\nCompose a timeline from scripted techniques, packet traffic, and movement attempts.\n\nBack to scenarios\n\nSIMULAT",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "live-scenario-builder-820x1180.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "run-history",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nWorkspace\nRun history\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n\nRUN ARCHIVE · LAST 50 FINISHED\n\nRun history\n\nCompare outcomes from repeatable scenarios. Timestamps vary; scripted sequence identifiers restart for each run.\n\nOpe",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [
+            {
+              "tag": "table",
+              "className": "runs-table",
+              "left": 75,
+              "right": 895,
+              "width": 820
+            },
+            {
+              "tag": "thead",
+              "className": "",
+              "left": 75,
+              "right": 895,
+              "width": 820
+            },
+            {
+              "tag": "tr",
+              "className": "",
+              "left": 75,
+              "right": 895,
+              "width": 820
+            },
+            {
+              "tag": "th",
+              "className": "",
+              "left": 771,
+              "right": 828,
+              "width": 57
+            },
+            {
+              "tag": "th",
+              "className": "",
+              "left": 828,
+              "right": 895,
+              "width": 67
+            },
+            {
+              "tag": "tbody",
+              "className": "",
+              "left": 75,
+              "right": 895,
+              "width": 820
+            },
+            {
+              "tag": "tr",
+              "className": "",
+              "left": 75,
+              "right": 895,
+              "width": 820
+            },
+            {
+              "tag": "td",
+              "className": "",
+              "left": 771,
+              "right": 828,
+              "width": 57
+            }
+          ],
+          "screenshot": "live-run-history-820x1180.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "network-twin",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nWorkspace\nNetwork twin\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n\nASSET & TOPOLOGY EXPLORER · READ ONLY\n\nNetwork digital twin\n\nExplore the six-host simulated network, trace feasible paths and inspect recorded state over time.\n\n",
+          "canvasCount": 1,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "live-network-twin-820x1180.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "asset-directory",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nWorkspace\nAsset directory\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n\nSIMULATED ASSET INVENTORY\n\nAsset directory\n\nHosts, services and model-based exposure estimates from the demo topology.\n\nOpen network twin ↗\n◇\n\nUSER · host-a\n\n",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "live-asset-directory-820x1180.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "host-detail",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nWorkspace\nAsset directory\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n← Asset directory\n\nUSER · host-a\n\nWorkstation A\n\nUser workstation (entry point) · 192.168.1.11\n\nView in network twin ↗\ncompromised\nSimulation state\n2.34/10\nEst",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "live-host-detail-820x1180.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "mobile-hosts",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\n\nNETWORK TWIN · SIX DEMO HOSTS\n\nHosts\n\nRead-only inventory. Risk, exposure and weaknesses are estimates from the scripted demo network.\n\nWorkstation A\ncompromised\n\nUSER · 2 services · estimated risk 2.34/10\n\nWorkstation B\nnormal\n\nUSER · 2 services · estimated risk 2.34/10\n\nWeb Server B\nnormal\n\nDMZ · 2 services · estimated risk 9.6/10\n\nF",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "live-mobile-hosts-820x1180.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "console",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\n\nDESKTOP WORKSPACE · 1024 PX MINIMUM\n\nOpen the console on a wider screen\n\nThe 3D topology is designed for a desktop workspace. The mobile SOC keeps alerts, forecasts and session history ready on this device.\n\nOpen mobile SOC\n\nAll events and responses shown here are simulated.",
+          "canvasCount": 0,
+          "hasConsoleHandoff": true,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "live-console-820x1180.png",
+          "canvas": {
+            "rendered": false,
+            "reason": "console handoff is shown below 1024px"
+          }
+        },
+        {
+          "mode": "live",
+          "route": "scenario-edit",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nWorkspace\nScenario builder\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n\nSCRIPT EDITOR · HOST LANES\n\nEdit scenario\n\nCompose a timeline from scripted techniques, packet traffic, and movement attempts.\n\nBack to scenarios\n\nSIMULATION",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "live-scenario-edit-820x1180.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "run-detail",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nWorkspace\nRun history\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n\nRUN REPORT · RUN-000001\n\nuser-browser-audit-live\n\nBrowser audit scripted replay\n\nBack to run history\n\nSIMULATION · Scripted demo data only. No real traffic or sys",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "live-run-detail-820x1180.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "run-compare",
+          "viewport": "820x1180",
+          "width": 820,
+          "scrollWidth": 820,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\nLive console\nMobile SOC\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nA\nWorkspace\nRun comparison\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n\nSIDE-BY-SIDE · SCRIPTED RUNS\n\nRun comparison\n\nWall-clock fields are excluded; alert, incident, forecast, action, outcome and metric differences remain visible.",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "live-run-compare-820x1180.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "mobile",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\n\n⬣ Under attack\n\n1 host compromised, 1 forecast pending\n\nPrecog predicts the next target\n1\n45 %\nWeb Server B\n2\n39 %\nFile Server\n3\n16 %\nWorkstation B\n\nLikely next technique: Valid Accounts\n\nContain Web Server B\nLatest alert\n▲\nHigh\n17:44:08\n\nWorkstation A shows activity matching Brute Force (T1110), part of the credential access stage of ",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "live-mobile-1440x900.png"
+        },
+        {
+          "mode": "live",
+          "route": "mobile-alerts",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\nAlerts\nAll\nHigh\nMedium\nLow\n▲\nHigh\n17:44:08\n\nWorkstation A shows activity matching Brute Force (T1110), part of the credential access stage of an attack. Repeated failed logins, then a successful one. Workstation A is now treated as compromised.\n\nBrute Force · T1110 · scripted\nhost-a ›\n▲\nHigh\n17:44:08\n\nWorkstation A sent a 600-byte TCP p",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "live-mobile-alerts-1440x900.png"
+        },
+        {
+          "mode": "live",
+          "route": "mobile-alert-detail",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\n‹ Back\n▲\nHigh\n17:44:08\nWorkstation A\n\nhost-a · \n⬣\nCompromised\n\nWhat happened\n\nWorkstation A shows activity matching Network Service Discovery (T1046), part of the discovery stage of an attack. Scan of the user network.\n\nAttack technique\n\nNetwork Service Discovery (T1046)\n\nOpen MITRE page ↗\n\nWhere it is in the attack\n⬣\nCompromised\nWorkst",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "live-mobile-alert-detail-1440x900.png"
+        },
+        {
+          "mode": "live",
+          "route": "mobile-forecast",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\nForecast\nPrecog predicts the next target\n1\n45 %\nWeb Server B\n2\n39 %\nFile Server\n3\n16 %\nWorkstation B\n\nLikely next technique: Valid Accounts\n\nContain Web Server B\nAttack path\n⬣\nCompromised\nWorkstation A\n⇢\nWeb Server B predicted, 45 %\n⌂\nHome\n△\nAlerts\n7\n◌\nForecast\n◉\nHosts\n◷\nHistory",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "live-mobile-forecast-1440x900.png"
+        },
+        {
+          "mode": "live",
+          "route": "mobile-history",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\nHistory\n\nPrecog accuracy this session\n\nNo forecasts resolved yet\n\nSession counter, not the model's overall accuracy.\n\nNo forecasts resolved yet.\nAlert volume\nPast sessions\n\nuser-browser-audit-live\n0 / 0\n\nOffline detection test\n\nLCCDE ensemble (LightGBM + XGBoost + CatBoost), leaders chosen on a validation split\n\nPrecision 0.9978 · Recal",
+          "canvasCount": 1,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "live-mobile-history-1440x900.png"
+        },
+        {
+          "mode": "live",
+          "route": "incidents",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "PRECOG SOC\nSIMULATION LAB\n\nINVESTIGATE\n\nLive console\nIncidents\nMobile SOC\nSCRIPTED ENVIRONMENT\nIn-memory response only\nA\nadmin\nADMIN ROLE\nWorkspace\nIncident response\nADMIN\nLight theme\nSIMULATION\n\nCASE MANAGEMENT · LIVE REPLAY\n\nIncident investigations\n\nRelated scripted alerts become one case with evidence, attack path, forecast outcome and analyst decisions.\n",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "live-incidents-1440x900.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "incident-detail",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "PRECOG SOC\nSIMULATION LAB\n\nINVESTIGATE\n\nLive console\nIncidents\nMobile SOC\nSCRIPTED ENVIRONMENT\nIn-memory response only\nA\nadmin\nADMIN ROLE\nWorkspace\nIncident response\nADMIN\nLight theme\nSIMULATION\n← All incidents\n/ INC-0001\nExport Markdown\nExport JSON\n\nINCIDENT INC-0001 · golden-path\n\nCredential attack from Workstation A\n\nInvestigation record assembled from sc",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "live-incident-detail-1440x900.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "replay-studio",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\n\nWORKSPACE\n\nLive console\n1\nMobile SOC\n2\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nSIMULATED ENVIRONMENT\nA\nadmin\nADMIN ROLE\nWorkspace\nReplay studio\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n\nREPLAY CONTROL · DETERMINISTIC SIMULATION\n\nReplay studio\n\nRun a scenario at presentation speed, stop on e",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "live-replay-studio-1440x900.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "scenario-library",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\n\nWORKSPACE\n\nLive console\n1\nMobile SOC\n2\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nSIMULATED ENVIRONMENT\nA\nadmin\nADMIN ROLE\nWorkspace\nScenario library\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n\nREPLAY LIBRARY\n\nScenarios\n\nFour shipped rehearsals plus your saved scripts. Every event references a d",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "live-scenario-library-1440x900.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "scenario-builder",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\n\nWORKSPACE\n\nLive console\n1\nMobile SOC\n2\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nSIMULATED ENVIRONMENT\nA\nadmin\nADMIN ROLE\nWorkspace\nScenario builder\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n\nSCRIPT EDITOR · HOST LANES\n\nScenario builder\n\nCompose a timeline from scripted techniques, packet traf",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "live-scenario-builder-1440x900.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "run-history",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\n\nWORKSPACE\n\nLive console\n1\nMobile SOC\n2\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nSIMULATED ENVIRONMENT\nA\nadmin\nADMIN ROLE\nWorkspace\nRun history\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n\nRUN ARCHIVE · LAST 50 FINISHED\n\nRun history\n\nCompare outcomes from repeatable scenarios. Timestamps vary; s",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "live-run-history-1440x900.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "network-twin",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\n\nWORKSPACE\n\nLive console\n1\nMobile SOC\n2\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nSIMULATED ENVIRONMENT\nA\nadmin\nADMIN ROLE\nWorkspace\nNetwork twin\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n\nASSET & TOPOLOGY EXPLORER · READ ONLY\n\nNetwork digital twin\n\nExplore the six-host simulated network, trace",
+          "canvasCount": 1,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "live-network-twin-1440x900.png",
+          "accessibility": {
+            "violations": []
+          },
+          "twin": {
+            "canvasCount": 1,
+            "liteMap": false,
+            "hostRows": 6,
+            "heading": "Network digital twin",
+            "frameProbe": {
+              "renderer": "Playwright Chromium with SwiftShader",
+              "frames": 24,
+              "meanIntervalMs": 16.15,
+              "p95IntervalMs": 16.7
+            }
+          }
+        },
+        {
+          "mode": "live",
+          "route": "asset-directory",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\n\nWORKSPACE\n\nLive console\n1\nMobile SOC\n2\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nSIMULATED ENVIRONMENT\nA\nadmin\nADMIN ROLE\nWorkspace\nAsset directory\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n\nSIMULATED ASSET INVENTORY\n\nAsset directory\n\nHosts, services and model-based exposure estimates from the",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "live-asset-directory-1440x900.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "host-detail",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\n\nWORKSPACE\n\nLive console\n1\nMobile SOC\n2\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nSIMULATED ENVIRONMENT\nA\nadmin\nADMIN ROLE\nWorkspace\nAsset directory\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n← Asset directory\n\nUSER · host-a\n\nWorkstation A\n\nUser workstation (entry point) · 192.168.1.11\n\nView in ",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "live-host-detail-1440x900.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "mobile-hosts",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION\n\nNETWORK TWIN · SIX DEMO HOSTS\n\nHosts\n\nRead-only inventory. Risk, exposure and weaknesses are estimates from the scripted demo network.\n\nWorkstation A\ncompromised\n\nUSER · 2 services · estimated risk 2.34/10\n\nWorkstation B\nnormal\n\nUSER · 2 services · estimated risk 2.34/10\n\nWeb Server B\nnormal\n\nDMZ · 2 services · estimated risk 9.6/10\n\nF",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": false,
+          "overflowElements": [],
+          "screenshot": "live-mobile-hosts-1440x900.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "console",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\n\nWORKSPACE\n\nLive console\n1\nMobile SOC\n2\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nSIMULATED ENVIRONMENT\nA\nadmin\nADMIN ROLE\nWorkspace\nLive console\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n⬣\nTHREAT LEVEL\nUnder attack\nREPLAY CONTROL\ndirect-hit\ngolden-path\nlateral-spread\nquiet-scan\nuser-browser-au",
+          "canvasCount": 1,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "live-console-1440x900.png",
+          "canvas": {
+            "width": 784,
+            "height": 674,
+            "sampledColors": 230,
+            "visibleSamples": 5448,
+            "nonBlank": true,
+            "bounds": {
+              "x": 296,
+              "y": 138,
+              "width": 784,
+              "height": 674
+            }
+          }
+        },
+        {
+          "mode": "live",
+          "route": "scenario-edit",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\n\nWORKSPACE\n\nLive console\n1\nMobile SOC\n2\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nSIMULATED ENVIRONMENT\nA\nadmin\nADMIN ROLE\nWorkspace\nScenario builder\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n\nSCRIPT EDITOR · HOST LANES\n\nEdit scenario\n\nCompose a timeline from scripted techniques, packet traffic",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "live-scenario-edit-1440x900.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "run-detail",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\n\nWORKSPACE\n\nLive console\n1\nMobile SOC\n2\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nSIMULATED ENVIRONMENT\nA\nadmin\nADMIN ROLE\nWorkspace\nRun history\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n\nRUN REPORT · RUN-000001\n\nuser-browser-audit-live\n\nBrowser audit scripted replay\n\nBack to run history\n\nSIMUL",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "live-run-detail-1440x900.png",
+          "accessibility": {
+            "violations": []
+          }
+        },
+        {
+          "mode": "live",
+          "route": "run-compare",
+          "viewport": "1440x900",
+          "width": 1440,
+          "scrollWidth": 1440,
+          "hasSimulationLabel": true,
+          "title": "Precog SOC",
+          "bodyTextPreview": "Precog SOC\nSIMULATION LAB\n\nWORKSPACE\n\nLive console\n1\nMobile SOC\n2\nIncidents\n1\nNetwork twin\nHosts\nReplay studio\nScenarios\nRun history\nSIMULATED ENVIRONMENT\nA\nadmin\nADMIN ROLE\nWorkspace\nRun comparison\nNew incident\n↗\nSearch commands\nK\nLight theme\nSIMULATION\n\nSIDE-BY-SIDE · SCRIPTED RUNS\n\nRun comparison\n\nWall-clock fields are excluded; alert, incident, forecast,",
+          "canvasCount": 0,
+          "hasConsoleHandoff": false,
+          "hasCommandTrigger": true,
+          "overflowElements": [],
+          "screenshot": "live-run-compare-1440x900.png",
+          "accessibility": {
+            "violations": []
+          }
+        }
+      ],
+      "c2Flow": {
+        "result": "built, validated, dry-run, saved and stepped through a scripted scenario, then opened its report comparison",
+        "scenarioId": "user-browser-audit-live",
+        "runIds": [
+          "RUN-000001",
+          "RUN-000001"
+        ],
+        "comparisonIdentical": true
+      }
+    }
+  },
+  "digitalTwinFlow": "selected Web Server B, inspected the asset, traced feasible routes, switched to Lite view and scrubbed the recorded snapshot control",
+  "incidentNoteFlow": "note submitted on the detail route and shown in the refreshed timeline",
+  "shellInteractions": {
+    "commandPaletteNavigation": "Ctrl+K search and Enter opened Mobile SOC",
+    "themePersistence": "light/dark switch and persisted reload verified"
+  },
+  "containmentFlow": "propose and confirm completed in live replay; host state changed to contained (simulation)",
+  "errors": [],
+  "expectedEvents": [],
+  "failures": []
+}

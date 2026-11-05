@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { buildScene, coneOpacity, coneWidth, layoutFor, pulseScale } from './sceneModel.js'
+import { buildScene, buildTwinScene, coneOpacity, coneWidth, exposureScale, forecastScale, layoutFor, pulseScale, riskScale } from './sceneModel.js'
 
 const host = (id, zone, state = 'normal') => ({ host_id: id, name: id.toUpperCase(), zone, state })
 const world = (over = {}) => ({
@@ -67,4 +67,44 @@ test('the pulse grows to 1.6 and back within 600 ms and is 1 outside it', () => 
   assert.ok(pulseScale(150) > 1 && pulseScale(150) < 1.6)
   assert.equal(pulseScale(600), 1)
   assert.equal(pulseScale(5000), 1)
+})
+
+const twinTopology = {
+  hosts: [
+    { host_id: 'a', name: 'Workstation A', zone: 'user', state: 'normal', risk: 2, exposure: 4, services: ['ssh/22'], weaknesses: [] },
+    { host_id: 'b', name: 'Web Server B', zone: 'dmz', state: 'normal', risk: 8, exposure: 3, services: ['http/80'], weaknesses: [] },
+  ],
+  zones: [{ zone: 'user', host_ids: ['a'] }, { zone: 'dmz', host_ids: ['b'] }],
+  feasible_edges: [{ from_host: 'a', to_host: 'b', likelihood: 0.8 }],
+  compromised_path: ['a', 'b'],
+}
+
+test('digital twin maps topology, snapshot state, and attack path into a fixed scene', () => {
+  const scene = buildTwinScene(twinTopology, { graph: { hosts: [host('b', 'dmz', 'compromised')] } })
+  assert.equal(scene.nodes.length, 2)
+  assert.ok(scene.nodes[0].x < scene.nodes[1].x)
+  assert.equal(scene.nodes[1].state, 'compromised')
+  assert.equal(scene.links[0].onPath, true)
+  assert.deepEqual(scene.zones.map((zone) => zone.label), ['USER', 'DMZ'])
+})
+
+test('risk, exposure, and forecast overlays encode magnitude with node size', () => {
+  assert.ok(riskScale(8) > riskScale(2))
+  assert.ok(exposureScale(8) > exposureScale(2))
+  assert.ok(forecastScale(0.8) > forecastScale(0.2))
+  const state = { graph: { hosts: [] }, forecast: { targets: [{ host_id: 'b', confidence: 0.8 }] } }
+  const normal = buildTwinScene(twinTopology, state, { overlay: 'state' })
+  const forecast = buildTwinScene(twinTopology, state, { overlay: 'forecast' })
+  assert.ok(forecast.nodes[1].radius > normal.nodes[1].radius)
+  assert.equal(forecast.nodes[1].predicted, 80)
+})
+
+test('risk and exposure values are bounded and tolerate missing values', () => {
+  assert.equal(riskScale(100), riskScale(10))
+  assert.equal(exposureScale(-4), exposureScale(0))
+  assert.equal(forecastScale(null), forecastScale(0))
+})
+
+test('missing twin topology returns an empty scene', () => {
+  assert.deepEqual(buildTwinScene(null, null), { nodes: [], links: [], cones: [], zones: [] })
 })

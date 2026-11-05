@@ -2,11 +2,11 @@
 
 **Started:** 2026-11-05
 
-**Starting point:** `phase-b1.5-precog-landing` at `6d12a82`
+**Starting point:** `phase-c2-replay-studio` at `7c64a07`
 
-**Current work branch:** `phase-c2-replay-studio`
+**Current work branch:** `phase-c3-digital-twin`
 
-**Scope now:** C1 is complete; C2 is implemented and undergoing final verification. C3–C7 remain gated on review and approval of the preceding item.
+**Scope now:** C1, C2 and C3 are complete. C4–C7 remain gated on review and approval of the preceding item.
 
 ## Phase B inventory
 
@@ -16,7 +16,7 @@ The repository contains `docs/phase-b1/README.md`, `docs/DEMO_SCRIPT_V2.md`, Pha
 |---|---|---|---|
 | **C1 Incident investigation** | Distinct security alerts, ATT&CK technique labels, alert timeline, live graph, forecast summaries, audit log, and single-host simulated containment. Phase B1 adds the workspace shell and mobile SOC routes. | Incident correlation and lifecycle; typed incident timeline; notes and status controls; incident filters, detail, exports, notifications and deep links; incident contracts; analyst/viewer authorization. | `lead-core/backend/addons/` (incident service, routes, role checks and world-state integration), `contracts/schemas/`, `contracts/samples/`, `lead-core/integration/tests/`, `web/src/areas/incidents/`, `web/src/App.jsx`, `web/src/shared/`, `docs/INCIDENTS.md`, `docs/audit/screenshots/phase-c/`. |
 | **C2 Replay studio and builder** | Four shipped deterministic replay scenarios and start/pause/resume/restart controls. | Delivered in this phase: visual timeline builder, server validation and dry run, bounded user scenario library, step/step-back/seek and breakpoints, speed control, snapshots/time travel, persisted run archive and comparisons. | `graph/graph_replay/`, `lead-core/backend/addons/replay_studio.py`, `lead-core/backend/addons/routes.py`, replay contracts and tests, `web/src/areas/replay/`, `web/src/App.jsx`, `web/src/shared/`, `docs/REPLAY_STUDIO.md`. |
-| **C3 Network digital twin** | A live 3D console graph and a separate interactive 3D landing scene, plus graph topology and a phone-friendly SOC view. | Asset/service/weakness inspection, path explanations and alternatives, risk/exposure overlays, camera presets, time travel, segmentation preview and equivalent accessible list. | `graph/graph_net/`, `lead-core/backend/addons/`, `web/src/areas/console/`, new `web/src/areas/twin/` and host views, topology contracts and tests. |
+| **C3 Network digital twin** | A live 3D console graph and a separate interactive 3D landing scene, plus graph topology and a phone-friendly SOC view. | Delivered: read-only topology, host detail/history, feasible paths and segmentation projection; interactive zone-based 3D map with state/risk/forecast/exposure overlays, camera presets, focus, recorded-run scrubber, Lite map/list and phone host inventory. | `lead-core/backend/addons/network_twin.py`, `lead-core/backend/addons/routes.py`, `contracts/`, `web/src/areas/twin/`, `web/src/areas/console/Scene3D.jsx`, `sceneModel.js`, `sceneDecorations.js`, `objects3d.js`, tests and browser audit. |
 | **C4 Precog decision and what-if lab** | Markov top-three forecasts, baseline/session metrics, calibration chart and a reproducible offline evaluation command. | Per-forecast candidate exclusions and formula explanation; read-only what-if; server evaluation runs, cache and experiment log; model card and per-profile analysis. | `lead-core/precog/precog_engine/`, `lead-core/backend/addons/`, forecast/what-if/evaluation contracts and tests, new forecast/lab/analytics web areas. |
 | **C5 Response governance** | Propose/confirm/cancel for a single-host simulated containment, expiry, and audit events. | Role and playbook policy; impact previews; zone/path/top-three actions; approval records; release proposal/confirmation; governance history and UI. | `viz/viz_containment/` or a new add-on module, `lead-core/backend/addons/`, containment/approval contracts and tests, `web/src/areas/containment/`, role-aware navigation. |
 | **C6 Connected story and final verification** | Phase B1 command palette, workspace navigation, theme persistence, and a 4–6 minute Golden Path demo script. | Entity-wide links/search, case report exports, notification centre, onboarding/help updates, ten-minute script, full Phase C route audits and final report. | `web/src/shared/`, workflow areas delivered by C1–C5, `docs/DEMO_SCRIPT_V3.md`, `docs/PHASE_C_REPORT.md`, audit scripts and screenshots. |
@@ -66,7 +66,7 @@ Environment: Windows 11 desktop, PowerShell, Python 3.11.9, repository `.venv`, 
 | Scenario acceptance | `test_golden_path_lateral_spread_quiet_scan_and_repeat_determinism` | Golden Path: exactly one contained incident, one executed action, blocked-hit forecast, source compromise shown. Lateral spread: one growing incident. Quiet scan: one LOW, open incident. Repeated quiet scans normalize identically. |
 | Diff hygiene | `git diff --check`; NIDS path check | No whitespace errors and no changes under `lead-core/backend/nids/`. |
 
-C1 is complete on `phase-c1-incidents`. C2 implementation and verification are recorded below; C3–C7 remain unstarted and gated on review/approval. The existing dependency advisories and Vite chunk warning remain; Render and physical-phone behavior are unverified.
+C1 is complete on `phase-c1-incidents`. C2 and C3 implementation and verification are recorded below; C4–C7 remain gated on review/approval. The existing dependency advisories and Vite chunk warning remain; Render and physical-phone behavior are unverified.
 
 ## C2 delivered
 
@@ -90,4 +90,28 @@ The C2 routes cover scenario library/options/detail/export, validation/dry-run/s
 | Golden Path rehearsal | `.venv/Scripts/python.exe lead-core/integration/golden_path.py --runs 2 --speed 1` | **2 of 2 PASS**; propose then confirm, blocked hit, re-evaluation, and replay completion. |
 | Diff hygiene | `git diff --cached --check`; NIDS path check | Clean staged diff; no changes under the pinned `lead-core/backend/nids/` tree. |
 
-C2 implementation and verification are complete on `phase-c2-replay-studio`. C3 is a separate gated work item.
+C2 implementation and verification are complete on `phase-c2-replay-studio`.
+
+## C3 delivered
+
+C3 adds a read-only digital twin on top of the existing graph hook and C2 snapshot archive. The desktop `/twin` workbench combines the 3D zone map, host inspector, path alternatives, model-estimated risk/forecast/exposure overlays, isometric/top/side camera presets, focus controls, snapshot time travel and a read-only segmentation projection. `/hosts`, `/hosts/:id` and `/mobile/hosts` provide asset inventory and host detail/history. The phone-width twin switches to a compact Lite host list; the full Lite topology view remains keyboard operable.
+
+New endpoints: `GET /api/x/topology`, `GET /api/x/topology/paths`, `GET /api/x/topology/segmentation-preview`, `GET /api/x/hosts/{id}`, and `GET /api/x/hosts/{id}/history`. All are authenticated and read-only. Five schema/sample pairs were added: `topology`, `topology_paths`, `host_detail`, `host_history`, and `segmentation_preview`. The existing world-state contract is unchanged. No files under `lead-core/backend/nids/` were changed.
+
+## C3 verification
+
+| Check | Command or procedure | Result |
+|---|---|---|
+| Full Python suite | `.venv/Scripts/python.exe -m pytest -o "addopts=" -p no:cacheprovider --tb=short` | **406 collected; 405 passed, 1 skipped**, 2 existing Scapy deprecation warnings. The skip is the optional Precog repository test. |
+| Offline detector suite | `.venv/Scripts/python.exe -m pytest -o testpaths=. -o "addopts=" -p no:cacheprovider --tb=short` from `detect/offline_model/` | **50 passed, 1 skipped**. |
+| Web suite | `npm test` in `web/` | **126 passed, 0 failed, 0 skipped** across 24 files; existing React server-render `useLayoutEffect` warnings remain. |
+| Contracts | `.venv/Scripts/python.exe contracts/check_contracts.py` | **36 contracts OK**. |
+| Production build | `npm run build` in `web/` | Succeeded. Main app chunk **191.59 kB** (66.21 kB gzip), compared with the C2 main chunk at 189.26 kB. 3D renderer remains a separate lazy chunk at **817.38 kB** (236.68 kB gzip); the existing Vite large-chunk warning remains. |
+| Browser audit | `npm run audit:browser` in `web/`, software WebGL/SwiftShader, sample and live modes at 390×844, 820×1180 and 1440×900 | **120 checks; 0 failures, 0 browser errors, 0 axe violations**. Covered the network twin, host inventory/detail and mobile hosts. The interaction flow selected Web Server B, traced routes, changed overlay/camera, switched to Lite and scrubbed a recorded snapshot. |
+| Browser screenshots and frame probe | `docs/audit/screenshots/phase-c/c3-final/`; `docs/audit/phase-c/c3-final/browser-audit-results.json` | **120 screenshots**. SwiftShader probe: 24 frames per mode, mean interval **16.06 ms sample / 16.15 ms live**, p95 **16.7 ms** in both runs. These describe the software-rendered audit environment only. |
+| Golden Path | `.venv/Scripts/python.exe lead-core/integration/golden_path.py --runs 2 --speed 1` | **2 of 2 PASS**; proposal/confirmation, blocked-hit forecast, containment and re-evaluation passed. |
+| Hosted-style readiness | Local live service serving `lead-core/backend/web_dist`, then `lead-core/integration/check_hosted.py http://127.0.0.1:55180 …` | **13 checks pass; READY for the demo**, including the refreshed Flask-served PWA assets. No public Render deployment or physical-phone installation was performed. |
+| Hosted bundle | `copy_dist('web/dist', 'lead-core/backend/web_dist')` | **28 files copied**. |
+| Diff hygiene | `git diff --check`; pinned NIDS path check | No whitespace errors and no edits under `lead-core/backend/nids/`. |
+
+C3 implementation and verification are complete on `phase-c3-digital-twin`. C4–C7 remain gated. Public hosting and physical-phone installation are not verified.

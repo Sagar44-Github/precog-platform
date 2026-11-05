@@ -19,7 +19,7 @@ log = logging.getLogger("precog.addons")
 # Folders that hold each role's Python packages (added to Python's search path).
 ROLE_FOLDERS = ("detect", "graph", "viz", "lead-core/precog")
 # Each package may define register(ctx). Missing packages are skipped, never fatal.
-ROLE_PACKAGES = ("detect_events", "graph_replay", "graph_net", "viz_containment", "precog_engine", "addons.incident_engine", "addons.replay_studio")
+ROLE_PACKAGES = ("detect_events", "graph_replay", "graph_net", "viz_containment", "precog_engine", "addons.incident_engine", "addons.replay_studio", "addons.network_twin")
 
 
 @dataclass
