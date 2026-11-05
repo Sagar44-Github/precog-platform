@@ -262,6 +262,8 @@ export default function AppShell({ children }) {
   const [openIncidents, setOpenIncidents] = useState(0)
   const [incidentNotice, setIncidentNotice] = useState(false)
   const [pendingResponses, setPendingResponses] = useState(0)
+  const [mobileNavOpen, setMobileNavOpen] = useState(false)
+  const [mobileOpsOpen, setMobileOpsOpen] = useState(false)
   const pageTitle = location.pathname.startsWith('/alerts') ? 'Alert explorer'
     : location.pathname.startsWith('/reports') ? 'Session reports'
       : location.pathname.startsWith('/incidents') ? 'Incident investigations'
@@ -282,6 +284,17 @@ export default function AppShell({ children }) {
     : location.pathname.includes('/compare') ? 'Run comparison'
           : location.pathname.startsWith('/runs') ? 'Run history' : 'Live console'
   const closePalette = () => setPaletteOpen(false)
+
+  useEffect(() => { setMobileNavOpen(false); setMobileOpsOpen(false) }, [location.pathname])
+
+  const mobileLinks = [
+    ['/console', 'Live console', 'activity'], ['/incidents', 'Incidents', 'shield'],
+    ['/twin', 'Network twin', 'network'], ['/hosts', 'Hosts & assets', 'server'],
+    ['/replay', 'Replay studio', 'play'], ['/scenarios', 'Scenarios', 'layers'],
+    ['/runs', 'Run history', 'clock'], ['/forecasts', 'Forecasts', 'activity'],
+    ['/lab', 'What-if lab', 'sliders'], ['/analytics', 'Analytics', 'clock'],
+    ['/containment', 'Response governance', 'shield'], ['/settings', 'Settings', 'settings'],
+  ]
 
   useEffect(() => {
     if (!username) return undefined
@@ -387,6 +400,8 @@ export default function AppShell({ children }) {
       </aside>
       <div className="app-main">
         <header className="app-topbar">
+          <button type="button" className="mobile-menu-trigger" aria-label="Open navigation" aria-expanded={mobileNavOpen} onClick={() => setMobileNavOpen(true)}><span /><span /><span /></button>
+          <Link to="/" className="mobile-brand" aria-label="Precog SOC home"><ThemeLogo className="brand-mark" /></Link>
           <div className="app-breadcrumb"><span>Workspace</span><Icon name="chevron" size={15} /><h1>{pageTitle}</h1></div>
           <div className="app-top-actions">
             {incidentNotice && <Link className="incident-notice" to="/incidents" onClick={() => setIncidentNotice(false)}>New incident <span aria-hidden="true">↗</span></Link>}
@@ -400,6 +415,24 @@ export default function AppShell({ children }) {
         <div className="app-shell-content">{children}</div>
         <GuidedTour />
       </div>
+      <nav className="mobile-bottom-nav" aria-label="Primary mobile navigation">
+        <NavLink to="/console" end className={({ isActive }) => `mobile-bottom-link${isActive ? ' is-active' : ''}`}><Icon name="activity" /><span>Console</span></NavLink>
+        <NavLink to="/incidents" className={({ isActive }) => `mobile-bottom-link${isActive ? ' is-active' : ''}`}><Icon name="shield" />{openIncidents > 0 && <i className="mobile-nav-dot" aria-label={`${openIncidents} open incidents`} />}<span>Incidents</span></NavLink>
+        <NavLink to="/twin" className={({ isActive }) => `mobile-bottom-link${isActive ? ' is-active' : ''}`}><Icon name="network" /><span>Network</span></NavLink>
+        <button type="button" className={`mobile-bottom-link${mobileNavOpen ? ' is-active' : ''}`} aria-expanded={mobileNavOpen} onClick={() => setMobileNavOpen(true)}><Icon name="layers" /><span>More</span></button>
+      </nav>
+      {mobileNavOpen && <div className="mobile-nav-scrim" onMouseDown={(event) => { if (event.target === event.currentTarget) setMobileNavOpen(false) }}>
+        <section className="mobile-nav-drawer" role="dialog" aria-modal="true" aria-label="Workspace navigation">
+          <header><Link to="/" className="mobile-drawer-brand"><ThemeLogo className="brand-mark" /><b>Precog <strong>SOC</strong></b></Link><button type="button" className="icon-button" aria-label="Close navigation" onClick={() => setMobileNavOpen(false)}><Icon name="close" /></button></header>
+          <div className="mobile-drawer-scroll">
+            {mobileLinks.slice(0, 11).map(([to, label, icon]) => <NavLink key={to} to={to} className={({ isActive }) => `mobile-drawer-link${isActive ? ' is-active' : ''}`}><Icon name={icon} size={19} /><span>{label}</span>{to === '/incidents' && openIncidents > 0 && <b className="app-nav-count">{openIncidents}</b>}{to === '/containment' && pendingResponses > 0 && <b className="app-nav-count">{pendingResponses}</b>}</NavLink>)}
+            <button type="button" className="mobile-drawer-link mobile-ops-toggle" aria-expanded={mobileOpsOpen} onClick={() => setMobileOpsOpen((open) => !open)}><Icon name="system" size={19} /><span>Monitoring &amp; Operations</span><Icon className="mobile-ops-chevron" name="chevron" size={16} /></button>
+            {mobileOpsOpen && <div className="mobile-ops-links">{MONITORING_LINKS.map(({ to, label, icon }) => <NavLink key={to} to={to} className={({ isActive }) => `mobile-drawer-link${isActive ? ' is-active' : ''}`}><Icon name={icon} size={18} /><span>{label}</span></NavLink>)}</div>}
+            <NavLink to="/settings" className={({ isActive }) => `mobile-drawer-link mobile-settings-link${isActive ? ' is-active' : ''}`}><Icon name="settings" size={19} /><span>Settings</span></NavLink>
+          </div>
+          <footer><span className="mobile-user-avatar">{(username || 'A').slice(0, 1).toUpperCase()}</span><span><b>{username}</b><small>{(role || 'operator').toUpperCase()} ROLE</small></span><button type="button" className="icon-button" onClick={signOut} aria-label="Sign out"><Icon name="logout" size={18} /></button></footer>
+        </section>
+      </div>}
       <CommandPalette open={paletteOpen} onClose={closePalette} />
     </div>
   )
