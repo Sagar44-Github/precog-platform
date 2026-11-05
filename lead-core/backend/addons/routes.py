@@ -7,6 +7,8 @@ from flask_login import current_user
 from werkzeug.exceptions import HTTPException
 from urllib.parse import urlsplit
 from datetime import datetime, timezone
+import html
+import json
 import re
 
 from . import auth
@@ -28,6 +30,18 @@ MAX_WRITE_BYTES = 32768
 
 def _ctx():
     return current_app.extensions["precog"]
+
+
+def _governance():
+    service = current_app.extensions.get("precog_governance")
+    if service is None:
+        raise ApiError("not_built", "The response governance module is not available.", 501)
+    return service
+
+
+def _governance_result(record):
+    kind = "release_record" if record.get("playbook_id") == "release-host" else "approval_record"
+    return {"record_type": "release" if kind == "release_record" else "approval", "record": _out(kind, record)}
 
 
 def _body():
@@ -167,7 +181,12 @@ def domain_feed():
         incidents.set_run_version(studio.revision)
         result = incidents.feed(since)
         result["revision"] += studio.revision
-        result["changed"] = since is None or since != result["revision"]
+    governance = current_app.extensions.get("precog_governance")
+    if governance is not None:
+        governance.records(1)  # Refresh expired proposals before publishing the action version.
+        result["versions"]["actions"] += governance.revision
+        result["revision"] += governance.revision
+    result["changed"] = since is None or since != result["revision"]
     return jsonify(_out("feed_versions", result))
 
 
@@ -342,6 +361,134 @@ def containment_cancel():
 @auth.json_login_required
 def containment_actions():
     return jsonify(_ctx()["world"].actions())
+
+
+# ---------- governed response playbooks (all actions remain simulated) ----------
+@bp.get("/containment/playbooks")
+@auth.json_login_required
+def containment_playbooks():
+    return jsonify([_out("playbook", item) for item in _governance().list_playbooks()])
+
+
+@bp.post("/containment/preview")
+@auth.json_login_required
+@auth.rate_limit(max_requests=20, window_seconds=60)
+def containment_preview():
+    data = _body()
+    allowed = {"playbook_id", "host_id", "zone", "forecast_id"}
+    if set(data) - allowed or "playbook_id" not in data:
+        raise ApiError("bad_request", "Send playbook_id and only its optional host_id, zone, and forecast_id fields.", 400)
+    for key in ("playbook_id", "host_id", "zone", "forecast_id"):
+        if key in data and data[key] is not None and (not isinstance(data[key], str) or len(data[key]) > 100):
+            raise ApiError("bad_request", "'%s' must be text of at most 100 characters." % key, 400)
+    preview = _governance().preview(data["playbook_id"], auth.current_role(), data.get("host_id"), data.get("zone"), data.get("forecast_id"))
+    return jsonify(_out("playbook_preview", preview))
+
+
+@bp.get("/containment/governance")
+@auth.json_login_required
+def containment_governance_records():
+    try:
+        limit = int(request.args.get("limit", "100"))
+    except ValueError:
+        raise ApiError("bad_request", "'limit' must be a whole number.", 400)
+    records = _governance().records(limit)
+    return jsonify({
+        "approvals": [_out("approval_record", item) for item in records["approvals"]],
+        "releases": [_out("release_record", item) for item in records["releases"]],
+        "revision": records["revision"],
+    })
+
+
+@bp.get("/containment/governance/export")
+@auth.json_login_required
+@auth.rate_limit(max_requests=12, window_seconds=60)
+def containment_governance_export():
+    fmt = request.args.get("format", "json").lower()
+    if fmt not in ("json", "markdown"):
+        raise ApiError("bad_request", "Format must be json or markdown.", 400)
+    records = _governance().records(200)
+    if fmt == "json":
+        return jsonify(records)
+    lines = ["# Precog SOC response governance", "", "SIMULATION — these actions changed only in-memory demo state.", ""]
+    for title, items in (("Playbook proposals", records["approvals"]), ("Host releases", records["releases"])):
+        lines.extend(["## " + title, ""])
+        if not items:
+            lines.extend(["No records.", ""])
+        for item in items:
+            reason = html.escape(str(item.get("reason", ""))).replace("\n", " ")
+            lines.extend([
+                "### %s · %s · %s" % (item["action_id"], item["playbook_id"], item["status"]),
+                "",
+                "- Proposed by: %s (%s)" % (html.escape(item["proposed_by"]), item["proposed_role"]),
+                "- Proposed at: %s" % item["proposed_at"],
+                "- Reason: %s" % reason,
+                "- Hosts: %s" % ", ".join(host["host_id"] for host in item["preview_snapshot"]["hosts_affected"]),
+                "- Executed actions: %s" % ", ".join(item.get("host_action_ids", [])) if "host_action_ids" in item else "- Executed actions: release record",
+                "",
+            ])
+    response = Response("\n".join(lines), content_type="text/markdown; charset=utf-8")
+    response.headers["Content-Disposition"] = 'attachment; filename="precog-response-governance.md"'
+    return response
+
+
+@bp.post("/containment/governance/propose")
+@auth.role_required("analyst")
+@auth.rate_limit(max_requests=12, window_seconds=60)
+def containment_governance_propose():
+    data = _body()
+    allowed = {"playbook_id", "host_id", "zone", "forecast_id", "incident_id", "reason"}
+    if set(data) - allowed or not {"playbook_id", "reason"} <= set(data):
+        raise ApiError("bad_request", "Send playbook_id and reason, with only optional host_id, zone, forecast_id, and incident_id.", 400)
+    for key in allowed:
+        value = data.get(key)
+        if value is not None and (not isinstance(value, str) or len(value) > (500 if key == "reason" else 100)):
+            raise ApiError("bad_request", "'%s' has an invalid value or is too long." % key, 400)
+    if data.get("incident_id") is not None and not INCIDENT_ID.fullmatch(data["incident_id"]):
+        raise ApiError("bad_request", "'incident_id' must use the INC-0001 format.", 400)
+    record = _governance().propose(
+        data["playbook_id"], current_user.username, auth.current_role(), data["reason"],
+        host_id=data.get("host_id"), zone=data.get("zone"), forecast_id=data.get("forecast_id"), incident_id=data.get("incident_id"),
+    )
+    return jsonify(_governance_result(record))
+
+
+@bp.post("/containment/governance/approve")
+@auth.role_required("admin")
+def containment_governance_approve():
+    data = _body()
+    if set(data) - {"action_id", "decision", "reason"} or not {"action_id", "decision"} <= set(data):
+        raise ApiError("bad_request", "Send action_id, decision and an optional reason.", 400)
+    action_id = _text(data, "action_id")
+    if len(action_id) > 32:
+        raise ApiError("bad_request", "Invalid action id.", 400)
+    record = _governance().approve(action_id, current_user.username, auth.current_role(), data["decision"], data.get("reason", ""))
+    return jsonify(_governance_result(record))
+
+
+@bp.post("/containment/governance/confirm")
+@auth.role_required("analyst")
+def containment_governance_confirm():
+    data = _body()
+    if set(data) != {"action_id"}:
+        raise ApiError("bad_request", "Send exactly one field: action_id.", 400)
+    action_id = _text(data, "action_id")
+    if len(action_id) > 32:
+        raise ApiError("bad_request", "Invalid action id.", 400)
+    return jsonify(_governance_result(_governance().confirm(action_id, current_user.username, auth.current_role())))
+
+
+@bp.post("/containment/governance/cancel")
+@auth.role_required("analyst")
+def containment_governance_cancel():
+    data = _body()
+    if set(data) - {"action_id", "reason"} or "action_id" not in data:
+        raise ApiError("bad_request", "Send action_id and an optional cancellation reason.", 400)
+    action_id = _text(data, "action_id")
+    if len(action_id) > 32:
+        raise ApiError("bad_request", "Invalid action id.", 400)
+    record = _governance().cancel(action_id, current_user.username, auth.current_role(), data.get("reason", "Cancelled by the operator."))
+    return jsonify(_governance_result(record))
 
 
 # ---------- session and metrics ----------

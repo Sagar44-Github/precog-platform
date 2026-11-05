@@ -1,0 +1,12 @@
+{
+  "playbook_id": "contain-host",
+  "forecast_id": "fc-000001",
+  "hosts_affected": [{"host_id": "server-b", "name": "Web Server B", "state": "normal", "criticality": 0.7, "forecast_probability": 0.74}],
+  "feasible_edges_changed": [{"from_host": "host-a", "to_host": "server-b"}],
+  "probability_removed": 0.74,
+  "probability_restored": 0.0,
+  "criticality_total": 0.7,
+  "side_effects": ["The affected host cannot be reached or used by the simulated attacker.", "Legitimate use is also interrupted in this simulation.", "No firewall, endpoint, account, or real network setting is changed."],
+  "expected_reevaluation": "After confirmation, the next scripted response is compared with the forecast and the simulation updates its outcome.",
+  "simulation_only": true
+}

@@ -1,0 +1,9 @@
+{
+  "playbook_id": "contain-zone",
+  "label": "Contain a zone",
+  "scope": "zone",
+  "allowed_roles": ["admin"],
+  "requires_second_approval": false,
+  "description": "Simulated containment of every eligible host in one demo zone. Administrator only.",
+  "simulation_only": true
+}

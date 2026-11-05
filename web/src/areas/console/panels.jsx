@@ -43,7 +43,7 @@ export function TopBar({ state, stale, canOperate = true }) {
     <header className="c-top">
       <div className="c-top-state">{level && <span className={`c-threat c-threat-${level.key}`} aria-label={`Threat: ${level.word}`} aria-live="polite"><span aria-hidden="true">{level.icon}</span><span><small>THREAT LEVEL</small><b>{level.word}</b></span></span>}</div>
       <ReplayControls replay={state ? state.replay : null} canOperate={canOperate} />
-      <div className="c-top-actions"><Link to="/mobile" className="c-mobile-link"><span aria-hidden="true">▣</span> Phone view</Link><span className="c-conn" role="status"><i aria-hidden="true" />{stale ? 'Offline · stale data' : 'Connected'}</span></div>
+      <div className="c-top-actions"><Link to="/containment" className="c-mobile-link">Response playbooks ↗</Link><Link to="/mobile" className="c-mobile-link"><span aria-hidden="true">▣</span> Phone view</Link><span className="c-conn" role="status"><i aria-hidden="true" />{stale ? 'Offline · stale data' : 'Connected'}</span></div>
     </header>
   )
 }

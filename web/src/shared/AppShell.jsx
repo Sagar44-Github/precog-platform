@@ -41,6 +41,7 @@ export function CommandPalette({ open, onClose }) {
     { label: 'Open Precog forecasts', detail: 'Review ranked estimates and their observed outcomes', icon: 'activity', keywords: 'forecast prediction explainability', run: () => navigate('/forecasts') },
     { label: 'Open what-if lab', detail: 'Explore containment counterfactuals without changing the replay', icon: 'sliders', keywords: 'what if counterfactual containment', run: () => navigate('/lab') },
     { label: 'Open model analytics', detail: 'Review calibration and run held-out experiments', icon: 'clock', keywords: 'evaluation metrics model calibration', run: () => navigate('/analytics') },
+    { label: 'Open response governance', detail: 'Preview and confirm simulation-only response playbooks', icon: 'shield', keywords: 'containment actions approvals releases playbooks', run: () => navigate('/containment') },
     { label: 'Open network twin', detail: 'Explore demo assets, paths and recorded states', icon: 'network', keywords: 'hosts topology digital twin', run: () => navigate('/twin') },
     { label: 'Open replay studio', detail: 'Step through a scripted replay and compare runs', icon: 'play', keywords: 'replay studio runs timeline', run: () => navigate('/replay') },
     { label: 'Open scenario library', detail: 'Choose or build a scripted scenario', icon: 'layers', keywords: 'scenario builder library', run: () => navigate('/scenarios') },
@@ -145,6 +146,7 @@ export default function AppShell({ children }) {
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [openIncidents, setOpenIncidents] = useState(0)
   const [incidentNotice, setIncidentNotice] = useState(false)
+  const [pendingResponses, setPendingResponses] = useState(0)
   const handoff = useConsoleHandoff() && location.pathname.startsWith('/console')
   const pageTitle = location.pathname.startsWith('/replay') ? 'Replay studio'
     : location.pathname.startsWith('/twin') ? 'Network twin'
@@ -154,6 +156,7 @@ export default function AppShell({ children }) {
     : location.pathname.startsWith('/forecasts') ? (location.pathname.split('/').length > 2 ? 'Forecast explanation' : 'Precog forecasts')
       : location.pathname.startsWith('/lab') ? 'What-if lab'
         : location.pathname.startsWith('/analytics') ? 'Model analytics'
+      : location.pathname.startsWith('/containment') ? 'Response governance'
     : location.pathname.includes('/compare') ? 'Run comparison'
           : location.pathname.startsWith('/runs') ? 'Run history' : 'Live console'
   const closePalette = () => setPaletteOpen(false)
@@ -170,6 +173,22 @@ export default function AppShell({ children }) {
           return result.total
         })
       } catch { /* the console still works if incident polling is unavailable */ }
+    }
+    refresh()
+    const timer = window.setInterval(refresh, 5000)
+    return () => { alive = false; window.clearInterval(timer) }
+  }, [username])
+
+  useEffect(() => {
+    if (!username) return undefined
+    let alive = true
+    const refresh = async () => {
+      try {
+        const records = await apiGet('/api/x/containment/governance?limit=100')
+        if (!alive) return
+        const pending = [...records.approvals, ...records.releases].filter((item) => ['pending_approval', 'pending_confirmation'].includes(item.status)).length
+        setPendingResponses(pending)
+      } catch { /* governance can be opened directly if polling is unavailable */ }
     }
     refresh()
     const timer = window.setInterval(refresh, 5000)
@@ -234,6 +253,9 @@ export default function AppShell({ children }) {
           </NavLink>
           <NavLink to="/analytics" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
             <Icon name="clock" /><span>Analytics</span>
+          </NavLink>
+          <NavLink to="/containment" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
+            <Icon name="shield" /><span>Response governance</span>{pendingResponses > 0 && <b className="app-nav-count" aria-label={`${pendingResponses} pending response approvals`}>{pendingResponses}</b>}
           </NavLink>
         </nav>
         <div className="app-sidebar-spacer" />

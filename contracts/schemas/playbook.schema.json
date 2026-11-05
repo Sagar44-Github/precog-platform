@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/playbook.schema.json",
+  "title": "Governed simulation playbook",
+  "type": "object",
+  "properties": {
+    "playbook_id": { "type": "string", "enum": ["contain-host", "contain-zone", "contain-predicted-path", "contain-top-three", "release-host"] },
+    "label": { "type": "string", "minLength": 1, "maxLength": 80 },
+    "scope": { "type": "string", "enum": ["host", "zone", "path", "forecast"] },
+    "allowed_roles": { "type": "array", "items": { "type": "string", "enum": ["analyst", "admin"] }, "minItems": 1, "uniqueItems": true },
+    "requires_second_approval": { "type": "boolean" },
+    "description": { "type": "string", "minLength": 1, "maxLength": 300 },
+    "simulation_only": { "const": true }
+  },
+  "required": ["playbook_id", "label", "scope", "allowed_roles", "requires_second_approval", "description", "simulation_only"],
+  "additionalProperties": false
+}

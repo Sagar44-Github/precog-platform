@@ -57,6 +57,7 @@ function HostInspector({ detail, history, onClose }) {
       {detail.incidents.map((incident) => <Link key={incident.incident_id} to={`/incidents/${encodeURIComponent(incident.incident_id)}`}>{incident.title} ↗</Link>)}
       <Link to={`/hosts/${encodeURIComponent(host.host_id)}`}>Open asset history ↗</Link>
       <Link to={`/incidents?host=${encodeURIComponent(host.host_id)}`}>Related incidents ↗</Link>
+      <Link to={`/containment?host=${encodeURIComponent(host.host_id)}`}>Open response playbooks ↗</Link>
     </div></section>
     {history?.events?.length > 0 && <section><h3>Recent host history</h3><ol className="twin-history">{history.events.slice(-4).reverse().map((event) => <li key={event.event_id}><b>{event.kind}</b><span>{event.summary}</span></li>)}</ol></section>}
     <p className="twin-basis">{detail.basis}</p>

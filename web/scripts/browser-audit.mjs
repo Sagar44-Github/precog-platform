@@ -41,6 +41,7 @@ const routeSpecs = [
   ['forecast-detail', '/app/forecasts/fc-000001'],
   ['whatif-lab', '/app/lab'],
   ['analytics-lab', '/app/analytics'],
+  ['response-governance', '/app/containment'],
   ['console', '/app/console'],
 ]
 const report = { browser: 'Playwright Chromium (SwiftShader)', modes: {} }
@@ -109,6 +110,7 @@ async function checkViewport(page, mode, routeName, path, size) {
   if (routeName === 'asset-directory') await page.locator('.twin-directory-card, .twin-error').first().waitFor({ timeout: 12000 }).catch(() => {})
   if (routeName === 'host-detail') await page.locator('.twin-host-detail h1, .twin-error').first().waitFor({ timeout: 12000 }).catch(() => {})
   if (routeName === 'mobile-hosts') await page.locator('.m-host-card, .m-title').first().waitFor({ timeout: 12000 }).catch(() => {})
+  if (routeName === 'response-governance') await page.getByRole('heading', { name: 'Response governance' }).waitFor({ timeout: 12000 }).catch(() => {})
   if (routeName === 'console' && size.width >= 1024) {
     await page.locator('.c-app').waitFor({ timeout: 8000 }).catch(() => {})
     await page.waitForFunction(() => document.querySelector('.c-scene canvas'), null, { timeout: 15000 }).catch(() => {})
@@ -134,7 +136,7 @@ async function checkViewport(page, mode, routeName, path, size) {
   if (!state.hasSimulationLabel) failures.push('SIMULATION label missing')
   if (routeName === 'console' && size.width < 1024 && !state.hasConsoleHandoff) failures.push('narrow console handoff is missing')
   if (routeName === 'console' && size.width >= 1024 && !state.hasCommandTrigger) failures.push('desktop command palette trigger is missing')
-  if (['incidents', 'incident-detail', 'replay-studio', 'scenario-library', 'scenario-builder', 'scenario-edit', 'run-history', 'run-detail', 'run-compare', 'network-twin', 'asset-directory', 'host-detail', 'mobile-hosts', 'forecasts', 'forecast-detail', 'whatif-lab', 'analytics-lab'].includes(routeName)) {
+  if (['incidents', 'incident-detail', 'replay-studio', 'scenario-library', 'scenario-builder', 'scenario-edit', 'run-history', 'run-detail', 'run-compare', 'network-twin', 'asset-directory', 'host-detail', 'mobile-hosts', 'forecasts', 'forecast-detail', 'whatif-lab', 'analytics-lab', 'response-governance'].includes(routeName)) {
     await page.addScriptTag({ path: join(repoRoot, 'web', 'node_modules', 'axe-core', 'axe.min.js') })
     const accessibility = await page.evaluate(async () => {
       const result = await window.axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] } })
@@ -472,6 +474,34 @@ async function runMode(browser, mode, port, dbDir, errors) {
       }, null, { timeout: 15000 })
       report.containmentFlow = 'propose and confirm completed in live replay; host state changed to contained (simulation)'
     }
+    await page.setViewportSize({ width: 1440, height: 900 })
+    await page.goto(`${base}/app/containment`, { waitUntil: 'domcontentloaded' })
+    await page.getByRole('heading', { name: 'Response governance' }).waitFor({ timeout: 10000 })
+    await page.getByRole('combobox', { name: 'Response playbook' }).selectOption('contain-zone')
+    await page.getByRole('combobox', { name: 'Zone' }).selectOption('user')
+    await page.getByRole('textbox', { name: 'Decision reason' }).fill('Browser audit zone containment simulation.')
+    await page.getByRole('button', { name: 'Preview impact' }).click()
+    await page.getByRole('heading', { name: 'Contain a zone' }).waitFor({ timeout: 10000 })
+    await page.getByRole('button', { name: 'Propose for confirmation' }).click()
+    await page.getByRole('button', { name: 'Confirm simulated action' }).first().click()
+    await page.getByRole('dialog').getByRole('button', { name: 'Confirm simulated action' }).click()
+    await page.locator('.gov-record-list .gov-status.is-executed').first().waitFor({ timeout: 10000 })
+    const governedHost = await page.evaluate(async () => {
+      const response = await fetch('/api/x/containment/governance')
+      const records = response.ok ? await response.json() : null
+      return records?.approvals?.[0]?.preview_snapshot?.hosts_affected?.[0]?.host_id || null
+    })
+    if (!governedHost) throw new Error(`${mode} governance proposal did not expose its affected host`)
+    await page.getByRole('combobox', { name: 'Response playbook' }).selectOption('release-host')
+    await page.getByRole('combobox', { name: 'Host' }).selectOption(governedHost)
+    await page.getByRole('textbox', { name: 'Decision reason' }).fill('Browser audit release after review.')
+    await page.getByRole('button', { name: 'Preview impact' }).click()
+    await page.getByRole('button', { name: 'Propose for confirmation' }).click()
+    await page.getByRole('button', { name: 'Confirm simulated action' }).first().click()
+    await page.getByRole('dialog').getByRole('button', { name: 'Confirm simulated action' }).click()
+    await page.locator('.gov-record-list .gov-status.is-released').first().waitFor({ timeout: 10000 })
+    const recordCount = await page.locator('.gov-record').count()
+    report.governanceFlow = { result: 'previewed and confirmed an admin zone action, then proposed and confirmed a reasoned host release', mode, host: governedHost, recordsVisible: recordCount }
   } finally {
     if (context) await context.close()
     await stopBackend(processInfo.child)

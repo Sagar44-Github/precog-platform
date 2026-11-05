@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { api } from '../../shared/api.js'
 import { EmptyState, LoadingState, useToast } from '../../shared/components.jsx'
 import { AlertVolumeChart, ForecastAccuracyChart } from '../charts/index.jsx'
@@ -24,6 +24,7 @@ export function HomeScreen({ state, stale, canOperate = true }) {
       <section className="m-card">
         <ForecastBars state={state} />
         {state.forecast && (canOperate ? <ContainFlow state={state} onDone={toast.show} /> : <p className="m-caption">Viewer access is read-only. An analyst can propose and confirm simulated containment.</p>)}
+        {canOperate && <Link className="m-btn" to={`/containment?host=${encodeURIComponent(state.forecast?.targets?.[0]?.host_id || '')}&forecast=${encodeURIComponent(state.forecast?.forecast_id || '')}`}>Open governed response</Link>}
       </section>
       <section className="m-card">
         <h2>Latest alert</h2>
@@ -87,6 +88,7 @@ export function ForecastScreen({ state, canOperate = true }) {
       <section className="m-card">
         <ForecastBars state={state} />
         {state.forecast && (canOperate ? <ContainFlow state={state} onDone={toast.show} /> : <p className="m-caption">Viewer access is read-only. An analyst can propose and confirm simulated containment.</p>)}
+        {canOperate && state.forecast && <Link className="m-btn" to={`/containment?host=${encodeURIComponent(state.forecast.targets[0]?.host_id || '')}&forecast=${encodeURIComponent(state.forecast.forecast_id)}`}>Open governed response</Link>}
       </section>
       <section className="m-card"><h2>Attack path</h2><AttackPath2D state={state} /></section>
       <LastOutcome />

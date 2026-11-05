@@ -17,6 +17,7 @@ const ForecastsApp = lazy(() => import('./areas/precog/index.jsx').then((module)
 const ForecastDetailApp = lazy(() => import('./areas/precog/index.jsx').then((module) => ({ default: module.ForecastDetailPage })))
 const WhatIfApp = lazy(() => import('./areas/precog/index.jsx').then((module) => ({ default: module.WhatIfPage })))
 const AnalyticsApp = lazy(() => import('./areas/precog/index.jsx').then((module) => ({ default: module.AnalyticsPage })))
+const ContainmentApp = lazy(() => import('./areas/containment/index.jsx'))
 
 // Owner: LEAD-CORE. Written once. Nobody else edits this file.
 // Each area is one folder with one fixed entry file. To change a screen, edit your own area folder only.
@@ -38,6 +39,7 @@ export default function App() {
         <Route path="/forecasts/:id" element={<RequireAuth><AppShell><Suspense fallback={<LoadingState />}><ForecastDetailApp /></Suspense></AppShell></RequireAuth>} />
         <Route path="/lab" element={<RequireAuth><AppShell><Suspense fallback={<LoadingState />}><WhatIfApp /></Suspense></AppShell></RequireAuth>} />
         <Route path="/analytics" element={<RequireAuth><AppShell><Suspense fallback={<LoadingState />}><AnalyticsApp /></Suspense></AppShell></RequireAuth>} />
+        <Route path="/containment" element={<RequireAuth><Suspense fallback={<LoadingState />}><ContainmentApp /></Suspense></RequireAuth>} />
         <Route path="/console/*" element={<RequireAuth><AppShell><Suspense fallback={<LoadingState />}><ConsoleApp /></Suspense></AppShell></RequireAuth>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

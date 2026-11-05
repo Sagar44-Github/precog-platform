@@ -1,0 +1,20 @@
+{
+  "action_id": "PB-ACT-000001",
+  "playbook_id": "contain-host",
+  "status": "executed",
+  "proposed_by": "analyst",
+  "proposed_role": "analyst",
+  "proposed_at": "2026-11-05T09:00:00Z",
+  "expires_at": "2026-11-05T09:01:00Z",
+  "reason": "Protect the predicted demo target.",
+  "preview_snapshot": {"playbook_id": "contain-host", "forecast_id": "fc-000001", "hosts_affected": [{"host_id": "server-b", "name": "Web Server B", "state": "normal", "criticality": 0.7, "forecast_probability": 0.74}], "feasible_edges_changed": [{"from_host": "host-a", "to_host": "server-b"}], "probability_removed": 0.74, "probability_restored": 0.0, "criticality_total": 0.7, "side_effects": ["Simulated host use is interrupted."], "expected_reevaluation": "The replay evaluates its next scripted response after confirmation.", "simulation_only": true},
+  "host_action_ids": ["act-000001"],
+  "incident_id": null,
+  "run_id": "session-demo",
+  "approval": null,
+  "execution_summary": "Executed simulated containment for one host.",
+  "updated_at": "2026-11-05T09:00:10Z",
+  "cancelled_by": null,
+  "cancelled_role": null,
+  "cancellation_reason": null
+}

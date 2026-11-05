@@ -210,6 +210,7 @@ function IncidentDetail() {
           <div className="incident-summary-row"><span>Techniques</span><span>{incident.techniques.map((item) => item.technique_id).join(', ') || '—'}</span></div>
           {incident.containment_basis && <p className="incident-basis"><b>Contained in simulation:</b> {incident.containment_basis}</p>}
           {incident.compromised_hosts?.length > 0 && <div className="incident-host-list"><span>COMPROMISED HOSTS</span>{incident.compromised_hosts.map((host) => <Link key={host} to={`/console?host=${encodeURIComponent(host)}`}>{host}</Link>)}</div>}
+          <Link className="incident-button incident-button-quiet" to={`/containment?incident=${encodeURIComponent(incident.incident_id)}&host=${encodeURIComponent(incident.forecasts?.[0]?.targets?.[0]?.host_id || incident.affected_hosts?.[0] || '')}`}>Open response playbooks ↗</Link>
           {canAnnotate && <div className="incident-status-controls">{incident.status !== 'closed' ? <button type="button" disabled={busy} onClick={() => changeStatus('closed')}>Close with reason</button> : <button type="button" disabled={busy} onClick={() => changeStatus('reopened')}>Reopen with reason</button>}</div>}
           {!canAnnotate && <p className="incident-readonly">Viewer access is read-only. Ask an analyst to add notes or change case status.</p>}
         </section>

@@ -4,9 +4,9 @@
 
 **Starting point:** `phase-c2-replay-studio` at `7c64a07`
 
-**Current work branch:** `phase-c4-precog-lab`
+**Current work branch:** `phase-c5-response-governance`
 
-**Scope now:** C1–C4 are complete. C5–C7 remain gated.
+**Scope now:** C1–C5 are complete. C6 final integration and reporting remains; C7 dependency maintenance is optional.
 
 ## Phase B inventory
 
@@ -18,7 +18,7 @@ The repository contains `docs/phase-b1/README.md`, `docs/DEMO_SCRIPT_V2.md`, Pha
 | **C2 Replay studio and builder** | Four shipped deterministic replay scenarios and start/pause/resume/restart controls. | Delivered in this phase: visual timeline builder, server validation and dry run, bounded user scenario library, step/step-back/seek and breakpoints, speed control, snapshots/time travel, persisted run archive and comparisons. | `graph/graph_replay/`, `lead-core/backend/addons/replay_studio.py`, `lead-core/backend/addons/routes.py`, replay contracts and tests, `web/src/areas/replay/`, `web/src/App.jsx`, `web/src/shared/`, `docs/REPLAY_STUDIO.md`. |
 | **C3 Network digital twin** | A live 3D console graph and a separate interactive 3D landing scene, plus graph topology and a phone-friendly SOC view. | Delivered: read-only topology, host detail/history, feasible paths and segmentation projection; interactive zone-based 3D map with state/risk/forecast/exposure overlays, camera presets, focus, recorded-run scrubber, Lite map/list and phone host inventory. | `lead-core/backend/addons/network_twin.py`, `lead-core/backend/addons/routes.py`, `contracts/`, `web/src/areas/twin/`, `web/src/areas/console/Scene3D.jsx`, `sceneModel.js`, `sceneDecorations.js`, `objects3d.js`, tests and browser audit. |
 | **C4 Precog decision and what-if lab** | Markov top-three forecasts, baseline/session metrics, calibration chart and a reproducible offline evaluation command. | Delivered: per-forecast trace, read-only what-if, held-out evaluation endpoint/cache/log, model card, profile breakdown and analyst screens. | `lead-core/precog/precog_engine/`, `lead-core/backend/addons/`, six new contracts and samples, C4 integration/browser tests, `web/src/areas/precog/`, `docs/PRECOG_LAB.md`. |
-| **C5 Response governance** | Propose/confirm/cancel for a single-host simulated containment, expiry, and audit events. | Role and playbook policy; impact previews; zone/path/top-three actions; approval records; release proposal/confirmation; governance history and UI. | `viz/viz_containment/` or a new add-on module, `lead-core/backend/addons/`, containment/approval contracts and tests, `web/src/areas/containment/`, role-aware navigation. |
+| **C5 Response governance** | Single-host simulated containment with propose/confirm/cancel, expiry, and audit events. | Delivered: role policy, five playbooks, impact preview, optional two-person zone approval, reasoned release, durable approval/release history, exports and responsive UI. | `lead-core/backend/addons/governance.py`, `routes.py`, four contracts and tests, `web/src/areas/containment/`, navigation and Mobile SOC links. |
 | **C6 Connected story and final verification** | Phase B1 command palette, workspace navigation, theme persistence, and a 4–6 minute Golden Path demo script. | Entity-wide links/search, case report exports, notification centre, onboarding/help updates, ten-minute script, full Phase C route audits and final report. | `web/src/shared/`, workflow areas delivered by C1–C5, `docs/DEMO_SCRIPT_V3.md`, `docs/PHASE_C_REPORT.md`, audit scripts and screenshots. |
 | **C7 Optional maintenance** | Audit documents eight npm advisories and an unverified Node 22 runtime. | Separate, incremental dependency-family upgrades with full regression after each. | `web/package.json`, lockfile, CI/runtime docs; only after C1–C6 are green and approved. |
 
@@ -140,4 +140,26 @@ New authenticated routes: `GET /api/x/forecasts/{id}/explain`, `POST /api/x/what
 | Web build and hosted bundle | `npm run build` then `copy_dist('web/dist', 'lead-core/backend/web_dist')` | Build succeeded; **30 files copied**. Main application chunk **194.17 kB** (62.22 kB gzip); 3D renderer remains lazy-loaded at **817.38 kB** (236.68 kB gzip). Vite's existing large-chunk warning remains. |
 | Scope and hygiene | `git diff --check`; `git diff --name-only -- lead-core/backend/nids` | No whitespace errors and no changes under the pinned NIDS source tree. |
 
-C4 is complete on `phase-c4-precog-lab`. C5–C7 remain gated. Cloud deployment and physical-phone behavior are not verified.
+C4 is complete on `phase-c4-precog-lab`. Cloud deployment and physical-phone behavior are not verified.
+
+## C5 delivered
+
+C5 adds five role-governed simulation playbooks for one host, one zone, the top forecast path, the Top-3, and release of one contained host. Every proposal captures a reason and the full impact preview; execution and release require a separate confirmation. Optional two-person zone approval is configured with `REQUIRE_TWO_PERSON_ZONE_APPROVAL=1` and is off by default for the single-admin classroom demo. Existing phone and console single-host containment routes and their contract remain unchanged.
+
+The impact preview reports affected hosts, feasible edges changed, summed criticality, estimated forecast probability removed/restored, side effects, and the expected re-evaluation. Records are atomically stored below ignored backend data and audited through the existing containment audit stream. The responsive `/containment` workbench has status/playbook filters, role-aware actions, approval/release history and JSON/Markdown exports. Incident, host, console and phone screens link into the workbench. See [RESPONSE_GOVERNANCE.md](RESPONSE_GOVERNANCE.md).
+
+## C5 verification
+
+| Check | Result |
+|---|---|
+| Full Python suite | **429 collected; 428 passed, 1 skipped**, two existing Scapy deprecation warnings. |
+| C5 governance tests | **14 passed** (policy, role matrix, preview, state transitions, persistence, audit, export, validation and rate limit). |
+| Offline detector suite | **50 passed, 1 skipped**. |
+| Web suite | **130 passed, 0 failed**. |
+| Contracts | **46 contracts OK** (four added). |
+| Browser audit | **150 checks; 0 failures, 0 browser errors, 0 axe violations** across sample/live at 390×844, 820×1180 and 1440×900. The admin zone proposal/confirmation and reasoned host release were exercised in both modes. |
+| Browser evidence | `docs/audit/phase-c/c5/browser-audit-results.json` and `docs/audit/screenshots/phase-c/c5/` contain **150 screenshots**. |
+| Web build and hosted bundle | Build succeeded; **32 files copied**. Main app chunk 195.96 kB (62.57 kB gzip); the 3D renderer stays lazy-loaded. Vite reports its existing large-chunk warning. |
+| NIDS / diff hygiene | No NIDS source edits. `git diff --check` is clean. |
+
+Render deployment and physical-phone installation remain unverified. C6 final integrated reporting will be completed on `lead-core` after the phase branch merge.
