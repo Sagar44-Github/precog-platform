@@ -1,0 +1,11 @@
+{
+  "audit_id": "IAUD-000001",
+  "type": "note",
+  "incident_id": "INC-0001",
+  "timestamp": "2026-11-05T12:00:00Z",
+  "actor": "analyst",
+  "role": "analyst",
+  "summary": "analyst (analyst) added an incident note.",
+  "text": "Confirm the simulated authentication sequence with the replay timeline.",
+  "reason": null
+}

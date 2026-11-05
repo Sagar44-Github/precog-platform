@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/role_info.schema.json",
+  "title": "Authenticated demo role",
+  "type": "object",
+  "properties": {
+    "status": { "type": "string", "const": "ok" },
+    "username": { "type": "string", "minLength": 1 },
+    "role": { "type": "string", "enum": ["viewer", "analyst", "admin"] },
+    "read_only": { "type": "boolean" }
+  },
+  "required": ["status", "username", "role", "read_only"],
+  "additionalProperties": false
+}

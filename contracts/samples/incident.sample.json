@@ -1,0 +1,70 @@
+{
+  "incident_id": "INC-0001",
+  "session_id": "ses-000001",
+  "scenario_id": "golden-path",
+  "title": "Credential attack from Workstation A",
+  "status": "contained",
+  "severity": "HIGH",
+  "created_at": "2026-11-05T12:00:00Z",
+  "updated_at": "2026-11-05T12:00:06Z",
+  "first_alert_at": "2026-11-05T12:00:00Z",
+  "last_alert_at": "2026-11-05T12:00:03Z",
+  "duration_seconds": 3,
+  "alert_ids": ["evt-000001"],
+  "evidence": [{
+    "event_id": "evt-000001",
+    "ts": "2026-11-05T12:00:00Z",
+    "host": "host-a",
+    "packet_id": null,
+    "anomaly": true,
+    "risk_score": 90,
+    "severity": "HIGH",
+    "explanation": "A simulated credential event was detected.",
+    "technique_id": "T1110",
+    "technique_name": "Brute Force",
+    "source": "scripted"
+  }],
+  "affected_hosts": ["host-a", "server-b"],
+  "compromised_hosts": ["host-a"],
+  "attack_path": ["host-a"],
+  "techniques": [{ "technique_id": "T1110", "name": "Brute Force", "tactics": ["credential-access"] }],
+  "forecast_ids": ["fc-000001"],
+  "forecasts": [{
+    "forecast_id": "fc-000001",
+    "from_host": "host-a",
+    "status": "hit",
+    "targets": [{ "rank": 1, "host_id": "server-b", "confidence": 0.45 }],
+    "outcome": { "attempted_host": "server-b", "rank_hit": 1, "blocked": true },
+    "ts": "2026-11-05T12:00:03Z"
+  }],
+  "forecast_outcome": {
+    "forecast_id": "fc-000001",
+    "status": "hit",
+    "blocked": true,
+    "rank_hit": 1,
+    "attempted_host": "server-b",
+    "label": "blocked hit"
+  },
+  "action_ids": ["act-000001"],
+  "actions": [{
+    "action_id": "act-000001",
+    "target_host": "server-b",
+    "forecast_id": "fc-000001",
+    "requested_by": "console",
+    "status": "executed",
+    "proposed_at": "2026-11-05T12:00:04Z",
+    "confirmed_at": "2026-11-05T12:00:05Z",
+    "result": "The simulated move was stopped."
+  }],
+  "correlation_reasons": [{ "event_id": "evt-000001", "reason": "First alert in this replay session." }],
+  "notes": [{
+    "note_id": "NOTE-0001",
+    "incident_id": "INC-0001",
+    "body": "Confirm the simulated authentication sequence with the replay timeline.",
+    "created_at": "2026-11-05T12:00:06Z",
+    "author": "analyst",
+    "role": "analyst"
+  }],
+  "closed_reason": null,
+  "containment_basis": "A confirmed simulated response blocked the forecasted next move. Previously compromised hosts remain visible."
+}

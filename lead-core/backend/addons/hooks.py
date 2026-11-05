@@ -30,7 +30,7 @@ Until a hook is registered, the matching routes answer with a clear 501 "not bui
 """
 from .errors import ApiError
 
-KNOWN_HOOKS = ("replay", "events", "graph", "precog", "containment", "push")
+KNOWN_HOOKS = ("replay", "events", "graph", "precog", "containment", "push", "incidents")
 
 
 class Hooks:

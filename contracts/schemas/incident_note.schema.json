@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/incident_note.schema.json",
+  "title": "Incident analyst note",
+  "type": "object",
+  "properties": {
+    "note_id": { "type": "string", "pattern": "^NOTE-[0-9]{4,}$" },
+    "incident_id": { "type": "string", "pattern": "^INC-[0-9]{4}$" },
+    "body": { "type": "string", "minLength": 1, "maxLength": 2000, "pattern": "^[^<>]*$" },
+    "created_at": { "type": "string", "format": "date-time" },
+    "author": { "type": "string", "minLength": 1, "maxLength": 50 },
+    "role": { "type": "string", "enum": ["analyst", "admin"] }
+  },
+  "required": ["note_id", "incident_id", "body", "created_at", "author", "role"],
+  "additionalProperties": false
+}

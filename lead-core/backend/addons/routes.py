@@ -2,9 +2,12 @@
 
 Every error answers JSON like {"error": {"code": "...", "message": "..."}}.
 """
-from flask import Blueprint, current_app, jsonify, request
+from flask import Blueprint, Response, current_app, jsonify, request
 from flask_login import current_user
 from werkzeug.exceptions import HTTPException
+from urllib.parse import urlsplit
+from datetime import datetime, timezone
+import re
 
 from . import auth
 from .contracts import ContractError
@@ -15,6 +18,11 @@ bp = Blueprint("precog_addons", __name__, url_prefix="/api/x")
 FORECAST_STATUSES = ("pending", "hit", "miss", "superseded")
 REQUESTERS = ("console", "mobile")
 MAX_ALERT_LIMIT = 200
+INCIDENT_STATUSES = ("open", "contained", "closed", "reopened")
+INCIDENT_SEVERITIES = ("HIGH", "MEDIUM", "LOW")
+INCIDENT_SORTS = ("updated_desc", "created_asc", "severity_desc")
+INCIDENT_ID = re.compile(r"^INC-[0-9]{4}$")
+MAX_WRITE_BYTES = 32768
 
 
 def _ctx():
@@ -27,6 +35,35 @@ def _body():
     if not isinstance(data, dict):
         raise ApiError("bad_request", "Send a JSON object in the request body.", 400)
     return data
+
+
+@bp.before_request
+def _protect_cookie_writes():
+    """Only same-origin JSON requests with the app's non-simple header may mutate state.
+
+    The custom header forces a CORS preflight; this service does not enable cross-origin
+    CORS. Fetch Metadata and Origin are checked as a second same-origin signal.
+    """
+    if request.method not in ("POST", "PUT", "PATCH", "DELETE"):
+        return None
+    if request.endpoint == "precog_addons.login":
+        return None
+    if not current_user.is_authenticated:
+        return None  # protected views return the existing JSON 401 response
+    if not request.is_json:
+        raise ApiError("json_required", "Send writes as application/json.", 415)
+    if request.content_length is not None and request.content_length > MAX_WRITE_BYTES:
+        raise ApiError("request_too_large", "The JSON request is larger than 32 KB.", 413)
+    if request.headers.get("X-Precog-Request") != "1":
+        raise ApiError("csrf_rejected", "This write did not include the required same-origin request header.", 403)
+    if request.headers.get("Sec-Fetch-Site", "").lower() == "cross-site":
+        raise ApiError("csrf_rejected", "Cross-site writes are not allowed.", 403)
+    origin = request.headers.get("Origin")
+    if origin:
+        parsed = urlsplit(origin)
+        if parsed.scheme != request.scheme or parsed.netloc.lower() != request.host.lower():
+            raise ApiError("csrf_rejected", "Cross-origin writes are not allowed.", 403)
+    return None
 
 
 def _text(data, key, required=True):
@@ -86,7 +123,7 @@ def login():
     if user is None:
         raise ApiError("invalid_credentials", "Wrong username or password.", 401)
     auth.do_login(user)
-    return jsonify({"status": "ok", "username": user.username})
+    return jsonify(_out("role_info", auth.info_for(user.username)))
 
 
 @bp.post("/logout")
@@ -99,8 +136,31 @@ def logout():
 def me():
     # Keep the public SPA's initial auth check quiet for signed-out visitors.
     # Protected data routes still require a session and return JSON 401 errors.
-    username = current_user.username if current_user.is_authenticated else None
-    return jsonify({"status": "ok", "username": username})
+    if current_user.is_authenticated:
+        return jsonify(_out("role_info", auth.info_for(current_user.username)))
+    return jsonify({"status": "ok", "username": None})
+
+
+@bp.get("/role")
+@auth.json_login_required
+def role_info():
+    return jsonify(_out("role_info", auth.info_for(current_user.username)))
+
+
+@bp.get("/feed")
+@auth.json_login_required
+def domain_feed():
+    since_text = request.args.get("since")
+    since = None
+    if since_text is not None:
+        try:
+            since = int(since_text)
+        except ValueError:
+            raise ApiError("bad_request", "'since' must be a whole number.", 400)
+        if since < 0:
+            raise ApiError("bad_request", "'since' cannot be negative.", 400)
+    result = _ctx()["hooks"].require("incidents").feed(since)
+    return jsonify(_out("feed_versions", result))
 
 
 # ---------- reading the state ----------
@@ -172,7 +232,7 @@ def forecast_current():
 
 # ---------- containment (needs the VIZ module) ----------
 @bp.post("/containment/propose")
-@auth.json_login_required
+@auth.role_required("analyst")
 
 def containment_propose():
     ctx = _ctx()
@@ -189,7 +249,7 @@ def containment_propose():
 
 
 @bp.post("/containment/confirm")
-@auth.json_login_required
+@auth.role_required("analyst")
 def containment_confirm():
     ctx = _ctx()
     action = ctx["hooks"].require("containment").confirm(ctx["world"], _text(_body(), "action_id"))
@@ -198,7 +258,7 @@ def containment_confirm():
 
 
 @bp.post("/containment/cancel")
-@auth.json_login_required
+@auth.role_required("analyst")
 def containment_cancel():
     ctx = _ctx()
     action = ctx["hooks"].require("containment").cancel(ctx["world"], _text(_body(), "action_id"))
@@ -258,7 +318,7 @@ def replay_status():
 
 
 @bp.post("/replay/start")
-@auth.json_login_required
+@auth.role_required("analyst")
 def replay_start():
     data = _body()
     scenario_id = _text(data, "scenario_id")
@@ -274,26 +334,26 @@ def _replay_action(name):
 
 
 @bp.post("/replay/pause")
-@auth.json_login_required
+@auth.role_required("analyst")
 def replay_pause():
     return _replay_action("pause")
 
 
 @bp.post("/replay/resume")
-@auth.json_login_required
+@auth.role_required("analyst")
 def replay_resume():
     return _replay_action("resume")
 
 
 @bp.post("/replay/restart")
-@auth.json_login_required
+@auth.role_required("analyst")
 def replay_restart():
     return _replay_action("restart")
 
 
 # ---------- push ----------
 @bp.post("/push/register")
-@auth.json_login_required
+@auth.role_required("analyst")
 def push_register():
     ctx = _ctx()
     token = _text(_body(), "token")
@@ -304,6 +364,187 @@ def push_register():
     if push is not None:
         push.register(token)
     return jsonify({"status": "ok", "count": count})
+
+
+# ---------- incident investigation workbench ----------
+def _incident_id(value):
+    if not INCIDENT_ID.fullmatch(value or ""):
+        raise ApiError("bad_request", "Incident identifiers use the form INC-0001.", 400)
+    return value
+
+
+def _incident_time_arg(key, alternate=None):
+    value = request.args.get(key)
+    if value is None and alternate:
+        value = request.args.get(alternate)
+    if value is None or value == "":
+        return None
+    try:
+        parsed = datetime.fromisoformat(value.replace("Z", "+00:00"))
+    except ValueError:
+        raise ApiError("bad_request", "'%s' must be an ISO 8601 timestamp." % key, 400)
+    if parsed.tzinfo is None:
+        parsed = parsed.replace(tzinfo=timezone.utc)
+    return parsed.astimezone(timezone.utc)
+
+
+@bp.get("/incidents")
+@auth.json_login_required
+@auth.rate_limit(max_requests=90, window_seconds=60)
+def incidents_list():
+    status = request.args.get("status")
+    severity = request.args.get("severity")
+    sort = request.args.get("sort", "updated_desc")
+    host = request.args.get("host")
+    technique = request.args.get("technique")
+    cursor = request.args.get("cursor")
+    if status and status not in INCIDENT_STATUSES:
+        raise ApiError("bad_request", "'status' must be one of: %s." % ", ".join(INCIDENT_STATUSES), 400)
+    if severity and severity not in INCIDENT_SEVERITIES:
+        raise ApiError("bad_request", "'severity' must be one of: %s." % ", ".join(INCIDENT_SEVERITIES), 400)
+    if sort not in INCIDENT_SORTS:
+        raise ApiError("bad_request", "'sort' must be one of: %s." % ", ".join(INCIDENT_SORTS), 400)
+    if host is not None and (not host.strip() or len(host) > 80):
+        raise ApiError("bad_request", "'host' must be a host id of 1 to 80 characters.", 400)
+    if technique is not None and (not technique.strip() or len(technique) > 100):
+        raise ApiError("bad_request", "'technique' must be 1 to 100 characters.", 400)
+    if cursor:
+        _incident_id(cursor)
+    try:
+        limit = int(request.args.get("limit", 25))
+    except ValueError:
+        raise ApiError("bad_request", "'limit' must be a whole number.", 400)
+    if not 1 <= limit <= 100:
+        raise ApiError("bad_request", "'limit' must be between 1 and 100.", 400)
+    start = _incident_time_arg("start", "from")
+    end = _incident_time_arg("end", "to")
+    if start and end and start > end:
+        raise ApiError("bad_request", "'start' must be before 'end'.", 400)
+    try:
+        result = _ctx()["hooks"].require("incidents").list_page(
+            status=status,
+            severity=severity,
+            host=host.strip() if host else None,
+            technique=technique.strip() if technique else None,
+            start=start,
+            end=end,
+            sort=sort,
+            limit=limit,
+            cursor=cursor,
+        )
+    except ValueError as exc:
+        raise ApiError("bad_request", str(exc), 400)
+    result["items"] = [_out("incident", item) for item in result["items"]]
+    return jsonify(result)
+
+
+@bp.get("/incidents/<incident_id>/timeline")
+@auth.json_login_required
+@auth.rate_limit(max_requests=90, window_seconds=60)
+def incident_timeline(incident_id):
+    incident_id = _incident_id(incident_id)
+    engine = _ctx()["hooks"].require("incidents")
+    if engine.get(incident_id) is None:
+        raise ApiError("not_found", "No incident with id %s." % incident_id, 404)
+    return jsonify([_out("timeline_event", event) for event in engine.timeline(incident_id)])
+
+
+@bp.get("/incidents/<incident_id>/export")
+@auth.json_login_required
+@auth.rate_limit(max_requests=12, window_seconds=60)
+def incident_export(incident_id):
+    incident_id = _incident_id(incident_id)
+    engine = _ctx()["hooks"].require("incidents")
+    incident = engine.get(incident_id)
+    if incident is None:
+        raise ApiError("not_found", "No incident with id %s." % incident_id, 404)
+    incident = _out("incident", incident)
+    timeline = [_out("timeline_event", event) for event in engine.timeline(incident_id)]
+    export_format = request.args.get("format", "json").lower()
+    if export_format == "json":
+        response = jsonify({
+            "incident": incident,
+            "timeline": timeline,
+            "simulation_note": "Scripted replay data only. Containment changes simulated in-memory state; it does not affect a real network.",
+        })
+        response.headers["Content-Disposition"] = 'attachment; filename="%s.json"' % incident_id
+        return response
+    if export_format != "markdown":
+        raise ApiError("bad_request", "'format' must be json or markdown.", 400)
+    import html
+
+    lines = [
+        "# %s — %s" % (incident_id, html.escape(incident["title"])),
+        "",
+        "**SIMULATION:** Scripted replay data only. Containment changes simulated in-memory state; no real network is affected.",
+        "",
+        "- Status: %s" % incident["status"],
+        "- Severity: %s" % incident["severity"],
+        "- Scenario: %s" % (incident["scenario_id"] or "unknown"),
+        "- Affected hosts: %s" % (", ".join(incident["affected_hosts"]) or "none"),
+        "- Compromised hosts: %s" % (", ".join(incident["compromised_hosts"]) or "none"),
+        "",
+        "## Timeline",
+    ]
+    lines.extend("- %s — %s" % (item["timestamp"], html.escape(item["summary"])) for item in timeline)
+    if incident["notes"]:
+        lines.extend(["", "## Analyst notes"])
+        lines.extend("- %s (%s, %s): %s" % (note["created_at"], note["author"], note["role"], html.escape(note["body"])) for note in incident["notes"])
+    response = Response("\n".join(lines) + "\n", mimetype="text/markdown")
+    response.headers["Content-Disposition"] = 'attachment; filename="%s.md"' % incident_id
+    return response
+
+
+@bp.get("/incidents/<incident_id>")
+@auth.json_login_required
+@auth.rate_limit(max_requests=90, window_seconds=60)
+def incident_detail(incident_id):
+    incident_id = _incident_id(incident_id)
+    incident = _ctx()["hooks"].require("incidents").get(incident_id)
+    if incident is None:
+        raise ApiError("not_found", "No incident with id %s." % incident_id, 404)
+    return jsonify(_out("incident", incident))
+
+
+@bp.post("/incidents/<incident_id>/notes")
+@auth.role_required("analyst")
+def incident_note_add(incident_id):
+    incident_id = _incident_id(incident_id)
+    data = _body()
+    if set(data) != {"body"}:
+        raise ApiError("bad_request", "Send exactly one field: body.", 400)
+    engine = _ctx()["hooks"].require("incidents")
+    try:
+        note = engine.add_note(incident_id, data.get("body"), current_user.username, auth.current_role())
+    except KeyError:
+        raise ApiError("not_found", "No incident with id %s." % incident_id, 404)
+    except ValueError as exc:
+        raise ApiError("bad_request", str(exc), 400)
+    return jsonify(_out("incident_note", note)), 201
+
+
+@bp.post("/incidents/<incident_id>/status")
+@auth.role_required("analyst")
+def incident_status_change(incident_id):
+    incident_id = _incident_id(incident_id)
+    data = _body()
+    if set(data) != {"status", "reason", "confirm"}:
+        raise ApiError("bad_request", "Send status, reason and confirm.", 400)
+    engine = _ctx()["hooks"].require("incidents")
+    try:
+        incident = engine.change_status(
+            incident_id,
+            data.get("status"),
+            data.get("reason"),
+            data.get("confirm"),
+            current_user.username,
+            auth.current_role(),
+        )
+    except KeyError:
+        raise ApiError("not_found", "No incident with id %s." % incident_id, 404)
+    except ValueError as exc:
+        raise ApiError("bad_request", str(exc), 400)
+    return jsonify(_out("incident", incident))
 
 
 # ---------- anything else under /api/x ----------

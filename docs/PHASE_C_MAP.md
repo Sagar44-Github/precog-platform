@@ -40,8 +40,30 @@ Environment: Windows 11 desktop, PowerShell, Python 3.11.9, repository `.venv`, 
 
 Browser audit artifacts were restored after measurement so baseline verification does not replace the checked-in Phase B evidence. The repository's pre-existing untracked landing audit screenshots were left untouched.
 
-## C1 implementation boundary
+## C1 delivered
 
-C1 will add the incident domain and its routes, contracts, tests, incident list/detail UI, note/status audit integration, and cross-links needed by those pages. It will extend the existing alerts, graph, forecast, replay, containment and Phase B1 shell rather than duplicate them. It will not implement C2–C7 in this branch. Any requirement that needs an extension to DETECT or GRAPH will be isolated and documented before changing those modules; `lead-core/backend/nids/` remains protected.
+C1 extends the existing alerts, graph, forecasts, replay, containment, and Phase B1 shell with an incident workbench; it does not implement C2–C7. Incidents correlate scripted alerts deterministically with explainable grouping reasons, severity roll-up, typed timelines, status transitions, notes, JSON/Markdown export, and an atomic bounded audit ledger. Viewer, analyst, and admin permissions are checked on the server; the UI mirrors those permissions. The Golden Path decision is preserved: once its predicted move is blocked by the one confirmed containment, the incident is marked contained while still listing `host-a` as compromised and explaining that the movement was stopped rather than every affected asset being remediated.
 
-The hosted-check cleanup issue is part of the starting baseline and will be kept distinct from incident behavior. C1 completion will be reported against the verified totals above plus its new checks; later items will wait for approval.
+New endpoints: `GET /api/x/feed`, `GET /api/x/role`, `GET /api/x/incidents` (filters and cursor paging), `GET /api/x/incidents/{id}`, `GET /api/x/incidents/{id}/timeline`, `GET /api/x/incidents/{id}/export?format=json|markdown`, `POST /api/x/incidents/{id}/notes`, and `POST /api/x/incidents/{id}/status`. C1 adds six schemas and samples: `incident`, `incident_note`, `timeline_event`, `feed_versions`, `role_info`, and `incident_audit_entry`.
+
+The replay controller extension passes optional severity through only when a hook accepts it; shipped callers remain compatible. `quiet-scan` now marks its scripted alerts LOW so the acceptance scenario has the specified low-severity classification. No NIDS source files changed.
+
+## C1 verification
+
+Environment: Windows 11 desktop, PowerShell, Python 3.11.9, repository `.venv`, offline-model `.venv`, Node/npm, Playwright Chromium with SwiftShader.
+
+| Check | Command or procedure | C1 result |
+|---|---|---|
+| Full Python suite | `.venv/Scripts/python.exe -m pytest -o "addopts=" -p no:cacheprovider --tb=short` | **390 collected; 389 passed, 1 skipped**, 2 existing Scapy deprecation warnings, 42.25 s. |
+| Offline detector suite | `detect/offline_model/.venv/Scripts/python.exe -m pytest -o testpaths=. -o "addopts=" -p no:cacheprovider --tb=short` | **50 passed, 1 skipped**. |
+| Web suite | `npm test` in `web/` | **113 passed, 0 failed, 0 skipped** across 22 files. |
+| Contracts | `.venv/Scripts/python.exe contracts/check_contracts.py` | **18 contracts OK** (six added). |
+| Browser audit | `npm run audit:browser` in `web/` | **54 checks**, sample/live at 390×844, 820×1180, 1440×900; **0 failures, 0 browser errors, 0 axe violations**. The incident note flow and live simulated containment pass. |
+| Browser evidence | `docs/audit/phase-c/browser-audit-results.json` and `docs/audit/screenshots/phase-c/` | **54 screenshots** saved. |
+| Golden Path | `.venv/Scripts/python.exe lead-core/integration/golden_path.py --runs 2 --speed 1` | **2 of 2 PASS**; both runs confirmed proposal-before-confirmation, one executed simulated containment, blocked-hit outcome, and replay completion. |
+| Hosted-style readiness | Local server plus `lead-core/integration/check_hosted.py` | **12 checks OK; READY for the demo**. No public Render deployment or physical-phone installation was performed. |
+| Web build and hosted bundle | `npm run build` in `web/`; copied `web/dist` to `lead-core/backend/web_dist` | Build succeeds; hosted bundle refreshed to **22 files**. Vite reports a large-chunk warning; main JS is 827.91 kB (240.10 kB gzip), below the 1.43 MB starting audit figure. |
+| Scenario acceptance | `test_golden_path_lateral_spread_quiet_scan_and_repeat_determinism` | Golden Path: exactly one contained incident, one executed action, blocked-hit forecast, source compromise shown. Lateral spread: one growing incident. Quiet scan: one LOW, open incident. Repeated quiet scans normalize identically. |
+| Diff hygiene | `git diff --check`; NIDS path check | No whitespace errors and no changes under `lead-core/backend/nids/`. |
+
+C1 is complete on `phase-c1-incidents`. C2–C7 remain unstarted and gated on review/approval. The existing dependency advisories and Vite chunk warning remain; Render and physical-phone behavior are unverified.

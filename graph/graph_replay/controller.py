@@ -11,6 +11,7 @@ An event marked pause_for_decision stops the replay BEFORE it runs, until the an
 confirmed, cancelled or expires), someone calls resume(), or the decision time runs out.
 """
 import logging
+import inspect
 import threading
 import time
 from datetime import datetime, timezone
@@ -22,6 +23,15 @@ from .packet_store import PACKET_FIELDS
 log = logging.getLogger("precog.replay")
 
 BUSY_STATES = ("running", "paused", "waiting_for_decision")
+
+
+def _accepts_keyword(method, keyword):
+    """Keep optional scenario metadata compatible with older event-hook implementations."""
+    try:
+        parameters = inspect.signature(method).parameters.values()
+    except (TypeError, ValueError):
+        return False
+    return any(parameter.name == keyword or parameter.kind == inspect.Parameter.VAR_KEYWORD for parameter in parameters)
 
 
 def _now_text():
@@ -253,14 +263,23 @@ class ReplayController:
             pairs.append((packet["src_host"], packet["dst_host"]))
         ids = self.store.insert(rows)
         self.detector()  # NIDS labels every unlabelled packet right now
-        self.hooks.get("events").process_packets(self.store.fetch(ids))
+        events = self.hooks.get("events")
+        rows = self.store.fetch(ids)
+        if event.get("severity") and _accepts_keyword(events.process_packets, "severity_override"):
+            events.process_packets(rows, severity_override=event["severity"])
+        else:
+            events.process_packets(rows)
         graph = self.hooks.get("graph")
         for source, target in pairs:
             graph.add_connection(source, target)
 
     def _handle_technique(self, event):
         compromise = bool(event.get("compromise"))
-        self.hooks.get("events").process_technique(event["host"], event["technique_id"], note=event.get("note"), compromise=compromise)
+        events = self.hooks.get("events")
+        if event.get("severity") and _accepts_keyword(events.process_technique, "severity"):
+            events.process_technique(event["host"], event["technique_id"], note=event.get("note"), compromise=compromise, severity=event["severity"])
+        else:
+            events.process_technique(event["host"], event["technique_id"], note=event.get("note"), compromise=compromise)
         if compromise and self.hooks.get("graph").mark_compromised(event["host"]):
             precog = self.hooks.get("precog")
             if precog is not None:
@@ -273,7 +292,11 @@ class ReplayController:
         shown = self._name.get(target, target)
         words = "The move toward %s was blocked." % shown if blocked else "The move toward %s succeeded." % shown
         note = ((event.get("note") or "").strip().rstrip(".") + ". " if event.get("note") else "") + words
-        self.hooks.get("events").process_technique(source, event["technique_id"], note=note.rstrip("."))
+        events = self.hooks.get("events")
+        if event.get("severity") and _accepts_keyword(events.process_technique, "severity"):
+            events.process_technique(source, event["technique_id"], note=note.rstrip("."), severity=event["severity"])
+        else:
+            events.process_technique(source, event["technique_id"], note=note.rstrip("."))
         precog = self.hooks.get("precog")
         if precog is not None:
             precog.on_attempt(source, target, blocked)

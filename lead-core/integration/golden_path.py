@@ -33,7 +33,7 @@ class Run:
         return self.client.get(path).get_json()
 
     def post(self, path, body=None):
-        reply = self.client.post(path, json=body or {})
+        reply = self.client.post(path, json=body or {}, headers={"X-Precog-Request": "1"})
         return reply.status_code, reply.get_json()
 
     def wait(self, condition, timeout=30.0, step=0.005):

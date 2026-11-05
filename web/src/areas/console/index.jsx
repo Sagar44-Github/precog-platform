@@ -7,11 +7,14 @@ import DemoStart from '../../shared/DemoStart.jsx'
 import { AlertsPanel, ForecastPanel, LeftRail, NodeDetailPanel, ReportsPanel, SceneSummary, TimelineStrip, TopBar } from './panels.jsx'
 import Scene3D from './Scene3D.jsx'
 import { buildScene } from './sceneModel.js'
+import { useAuth } from '../../shared/AuthContext.jsx'
 import './console.css'
 
 // The 3D console (owner: VIZ). App.jsx imports the default export.
 
 function Console({ state, stale }) {
+  const { role } = useAuth()
+  const canOperate = role !== 'viewer'
   const { show } = useToast()
   const [view, setView] = useState('graph')
   const [selected, setSelected] = useState(null)
@@ -34,7 +37,7 @@ function Console({ state, stale }) {
         setView(command.view)
         setSelected(null)
       }
-      if (command.type === 'start-demo') {
+      if (command.type === 'start-demo' && canOperate) {
         api.startReplay('golden-path', 1)
           .then(() => show('Golden Path replay started (simulation)'))
           .catch((error) => show(error.message || 'Could not start the replay.'))
@@ -42,25 +45,25 @@ function Console({ state, stale }) {
     }
     window.addEventListener('precog:console-command', onCommand)
     return () => window.removeEventListener('precog:console-command', onCommand)
-  }, [show])
+  }, [show, canOperate])
 
   let panel
   if (!state) panel = <LoadingState />
   else if (view === 'alerts') panel = <AlertsPanel state={state} />
   else if (view === 'reports') panel = <ReportsPanel state={state} />
-  else if (selected) panel = <NodeDetailPanel state={state} hostId={selected} onClose={() => setSelected(null)} onDone={show} />
-  else panel = <ForecastPanel state={state} resolved={resolved} onDone={show} />
+  else if (selected) panel = <NodeDetailPanel state={state} hostId={selected} onClose={() => setSelected(null)} onDone={show} canOperate={canOperate} />
+  else panel = <ForecastPanel state={state} resolved={resolved} onDone={show} canOperate={canOperate} />
 
   return (
     <div className="c-app" data-waiting={pending ? 'true' : 'false'}>
-      <TopBar state={state} stale={stale} />
+      <TopBar state={state} stale={stale} canOperate={canOperate} />
       <StaleBanner stale={stale} />
       <LeftRail view={view} onChange={(v) => { setView(v); setSelected(null) }} />
       <main className="c-centre">
         {state && <div className="c-map-heading"><div><span className="c-eyebrow">TACTICAL NETWORK VIEW / 01</span><h1>Attack surface</h1></div><div className="c-map-totals"><span><b>{state.graph.hosts.length.toString().padStart(2, '0')}</b> ASSETS</span><span><b>{Object.keys(state.graph.hosts.reduce((zones, host) => ({ ...zones, [host.zone]: true }), {})).length.toString().padStart(2, '0')}</b> ZONES</span><span><b>{state.alerts.length.toString().padStart(2, '0')}</b> EVENTS</span></div></div>}
         <Scene3D model={model} pendingForecast={pending} onSelect={(id) => { setSelected(id); if (id) setView('graph') }} />
         {state && <SceneSummary state={state} />}
-        {state && state.replay.state === 'idle' && <DemoStart className="c-demo-launch" hostCount={state.graph.hosts.length} />}
+        {state && state.replay.state === 'idle' && (canOperate ? <DemoStart className="c-demo-launch" hostCount={state.graph.hosts.length} /> : <p className="c-muted">Viewer access is read-only. Ask an analyst to start a replay.</p>)}
       </main>
       <aside className="c-right" data-focus={pending ? 'true' : 'false'}>{panel}</aside>
       <TimelineStrip alerts={state ? state.alerts : []} forecast={state ? state.forecast : null} />

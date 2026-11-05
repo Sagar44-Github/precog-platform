@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/timeline_event.schema.json",
+  "title": "Incident timeline event",
+  "type": "object",
+  "properties": {
+    "event_id": { "type": "string", "minLength": 1 },
+    "incident_id": { "type": "string", "pattern": "^INC-[0-9]{4}$" },
+    "sequence": { "type": "integer", "minimum": 1 },
+    "type": { "type": "string", "enum": ["alert", "technique", "compromise", "forecast", "forecast_outcome", "containment_proposed", "confirmed", "cancelled", "expired", "release", "note", "status_change"] },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "summary": { "type": "string", "minLength": 1, "maxLength": 3000 },
+    "ref_id": { "type": ["string", "null"] },
+    "host_ids": { "type": "array", "maxItems": 50, "items": { "type": "string", "minLength": 1 } },
+    "data": { "type": "object" },
+    "actor": { "type": ["string", "null"] },
+    "role": { "type": ["string", "null"], "enum": ["analyst", "admin", "viewer", null] }
+  },
+  "required": ["event_id", "incident_id", "sequence", "type", "timestamp", "summary", "ref_id", "host_ids", "data", "actor", "role"],
+  "additionalProperties": false
+}

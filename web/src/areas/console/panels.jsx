@@ -8,7 +8,7 @@ import { containReducer, formatTime, hostName, initialContain, replayButtons, re
 // The console's panels (owner: VIZ). The phone components (SeverityBadge, StateChip, ForecastBars, OutcomeCard, AccuracyCounter,
 // AttackPath2D) come from GRAPH's area through its entry file; VIZ never edits GRAPH's files.
 
-export function ReplayControls({ replay, client = api }) {
+export function ReplayControls({ replay, client = api, canOperate = true }) {
   const [scenarios, setScenarios] = useState([])
   const [scenario, setScenario] = useState('golden-path')
   const [speed, setSpeed] = useState(1)
@@ -20,28 +20,29 @@ export function ReplayControls({ replay, client = api }) {
   return (
     <div className="c-replay" role="group" aria-label="Replay controls">
       <span className="c-control-label">REPLAY CONTROL</span>
-      <select className="c-select-scenario" aria-label="Scenario" value={scenario} onChange={(e) => setScenario(e.target.value)} disabled={!enabled.start}>
+      <select className="c-select-scenario" aria-label="Scenario" value={scenario} onChange={(e) => setScenario(e.target.value)} disabled={!canOperate || !enabled.start}>
         {(scenarios.length ? scenarios : [{ scenario_id: 'golden-path' }]).map((s) => <option key={s.scenario_id} value={s.scenario_id}>{s.scenario_id}</option>)}
       </select>
-      <button type="button" className="c-btn c-btn-start" disabled={!enabled.start} onClick={run(() => client.startReplay(scenario, speed))}>Start <span aria-hidden="true">▶</span></button>
-      <button type="button" className="c-btn c-btn-icon" aria-label="Pause replay" title="Pause replay" disabled={!enabled.pause} onClick={run(() => client.pauseReplay())}>Ⅱ</button>
-      <button type="button" className="c-btn c-btn-icon" aria-label="Resume replay" title="Resume replay" disabled={!enabled.resume} onClick={run(() => client.resumeReplay())}>▶</button>
-      <button type="button" className="c-btn c-btn-icon" aria-label="Restart replay" title="Restart replay" disabled={!enabled.restart} onClick={run(() => client.restartReplay())}>↺</button>
-      <select aria-label="Speed" value={speed} onChange={(e) => setSpeed(Number(e.target.value))} disabled={!enabled.start}>
+      <button type="button" className="c-btn c-btn-start" disabled={!canOperate || !enabled.start} onClick={run(() => client.startReplay(scenario, speed))}>Start <span aria-hidden="true">▶</span></button>
+      <button type="button" className="c-btn c-btn-icon" aria-label="Pause replay" title="Pause replay" disabled={!canOperate || !enabled.pause} onClick={run(() => client.pauseReplay())}>Ⅱ</button>
+      <button type="button" className="c-btn c-btn-icon" aria-label="Resume replay" title="Resume replay" disabled={!canOperate || !enabled.resume} onClick={run(() => client.resumeReplay())}>▶</button>
+      <button type="button" className="c-btn c-btn-icon" aria-label="Restart replay" title="Restart replay" disabled={!canOperate || !enabled.restart} onClick={run(() => client.restartReplay())}>↺</button>
+      <select aria-label="Speed" value={speed} onChange={(e) => setSpeed(Number(e.target.value))} disabled={!canOperate || !enabled.start}>
         {SPEEDS.map((s) => <option key={s} value={s}>{s}×</option>)}
       </select>
       <span className={waiting ? 'c-replay-word c-waiting' : 'c-replay-word'}><i aria-hidden="true" />{replayWord(replay)}</span>
       {problem && <span className="c-error" role="alert">{problem}</span>}
+      {!canOperate && <span className="c-replay-word">Viewer access is read-only</span>}
     </div>
   )
 }
 
-export function TopBar({ state, stale }) {
+export function TopBar({ state, stale, canOperate = true }) {
   const level = threatLevel(state)
   return (
     <header className="c-top">
       <div className="c-top-state">{level && <span className={`c-threat c-threat-${level.key}`} aria-label={`Threat: ${level.word}`} aria-live="polite"><span aria-hidden="true">{level.icon}</span><span><small>THREAT LEVEL</small><b>{level.word}</b></span></span>}</div>
-      <ReplayControls replay={state ? state.replay : null} />
+      <ReplayControls replay={state ? state.replay : null} canOperate={canOperate} />
       <div className="c-top-actions"><Link to="/mobile" className="c-mobile-link"><span aria-hidden="true">▣</span> Phone view</Link><span className="c-conn" role="status"><i aria-hidden="true" />{stale ? 'Offline · stale data' : 'Connected'}</span></div>
     </header>
   )
@@ -109,12 +110,12 @@ export function ConsoleContain({ state, client = api, onDone }) {
   )
 }
 
-export function ForecastPanel({ state, resolved, onDone }) {
+export function ForecastPanel({ state, resolved, onDone, canOperate = true }) {
   return (
     <div className="c-panel-body">
       <div className="c-panel-heading"><span className="c-eyebrow">PREC0G ENGINE / NEXT MOVE</span><h2>Predicted targets</h2><p>Ranked from the current attack path</p></div>
       <ForecastBars state={state} />
-      <ConsoleContain state={state} onDone={onDone} />
+      {canOperate ? <ConsoleContain state={state} onDone={onDone} /> : <p className="c-muted">Viewer access is read-only. An analyst can propose and confirm simulated containment.</p>}
       <h3 className="c-section-title">Attack path</h3>
       <AttackPath2D state={state} />
       <OutcomeCard forecast={resolved} state={state} />
@@ -122,7 +123,7 @@ export function ForecastPanel({ state, resolved, onDone }) {
   )
 }
 
-export function NodeDetailPanel({ state, hostId, onClose, onDone }) {
+export function NodeDetailPanel({ state, hostId, onClose, onDone, canOperate = true }) {
   const host = state.graph.hosts.find((h) => h.host_id === hostId)
   if (!host) return null
   const alerts = state.alerts.filter((a) => a.host === hostId).slice(0, 5)
@@ -136,7 +137,7 @@ export function NodeDetailPanel({ state, hostId, onClose, onDone }) {
       <h3>Recent alerts</h3>
       {alerts.length === 0 ? <p className="c-muted">No alerts for this host.</p> : alerts.map((a) => (
         <p key={a.event_id} className="c-row"><SeverityBadge severity={a.severity} /><span>{a.explanation}</span></p>))}
-      {predicted && <><ForecastBars state={state} /><ConsoleContain state={state} onDone={onDone} /></>}
+      {predicted && <><ForecastBars state={state} />{canOperate ? <ConsoleContain state={state} onDone={onDone} /> : <p className="c-muted">Viewer access is read-only. Ask an analyst to propose containment.</p>}</>}
     </div>
   )
 }

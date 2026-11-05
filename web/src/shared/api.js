@@ -23,7 +23,7 @@ async function request(method, path, body) {
     response = await fetch(path, {
       method,
       credentials: 'same-origin',
-      headers: body === undefined ? {} : { 'Content-Type': 'application/json' },
+      headers: body === undefined ? {} : { 'Content-Type': 'application/json', 'X-Precog-Request': '1' },
       body: body === undefined ? undefined : JSON.stringify(body),
     })
   } catch (error) {

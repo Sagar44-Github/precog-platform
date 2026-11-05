@@ -12,7 +12,7 @@ import { filterAlerts, formatTime, hostName, hostState } from './logic.js'
 
 const needsState = (state) => (state ? null : <LoadingState />)
 
-export function HomeScreen({ state, stale }) {
+export function HomeScreen({ state, stale, canOperate = true }) {
   const toast = useToast()
   const navigate = useNavigate()
   if (!state) return needsState(state)
@@ -20,10 +20,10 @@ export function HomeScreen({ state, stale }) {
   return (
     <div className="m-screen">
       <ThreatLevelCard state={state} stale={stale} />
-      {state.replay?.state === 'idle' && <DemoStart className="demo-launch-mobile" hostCount={state.graph.hosts.length} />}
+      {state.replay?.state === 'idle' && (canOperate ? <DemoStart className="demo-launch-mobile" hostCount={state.graph.hosts.length} /> : <p className="m-caption">Viewer access is read-only. Ask an analyst to start a replay.</p>)}
       <section className="m-card">
         <ForecastBars state={state} />
-        {state.forecast && <ContainFlow state={state} onDone={toast.show} />}
+        {state.forecast && (canOperate ? <ContainFlow state={state} onDone={toast.show} /> : <p className="m-caption">Viewer access is read-only. An analyst can propose and confirm simulated containment.</p>)}
       </section>
       <section className="m-card">
         <h2>Latest alert</h2>
@@ -78,7 +78,7 @@ export function AlertDetailScreen({ state }) {
   )
 }
 
-export function ForecastScreen({ state }) {
+export function ForecastScreen({ state, canOperate = true }) {
   const toast = useToast()
   if (!state) return needsState(state)
   return (
@@ -86,7 +86,7 @@ export function ForecastScreen({ state }) {
       <h1 className="m-title">Forecast</h1>
       <section className="m-card">
         <ForecastBars state={state} />
-        {state.forecast && <ContainFlow state={state} onDone={toast.show} />}
+        {state.forecast && (canOperate ? <ContainFlow state={state} onDone={toast.show} /> : <p className="m-caption">Viewer access is read-only. An analyst can propose and confirm simulated containment.</p>)}
       </section>
       <section className="m-card"><h2>Attack path</h2><AttackPath2D state={state} /></section>
       <LastOutcome />

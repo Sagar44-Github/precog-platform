@@ -4,6 +4,7 @@ import { ThemeToggle } from '../../shared/theme-context.jsx'
 import { useWorldState } from '../../shared/usePolling.js'
 import { AlertDetailScreen, AlertsScreen, ForecastScreen, HistoryScreen, HomeScreen } from './screens.jsx'
 import { highAlertCount } from './logic.js'
+import { useAuth } from '../../shared/AuthContext.jsx'
 import './mobile.css'
 
 // The phone app (owner: GRAPH). App.jsx imports the default export. VIZ imports the named components below.
@@ -27,6 +28,8 @@ export function TabBar({ state }) {
 }
 
 export default function MobileApp() {
+  const { role } = useAuth()
+  const canOperate = role !== 'viewer'
   const { state, stale, loggedOut } = useWorldState()
   if (loggedOut) return <Navigate to="/login" replace />
   return (
@@ -35,10 +38,10 @@ export default function MobileApp() {
         <header className="m-top"><h1>Precog SOC</h1><div className="m-top-actions"><ThemeToggle className="m-theme-toggle" /><SimulationBadge /></div></header>
         <StaleBanner stale={stale} />
         <Routes>
-          <Route index element={<HomeScreen state={state} stale={stale} />} />
+          <Route index element={<HomeScreen state={state} stale={stale} canOperate={canOperate} />} />
           <Route path="alerts" element={<AlertsScreen state={state} />} />
           <Route path="alerts/:id" element={<AlertDetailScreen state={state} />} />
-          <Route path="forecast" element={<ForecastScreen state={state} />} />
+          <Route path="forecast" element={<ForecastScreen state={state} canOperate={canOperate} />} />
           <Route path="history" element={<HistoryScreen state={state} />} />
           <Route path="*" element={<Navigate to="/mobile" replace />} />
         </Routes>

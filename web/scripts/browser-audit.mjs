@@ -12,7 +12,9 @@ const artifactsDir = process.env.AUDIT_OUTPUT_DIR
   ? resolve(repoRoot, process.env.AUDIT_OUTPUT_DIR)
   : join(repoRoot, 'docs', 'audit')
 const screenshots = join(artifactsDir, 'screenshots')
+const screenshotOverride = process.env.AUDIT_SCREENSHOT_DIR ? resolve(repoRoot, process.env.AUDIT_SCREENSHOT_DIR) : screenshots
 const basePort = Number(process.env.AUDIT_PORT || 55120)
+const settleMs = Number(process.env.AUDIT_SETTLE_MS || 1800)
 const password = randomBytes(18).toString('hex')
 const sizes = [
   { name: '390x844', width: 390, height: 844 },
@@ -25,6 +27,8 @@ const routeSpecs = [
   ['mobile-alert-detail', null],
   ['mobile-forecast', '/app/mobile/forecast'],
   ['mobile-history', '/app/mobile/history'],
+  ['incidents', '/app/incidents'],
+  ['incident-detail', null],
   ['console', '/app/console'],
 ]
 const report = { browser: 'Playwright Chromium (SwiftShader)', modes: {} }
@@ -92,7 +96,7 @@ async function checkViewport(page, mode, routeName, path, size) {
     await page.locator('.c-app').waitFor({ timeout: 8000 }).catch(() => {})
     await page.waitForFunction(() => document.querySelector('.c-scene canvas'), null, { timeout: 15000 }).catch(() => {})
   }
-  await page.waitForTimeout(1800)
+  await page.waitForTimeout(settleMs)
   const state = await page.evaluate(() => ({
     width: window.innerWidth,
     scrollWidth: document.documentElement.scrollWidth,
@@ -113,8 +117,22 @@ async function checkViewport(page, mode, routeName, path, size) {
   if (!state.hasSimulationLabel) failures.push('SIMULATION label missing')
   if (routeName === 'console' && size.width < 1024 && !state.hasConsoleHandoff) failures.push('narrow console handoff is missing')
   if (routeName === 'console' && size.width >= 1024 && !state.hasCommandTrigger) failures.push('desktop command palette trigger is missing')
+  if (routeName === 'incidents' || routeName === 'incident-detail') {
+    await page.addScriptTag({ path: join(repoRoot, 'web', 'node_modules', 'axe-core', 'axe.min.js') })
+    const accessibility = await page.evaluate(async () => {
+      const result = await window.axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] } })
+      return { violations: result.violations.map((item) => ({
+        id: item.id,
+        impact: item.impact,
+        count: item.nodes.length,
+        nodes: item.nodes.map((node) => ({ target: node.target, html: node.html, summary: node.failureSummary })),
+      })) }
+    })
+    check.accessibility = accessibility
+    if (accessibility.violations.length) failures.push(`axe found ${accessibility.violations.length} accessibility violation(s)`)
+  }
   if (failures.length) check.failure = failures.join('; ')
-  await page.screenshot({ path: join(screenshots, check.screenshot), animations: 'disabled' })
+  await page.screenshot({ path: join(screenshotOverride, check.screenshot), animations: 'disabled' })
   return check
 }
 
@@ -183,10 +201,17 @@ async function runMode(browser, mode, port, dbDir, errors) {
     })
     const alertId = alerts[0]?.event_id
     if (!alertId) errors.push(`${mode} mode did not provide an alert id for the alert-detail route`)
+    const incidentId = await page.evaluate(async () => {
+      const response = await fetch('/api/x/incidents?limit=1')
+      const result = response.ok ? await response.json() : null
+      return result?.items?.[0]?.incident_id || null
+    })
     for (const size of sizes) {
       for (const [routeName, path] of routeSpecs) {
         const route = routeName === 'mobile-alert-detail'
           ? (alertId ? `/app/mobile/alerts/${encodeURIComponent(alertId)}` : '/app/mobile/alerts')
+          : routeName === 'incident-detail'
+            ? (incidentId ? `/app/incidents/${encodeURIComponent(incidentId)}` : '/app/incidents')
           : path
         const check = await checkViewport(page, mode, routeName, `${base}${route}`, size)
         const failures = check.failure ? [check.failure] : []
@@ -217,6 +242,18 @@ async function runMode(browser, mode, port, dbDir, errors) {
     }
 
     if (mode === 'sample') {
+      if (incidentId) {
+        await page.setViewportSize({ width: 1440, height: 900 })
+        await page.goto(`${base}/app/incidents/${encodeURIComponent(incidentId)}`, { waitUntil: 'domcontentloaded' })
+        const note = `Browser audit note ${randomBytes(4).toString('hex')} · scripted simulation`
+        await page.locator('#incident-note').fill(note)
+        await page.getByRole('button', { name: 'Add note' }).click()
+        await page.locator('.incident-notes-list').getByText(note, { exact: true }).waitFor({ timeout: 10000 })
+        await page.getByText(note, { exact: true }).last().waitFor({ timeout: 10000 })
+        report.incidentNoteFlow = 'note submitted on the detail route and shown in the refreshed timeline'
+      } else {
+        errors.push('sample mode did not provide an incident id for the note flow')
+      }
       await page.setViewportSize({ width: 1440, height: 900 })
       await page.goto(`${base}/app/console`, { waitUntil: 'domcontentloaded' })
       try {
@@ -270,6 +307,7 @@ async function runMode(browser, mode, port, dbDir, errors) {
 
 async function main() {
   mkdirSync(screenshots, { recursive: true })
+  mkdirSync(screenshotOverride, { recursive: true })
   const dbDir = mkdtempSync(join(tmpdir(), 'precog-browser-audit-'))
   const browser = await chromium.launch({
     headless: true,
@@ -291,7 +329,7 @@ async function main() {
   await import('node:fs/promises').then(({ writeFile }) => writeFile(reportFile, `${JSON.stringify(report, null, 2)}\n`))
   console.log(JSON.stringify({
     report: reportFile,
-    screenshots: screenshots,
+    screenshots: screenshotOverride,
     checks: Object.fromEntries(Object.entries(report.modes).map(([mode, data]) => [mode, data.checks.length])),
     failures: report.failures,
     errors,

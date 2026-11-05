@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/incident_audit_entry.schema.json",
+  "title": "Incident audit ledger entry",
+  "type": "object",
+  "properties": {
+    "audit_id": { "type": "string", "pattern": "^IAUD-[0-9]{6}$" },
+    "type": { "type": "string", "enum": ["note", "status_change"] },
+    "incident_id": { "type": "string", "pattern": "^INC-[0-9]{4}$" },
+    "timestamp": { "type": "string", "format": "date-time" },
+    "actor": { "type": "string", "minLength": 1, "maxLength": 50 },
+    "role": { "type": "string", "enum": ["analyst", "admin"] },
+    "summary": { "type": "string", "minLength": 1, "maxLength": 700 },
+    "text": { "type": ["string", "null"], "maxLength": 2000, "pattern": "^[^<>]*$" },
+    "reason": { "type": ["string", "null"], "maxLength": 500, "pattern": "^[^<>]*$" }
+  },
+  "required": ["audit_id", "type", "incident_id", "timestamp", "actor", "role", "summary", "text", "reason"],
+  "additionalProperties": false
+}

@@ -7,25 +7,30 @@ const AuthContext = createContext(null)
 
 export function AuthProvider({ children }) {
   const [username, setUsername] = useState(null)
+  const [role, setRole] = useState(null)
   const [checking, setChecking] = useState(true)
 
   useEffect(() => {
     api.me()
-      .then((reply) => setUsername(reply.username))
-      .catch(() => setUsername(null))
+      .then((reply) => { setUsername(reply.username); setRole(reply.role || null) })
+      .catch(() => { setUsername(null); setRole(null) })
       .finally(() => setChecking(false))
   }, [])
 
   const value = {
     username,
+    role,
+    readOnly: role === 'viewer',
     checking,
     async login(name, password) {
       const reply = await api.login(name, password)
       setUsername(reply.username)
+      setRole(reply.role || null)
     },
     async logout() {
       await api.logout()
       setUsername(null)
+      setRole(null)
     },
   }
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

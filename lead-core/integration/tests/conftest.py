@@ -11,6 +11,7 @@ import tempfile
 from pathlib import Path
 
 import pytest
+from flask.testing import FlaskClient
 
 
 BACKEND = Path(__file__).resolve().parents[2] / "backend"
@@ -23,6 +24,8 @@ os.environ["DATABASE_URL"] = "sqlite:///" + (Path(_tmp) / "test.db").as_posix()
 os.environ["SECRET_KEY"] = "test-secret-key-not-for-real-use"
 
 os.environ["ADMIN_PASSWORD"] = "test-admin-password"
+os.environ["ANALYST_PASSWORD"] = "test-analyst-password"
+os.environ["VIEWER_PASSWORD"] = "test-viewer-password"
 
 os.environ["DATA_MODE"] = "sample"
 
@@ -44,6 +47,18 @@ def flask_app():
 
     app = create_app()
     app.config["TESTING"] = True
+    class PrecogTestClient(FlaskClient):
+        def open(self, *args, **kwargs):
+            method = (kwargs.get("method") or "GET").upper()
+            path = str(args[0] if args else kwargs.get("path", ""))
+            if method in ("POST", "PUT", "PATCH", "DELETE") and path.startswith("/api/x/") and path != "/api/x/login":
+                if "json" not in kwargs and "data" not in kwargs:
+                    kwargs["json"] = {}
+                headers = dict(kwargs.get("headers") or {})
+                headers.setdefault("X-Precog-Request", "1")
+                kwargs["headers"] = headers
+            return super().open(*args, **kwargs)
+    app.test_client_class = PrecogTestClient
     return app
 
 

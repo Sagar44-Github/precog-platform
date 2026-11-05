@@ -4,6 +4,7 @@ import { useAuth } from './AuthContext.jsx'
 import { SimulationBadge } from './components.jsx'
 import { Icon } from './icons.jsx'
 import { ThemeToggle, useTheme } from './theme-context.jsx'
+import { apiGet } from './api.js'
 import './app-shell.css'
 
 const CONSOLE_WIDTH = 1024
@@ -27,6 +28,7 @@ function commandEvent(detail) {
 export function CommandPalette({ open, onClose }) {
   const navigate = useNavigate()
   const { theme, toggleTheme } = useTheme()
+  const { role } = useAuth()
   const [query, setQuery] = useState('')
   const [active, setActive] = useState(0)
   const inputRef = useRef(null)
@@ -35,11 +37,12 @@ export function CommandPalette({ open, onClose }) {
   const commands = useMemo(() => [
     { label: 'Open live console', detail: 'Go to the 3D replay console', icon: 'activity', keywords: 'workspace desktop', run: () => navigate('/console') },
     { label: 'Open mobile SOC', detail: 'Open the phone PWA screens', icon: 'smartphone', keywords: 'phone pwa', run: () => navigate('/mobile') },
+    { label: 'Open incident investigations', detail: 'Review correlated alerts and analyst notes', icon: 'shield', keywords: 'cases incident investigation', run: () => navigate('/incidents') },
     { label: 'Show alert stream', detail: 'Open alerts in the console panel', icon: 'activity', keywords: 'alerts events', run: () => commandEvent({ type: 'view', view: 'alerts' }) },
     { label: 'Show session report', detail: 'Open the current session report panel', icon: 'sliders', keywords: 'reports metrics', run: () => commandEvent({ type: 'view', view: 'reports' }) },
-    { label: 'Start Golden Path replay', detail: 'Start the deterministic simulation', icon: 'play', keywords: 'demo replay simulation', run: () => commandEvent({ type: 'start-demo' }) },
+    ...(role === 'viewer' ? [] : [{ label: 'Start Golden Path replay', detail: 'Start the deterministic simulation', icon: 'play', keywords: 'demo replay simulation', run: () => commandEvent({ type: 'start-demo' }) }]),
     { label: `Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`, detail: 'Change the display theme', icon: theme === 'dark' ? 'sun' : 'moon', keywords: 'appearance color', run: toggleTheme },
-  ], [navigate, theme, toggleTheme])
+  ], [navigate, role, theme, toggleTheme])
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase()
     if (!needle) return commands
@@ -129,11 +132,31 @@ export function ConsoleHandoff() {
 }
 
 export default function AppShell({ children }) {
-  const { username, logout } = useAuth()
+  const { username, role, logout } = useAuth()
   const navigate = useNavigate()
   const [paletteOpen, setPaletteOpen] = useState(false)
+  const [openIncidents, setOpenIncidents] = useState(0)
+  const [incidentNotice, setIncidentNotice] = useState(false)
   const handoff = useConsoleHandoff()
   const closePalette = () => setPaletteOpen(false)
+
+  useEffect(() => {
+    if (!username) return undefined
+    let alive = true
+    const refresh = async () => {
+      try {
+        const result = await apiGet('/api/x/incidents?status=open&limit=1')
+        if (!alive) return
+        setOpenIncidents((previous) => {
+          if (result.total > previous) setIncidentNotice(true)
+          return result.total
+        })
+      } catch { /* the console still works if incident polling is unavailable */ }
+    }
+    refresh()
+    const timer = window.setInterval(refresh, 5000)
+    return () => { alive = false; window.clearInterval(timer) }
+  }, [username])
 
   useEffect(() => {
     const onKeyDown = (event) => {
@@ -167,12 +190,15 @@ export default function AppShell({ children }) {
           <NavLink to="/mobile" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
             <Icon name="smartphone" /><span>Mobile SOC</span><kbd>2</kbd>
           </NavLink>
+          <NavLink to="/incidents" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
+            <Icon name="shield" /><span>Incidents</span>{openIncidents > 0 && <b className="app-nav-count" aria-label={`${openIncidents} open incidents`}>{openIncidents}</b>}
+          </NavLink>
         </nav>
         <div className="app-sidebar-spacer" />
         <div className="app-simulation-note"><span className="status-square" /> SIMULATED ENVIRONMENT</div>
         <div className="app-account">
           <span className="account-avatar" aria-hidden="true">{(username || 'A').slice(0, 1).toUpperCase()}</span>
-          <span className="account-copy"><b>{username || 'Operator'}</b><small>DEMO OPERATOR</small></span>
+          <span className="account-copy"><b>{username || 'Operator'}</b><small>{(role || 'operator').toUpperCase()} ROLE</small></span>
           <button type="button" className="icon-button account-logout" onClick={signOut} aria-label="Sign out" title="Sign out"><Icon name="logout" size={17} /></button>
         </div>
       </aside>
@@ -180,6 +206,7 @@ export default function AppShell({ children }) {
         <header className="app-topbar">
           <div className="app-breadcrumb"><span>Workspace</span><Icon name="chevron" size={15} /><h1>Live console</h1></div>
           <div className="app-top-actions">
+            {incidentNotice && <Link className="incident-notice" to="/incidents" onClick={() => setIncidentNotice(false)}>New incident <span aria-hidden="true">↗</span></Link>}
             <button type="button" className="command-trigger" onClick={() => setPaletteOpen(true)} aria-haspopup="dialog" aria-expanded={paletteOpen}>
               <Icon name="search" size={17} /><span>Search commands</span><kbd><Icon name="command" size={12} /> K</kbd>
             </button>

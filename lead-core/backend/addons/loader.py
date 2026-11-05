@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from .config import Config
+from .auth import ensure_demo_accounts
 from .contracts import Contracts
 from .hooks import Hooks
 from .routes import bp
@@ -18,7 +19,7 @@ log = logging.getLogger("precog.addons")
 # Folders that hold each role's Python packages (added to Python's search path).
 ROLE_FOLDERS = ("detect", "graph", "viz", "lead-core/precog")
 # Each package may define register(ctx). Missing packages are skipped, never fatal.
-ROLE_PACKAGES = ("detect_events", "graph_replay", "graph_net", "viz_containment", "precog_engine")
+ROLE_PACKAGES = ("detect_events", "graph_replay", "graph_net", "viz_containment", "precog_engine", "addons.incident_engine")
 
 
 @dataclass
@@ -64,6 +65,10 @@ def _load_role_packages(ctx, packages):
 
 def register_addons(flask_app, repo_root, nids, packages=ROLE_PACKAGES):
     config = Config.from_env(repo_root)
+    # Some isolated role tests deliberately boot add-ons without the NIDS database.
+    # Create optional demo accounts only when the real user/password store is available.
+    if nids is not None and all(hasattr(nids, name) for name in ("SessionLocal", "User", "bcrypt")):
+        ensure_demo_accounts(nids)
     contracts = Contracts(config.contracts_dir) if config.validate_contracts else None
     world = WorldState(contracts)
     hooks = Hooks()
@@ -86,4 +91,7 @@ def register_addons(flask_app, repo_root, nids, packages=ROLE_PACKAGES):
     if config.data_mode == "sample":
         load_samples(world, config.contracts_dir)
         log.info("Sample mode: the world state was filled from contracts/samples")
+        incidents = hooks.get("incidents")
+        if incidents is not None:
+            incidents.refresh()
     return ctx
