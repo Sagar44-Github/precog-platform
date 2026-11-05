@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="docs/assets/hero.svg" alt="Precog SOC: an isometric network where one host is compromised and violet forecast cones point to the predicted next target, Web Server B at 74 percent, with a Contain button" width="100%">
+<img src="docs/assets/hero.svg" alt="Precog SOC: an isometric network where one host is compromised and violet forecast paths point to Web Server B at 45 percent" width="100%">
 
 <br>
 
@@ -33,6 +33,8 @@ A closed-loop security console that predicts where an attacker will move next an
 > **This is a simulation.** The platform runs in **Replay Mode**: pre-recorded and scripted attack events are replayed through the same live pipeline that real traffic would use. No scan, exploit or attack tool is ever run against a real network, device or infrastructure, and **Contain** only changes an in-memory status and writes a log line.
 
 > **Phase B1 shell:** the desktop console now has a shared workspace rail, a Ctrl/Cmd+K command palette, dark/light theme support, and a mobile SOC handoff below 1024 px. The desktop and PWA remain one Flask-served web bundle. See [the B1 browser captures](docs/phase-b1/screenshots/) and [Demo Script V2](docs/DEMO_SCRIPT_V2.md). B1 adds no API routes or data contracts.
+
+> **Phase B1.5 landing experience:** the Flask home route opens a public, scene-first 3D Golden Path. Orbit and inspect the network, step through the scripted incident, and review the source-backed forecast before opening the authenticated console. See [the landing design and browser audit](docs/LANDING_DESIGN.md) and [interactive captures](docs/audit/screenshots/landing/interactive/).
 
 <a id="choose-your-path"></a>
 
@@ -720,16 +722,17 @@ The launcher starts the backend in live replay mode, waits for its health check,
 
 | What | URL |
 |---|---|
-| Main entry (redirects into Precog) | <http://localhost:5000/> |
+| Public 3D landing and Golden Path | <http://localhost:5000/> |
 | Sign in | <http://localhost:5000/app/login> |
 | 3D console (desktop) | <http://localhost:5000/app/console/> |
 | Mobile app (resize the window to phone width) | <http://localhost:5000/app/mobile/> |
 
-1. **Sign in** as `admin` with the `ADMIN_PASSWORD` you set.
-2. Press **Start Golden Path** on the welcome card, or use **Start** in the replay controls.
-3. Watch Workstation A turn red and the violet cones appear. The replay stops at **Waiting for your decision**.
-4. Press **Contain Web Server B** on the console (or on the phone view) and confirm.
-5. The replay resumes, the next move is **blocked**, and the accuracy counter updates.
+1. On the public landing page, orbit the network, select a host, and use the five-step controls to play the scripted story. This browser-only walkthrough does not change backend state.
+2. Choose **Open the SOC console** and sign in as `admin` with the `ADMIN_PASSWORD` you set.
+3. Press **Start Golden Path** on the welcome card, or use **Start** in the replay controls.
+4. Watch Workstation A turn red and the violet forecast paths appear. The replay stops at **Waiting for your decision**.
+5. Press **Contain Web Server B** on the console (or on the phone view) and confirm.
+6. The replay resumes, the next move is **blocked**, and the accuracy counter updates.
 
 ### 7. Check it is healthy
 

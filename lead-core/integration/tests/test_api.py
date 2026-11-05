@@ -25,10 +25,16 @@ def test_health_needs_no_login(client):
 
 
 def test_protected_routes_answer_401_json_not_a_redirect(client):
-    for path in ("/api/x/state", "/api/x/alerts", "/api/x/graph", "/api/x/me", "/api/x/forecasts/current"):
+    for path in ("/api/x/state", "/api/x/alerts", "/api/x/graph", "/api/x/forecasts/current"):
         reply = client.get(path)
         assert reply.status_code == 401, path
         assert err(reply)["code"] == "not_logged_in"
+
+
+def test_current_user_check_is_safe_for_signed_out_visitors(client):
+    reply = client.get("/api/x/me")
+    assert reply.status_code == 200
+    assert reply.get_json() == {"status": "ok", "username": None}
 
 
 def test_wrong_password_is_refused(client):
@@ -50,7 +56,7 @@ def test_login_me_logout_cycle(client):
     assert client.post("/api/x/login", json={"username": "admin", "password": ADMIN_PASSWORD}).status_code == 200
     assert client.get("/api/x/me").get_json()["username"] == "admin"
     assert client.post("/api/x/logout").status_code == 200
-    assert client.get("/api/x/me").status_code == 401
+    assert client.get("/api/x/me").get_json()["username"] is None
 
 
 # ---------- polling ----------

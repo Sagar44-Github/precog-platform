@@ -18,10 +18,10 @@ def register_webapp(app, config):
 
     @app.before_request
     def precog_demo_home():
-        # The product demo is the main entry point. NIDS source stays untouched;
-        # its dashboard view is superseded here so a fresh visitor lands in Precog.
+        # The public Precog landing experience is the main entry point. NIDS source
+        # stays untouched; a fresh visitor sees the scripted demonstration first.
         if request.path == "/" and request.method == "GET":
-            return redirect("/app/console/", code=302)
+            return redirect("/app/", code=302)
         return None
 
     def _index():

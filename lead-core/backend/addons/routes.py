@@ -96,9 +96,11 @@ def logout():
 
 
 @bp.get("/me")
-@auth.json_login_required
 def me():
-    return jsonify({"status": "ok", "username": current_user.username})
+    # Keep the public SPA's initial auth check quiet for signed-out visitors.
+    # Protected data routes still require a session and return JSON 401 errors.
+    username = current_user.username if current_user.is_authenticated else None
+    return jsonify({"status": "ok", "username": username})
 
 
 # ---------- reading the state ----------
