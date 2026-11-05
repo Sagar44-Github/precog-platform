@@ -37,6 +37,10 @@ const routeSpecs = [
   ['asset-directory', '/app/hosts'],
   ['host-detail', '/app/hosts/host-a'],
   ['mobile-hosts', '/app/mobile/hosts'],
+  ['forecasts', '/app/forecasts'],
+  ['forecast-detail', '/app/forecasts/fc-000001'],
+  ['whatif-lab', '/app/lab'],
+  ['analytics-lab', '/app/analytics'],
   ['console', '/app/console'],
 ]
 const report = { browser: 'Playwright Chromium (SwiftShader)', modes: {} }
@@ -130,7 +134,7 @@ async function checkViewport(page, mode, routeName, path, size) {
   if (!state.hasSimulationLabel) failures.push('SIMULATION label missing')
   if (routeName === 'console' && size.width < 1024 && !state.hasConsoleHandoff) failures.push('narrow console handoff is missing')
   if (routeName === 'console' && size.width >= 1024 && !state.hasCommandTrigger) failures.push('desktop command palette trigger is missing')
-  if (['incidents', 'incident-detail', 'replay-studio', 'scenario-library', 'scenario-builder', 'scenario-edit', 'run-history', 'run-detail', 'run-compare', 'network-twin', 'asset-directory', 'host-detail', 'mobile-hosts'].includes(routeName)) {
+  if (['incidents', 'incident-detail', 'replay-studio', 'scenario-library', 'scenario-builder', 'scenario-edit', 'run-history', 'run-detail', 'run-compare', 'network-twin', 'asset-directory', 'host-detail', 'mobile-hosts', 'forecasts', 'forecast-detail', 'whatif-lab', 'analytics-lab'].includes(routeName)) {
     await page.addScriptTag({ path: join(repoRoot, 'web', 'node_modules', 'axe-core', 'axe.min.js') })
     const accessibility = await page.evaluate(async () => {
       const result = await window.axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] } })
@@ -272,6 +276,29 @@ async function runMode(browser, mode, port, dbDir, errors) {
         report.liveReplayStart = { error: error.message, url: page.url(), bodyText: await page.locator('body').innerText().catch(() => '') }
         errors.push(`live replay could not start in browser audit: ${error.message}`)
       }
+    } else {
+      try {
+        await page.goto(`${base}/app/console`, { waitUntil: 'domcontentloaded' })
+        await page.locator('.c-app').waitFor({ timeout: 8000 })
+        const sampleSignature = await page.evaluate(async () => {
+          const response = await fetch('/api/x/forecasts')
+          const items = response.ok ? await response.json() : []
+          return items.length ? JSON.stringify(items.at(-1).targets) : ''
+        })
+        await postJson('/api/x/replay/start', { scenario_id: 'golden-path', speed: 8 })
+        await page.waitForFunction(async () => {
+          const response = await fetch('/api/x/state')
+          const state = response.ok ? await response.json() : null
+          return Boolean(state?.forecast && state.forecast.status === 'pending')
+        }, null, { timeout: 30000 })
+        await page.waitForFunction(async (previousTargets) => {
+          const response = await fetch('/api/x/forecasts')
+          const items = response.ok ? await response.json() : []
+          return Boolean(items.length && JSON.stringify(items.at(-1).targets) !== previousTargets)
+        }, sampleSignature, { timeout: 30000 })
+      } catch (error) {
+        errors.push(`sample forecast could not start for the C4 audit: ${error.message}`)
+      }
     }
 
     const alerts = await page.evaluate(async () => {
@@ -364,6 +391,29 @@ async function runMode(browser, mode, port, dbDir, errors) {
       await page.waitForTimeout(120)
     }
     report.digitalTwinFlow = 'selected Web Server B, inspected the asset, traced feasible routes, switched to Lite view and scrubbed the recorded snapshot control'
+
+    await page.setViewportSize({ width: 1440, height: 900 })
+    const detailForecastId = await page.evaluate(async () => {
+      const response = await fetch('/api/x/forecasts')
+      const items = response.ok ? await response.json() : []
+      return items.length ? items[items.length - 1].forecast_id : null
+    })
+    if (!detailForecastId) throw new Error(`${mode} mode did not provide a forecast id for the Precog explanation flow`)
+    await page.goto(`${base}/app/forecasts/${encodeURIComponent(detailForecastId)}`, { waitUntil: 'domcontentloaded' })
+    await page.getByRole('heading', { name: new RegExp(`Forecast ${detailForecastId}`) }).waitFor({ timeout: 10000 })
+    await page.getByRole('heading', { name: 'Why these hosts' }).waitFor({ timeout: 10000 })
+    await page.goto(`${base}/app/lab`, { waitUntil: 'domcontentloaded' })
+    await page.getByRole('heading', { name: 'What changes if we contain?' }).waitFor({ timeout: 10000 })
+    await page.getByRole('combobox', { name: 'Hypothetical attacker host' }).selectOption('host-a')
+    const serverTarget = page.getByRole('checkbox', { name: /Web Server B/ })
+    if (await serverTarget.count()) await serverTarget.check()
+    await page.getByRole('button', { name: 'Compare hypothetical forecasts' }).click()
+    await page.getByText(/of the original model probability was assigned/).waitFor({ timeout: 10000 })
+    await page.goto(`${base}/app/analytics`, { waitUntil: 'domcontentloaded' })
+    await page.getByRole('heading', { name: 'Can we defend the estimate?' }).waitFor({ timeout: 10000 })
+    await page.getByRole('button', { name: 'Run evaluation' }).click()
+    await page.locator('.precog-experiment-result').waitFor({ timeout: 15000 })
+    report.precogLabFlow = 'opened a forecast explanation, ran a read-only Web Server B containment what-if, and reproduced the seed-zero held-out evaluation'
 
     if (mode === 'sample') {
       if (incidentId) {

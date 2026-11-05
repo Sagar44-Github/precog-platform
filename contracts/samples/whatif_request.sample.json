@@ -1,0 +1,1 @@
+{"from_host":"host-a","host_states":{"host-a":"compromised"},"contain_hosts":["server-b"]}

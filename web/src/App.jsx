@@ -13,6 +13,10 @@ const ReplayStudioApp = lazy(() => import('./areas/replay/index.jsx'))
 const TwinApp = lazy(() => import('./areas/twin/index.jsx'))
 const TwinHostsApp = lazy(() => import('./areas/twin/index.jsx').then((module) => ({ default: module.HostsPage })))
 const TwinHostDetailApp = lazy(() => import('./areas/twin/index.jsx').then((module) => ({ default: module.HostDetailPage })))
+const ForecastsApp = lazy(() => import('./areas/precog/index.jsx').then((module) => ({ default: module.ForecastsPage })))
+const ForecastDetailApp = lazy(() => import('./areas/precog/index.jsx').then((module) => ({ default: module.ForecastDetailPage })))
+const WhatIfApp = lazy(() => import('./areas/precog/index.jsx').then((module) => ({ default: module.WhatIfPage })))
+const AnalyticsApp = lazy(() => import('./areas/precog/index.jsx').then((module) => ({ default: module.AnalyticsPage })))
 
 // Owner: LEAD-CORE. Written once. Nobody else edits this file.
 // Each area is one folder with one fixed entry file. To change a screen, edit your own area folder only.
@@ -30,6 +34,10 @@ export default function App() {
         <Route path="/twin/*" element={<RequireAuth><AppShell><Suspense fallback={<LoadingState />}><TwinApp /></Suspense></AppShell></RequireAuth>} />
         <Route path="/hosts" element={<RequireAuth><AppShell><Suspense fallback={<LoadingState />}><TwinHostsApp /></Suspense></AppShell></RequireAuth>} />
         <Route path="/hosts/:id" element={<RequireAuth><AppShell><Suspense fallback={<LoadingState />}><TwinHostDetailApp /></Suspense></AppShell></RequireAuth>} />
+        <Route path="/forecasts" element={<RequireAuth><AppShell><Suspense fallback={<LoadingState />}><ForecastsApp /></Suspense></AppShell></RequireAuth>} />
+        <Route path="/forecasts/:id" element={<RequireAuth><AppShell><Suspense fallback={<LoadingState />}><ForecastDetailApp /></Suspense></AppShell></RequireAuth>} />
+        <Route path="/lab" element={<RequireAuth><AppShell><Suspense fallback={<LoadingState />}><WhatIfApp /></Suspense></AppShell></RequireAuth>} />
+        <Route path="/analytics" element={<RequireAuth><AppShell><Suspense fallback={<LoadingState />}><AnalyticsApp /></Suspense></AppShell></RequireAuth>} />
         <Route path="/console/*" element={<RequireAuth><AppShell><Suspense fallback={<LoadingState />}><ConsoleApp /></Suspense></AppShell></RequireAuth>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

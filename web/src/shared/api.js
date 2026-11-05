@@ -58,6 +58,11 @@ export const api = {
   graph: () => apiGet('/api/x/graph'),
   forecasts: (status) => apiGet(status ? `/api/x/forecasts?status=${status}` : '/api/x/forecasts'),
   currentForecast: () => apiGet('/api/x/forecasts/current'),
+  forecastExplanation: (id) => apiGet(`/api/x/forecasts/${encodeURIComponent(id)}/explain`),
+  whatIf: (input) => apiPost('/api/x/whatif', input),
+  modelOverview: () => apiGet('/api/x/analytics/model'),
+  evaluatePrecog: (parameters) => apiPost('/api/x/analytics/evaluate', parameters),
+  precogExperiments: () => apiGet('/api/x/analytics/experiments'),
   proposeContainment: (targetHost, forecastId, requestedBy) =>
     apiPost('/api/x/containment/propose', { target_host: targetHost, forecast_id: forecastId, requested_by: requestedBy }),
   confirmContainment: (actionId) => apiPost('/api/x/containment/confirm', { action_id: actionId }),

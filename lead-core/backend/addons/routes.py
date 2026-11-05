@@ -238,6 +238,71 @@ def forecast_current():
     return jsonify(found)
 
 
+@bp.get("/forecasts/<forecast_id>/explain")
+@auth.json_login_required
+def forecast_explain(forecast_id):
+    try:
+        result = current_app.extensions["precog_lab"].explain(forecast_id)
+    except KeyError:
+        raise ApiError("not_found", "There is no forecast with id %s." % forecast_id, 404)
+    return jsonify(_out("forecast_explanation", result))
+
+
+@bp.post("/whatif")
+@auth.json_login_required
+@auth.rate_limit(max_requests=20, window_seconds=60)
+def whatif():
+    data = _body()
+    try:
+        _ctx()["contracts"].validate("whatif_request", data) if _ctx()["contracts"] else None
+        result = current_app.extensions["precog_lab"].whatif(data)
+    except ContractError as exc:
+        raise ApiError("bad_request", str(exc), 400)
+    except ValueError as exc:
+        raise ApiError("bad_request", str(exc), 400)
+    return jsonify(_out("whatif_result", result))
+
+
+@bp.get("/analytics/model")
+@auth.json_login_required
+def analytics_model():
+    return jsonify(_out("model_card", current_app.extensions["precog_lab"].model_overview()))
+
+
+@bp.post("/analytics/evaluate")
+@auth.role_required("analyst")
+@auth.rate_limit(max_requests=3, window_seconds=60)
+def analytics_evaluate():
+    data = _body()
+    try:
+        if _ctx()["contracts"]:
+            _ctx()["contracts"].validate("evaluation_request", data)
+    except ContractError as exc:
+        raise ApiError("bad_request", str(exc), 400)
+    if set(data) - {"seed", "test_fraction", "alpha_grid"}:
+        raise ApiError("bad_request", "Only seed, test_fraction and alpha_grid are accepted.", 400)
+    seed = data.get("seed", 0)
+    fraction = data.get("test_fraction", 0.2)
+    grid = data.get("alpha_grid", [0.01, 0.05, 0.1, 0.2, 0.5, 1.0])
+    if isinstance(seed, bool) or not isinstance(seed, int) or abs(seed) > 1000000:
+        raise ApiError("bad_request", "seed must be a whole number between -1000000 and 1000000.", 400)
+    if isinstance(fraction, bool) or not isinstance(fraction, (int, float)) or not 0.1 <= float(fraction) <= 0.5:
+        raise ApiError("bad_request", "test_fraction must be between 0.1 and 0.5.", 400)
+    if not isinstance(grid, list) or not 1 <= len(grid) <= 6 or any(isinstance(value, bool) or not isinstance(value, (int, float)) or not 0.001 <= float(value) <= 2 for value in grid) or len(set(grid)) != len(grid):
+        raise ApiError("bad_request", "alpha_grid must contain 1–6 unique numbers from 0.001 to 2.", 400)
+    try:
+        result = current_app.extensions["precog_lab"].run_evaluation(seed, float(fraction), [float(value) for value in grid])
+    except TimeoutError as exc:
+        raise ApiError("evaluation_timeout", str(exc), 503)
+    return jsonify(_out("evaluation_run", result))
+
+
+@bp.get("/analytics/experiments")
+@auth.json_login_required
+def analytics_experiments():
+    return jsonify([_out("evaluation_run", item) for item in current_app.extensions["precog_lab"].list_experiments()])
+
+
 # ---------- containment (needs the VIZ module) ----------
 @bp.post("/containment/propose")
 @auth.role_required("analyst")

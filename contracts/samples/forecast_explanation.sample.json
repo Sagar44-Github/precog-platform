@@ -1,0 +1,10 @@
+{
+  "forecast_id": "fc-000001", "context_source": "captured", "candidate_set": ["server-b", "file-server"], "excluded": [{"host_id": "host-b", "state": "compromised", "reason": "already compromised"}], "from_host": "host-a",
+  "transition_counts": [{"host_id": "server-b", "count": 81}, {"host_id": "file-server", "count": 71}], "alpha": 0.01,
+  "formula": "P(target | source) = (transition count + alpha) / (counts across feasible candidates + alpha × candidate count)", "formula_denominator": 152.02,
+  "target_arithmetic": [{"host_id": "server-b", "transition_count": 81, "confidence": 0.5328, "model_probability": 0.5328, "formula": "(81 + 0.01) / (152 + 0.01 × 2) = 0.5328"}],
+  "baseline_rule_based": [{"rank": 1, "host_id": "server-b", "confidence": 0.6}], "baseline_uniform": [{"rank": 1, "host_id": "server-b", "confidence": 0.5}],
+  "technique_hint": null, "technique_table": "repo", "calibration_bin": null, "metric_standard_error": 0.039,
+  "model_card": {"data_source": "graph_replay scripted generator", "training_sequences": 300, "network_hosts": 6, "held_out_forecasts": 149, "precision_at_1_standard_error": 0.039, "limitations": ["Scripted demo data only."]},
+  "outcome": {"status": "pending", "result": null}
+}

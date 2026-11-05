@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/whatif_result.schema.json",
+  "title": "Precog what-if result",
+  "type": "object",
+  "required": ["from_host", "before", "after", "contain_hosts", "removed_probability_share", "live_forecast", "basis"],
+  "properties": {
+    "from_host": {"type": "string"},
+    "before": {"$ref": "#/$defs/projection"}, "after": {"$ref": "#/$defs/projection"},
+    "contain_hosts": {"type": "array", "items": {"type": "string"}},
+    "removed_probability_share": {"type": "number", "minimum": 0, "maximum": 1},
+    "live_forecast": {"anyOf": [{"$ref": "https://precog.local/contracts/forecast.schema.json"}, {"type": "null"}]},
+    "basis": {"type": "string"}
+  },
+  "$defs": {"projection": {"type": "object", "required": ["candidates", "targets"], "properties": {"candidates": {"type": "array", "items": {"type": "string"}}, "targets": {"type": "array", "items": {"type": "object", "required": ["rank", "host_id", "confidence"], "properties": {"rank": {"type": "integer"}, "host_id": {"type": "string"}, "confidence": {"type": "number", "minimum": 0, "maximum": 1}}, "additionalProperties": false}}}, "additionalProperties": false}},
+  "additionalProperties": false
+}

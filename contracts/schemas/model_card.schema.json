@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/model_card.schema.json",
+  "title": "Precog model and detector overview",
+  "type": "object",
+  "required": ["evaluation", "model_card", "technique_source", "detection_report", "live_metrics"],
+  "properties": {
+    "evaluation": {"type": "object", "required": ["node_model", "baseline_rule_based", "baseline_uniform", "notes"], "additionalProperties": true},
+    "model_card": {"$ref": "forecast_explanation.schema.json#/$defs/model_card"},
+    "technique_source": {"enum": ["repo", "lookup"]},
+    "detection_report": {"type": ["object", "null"], "additionalProperties": true},
+    "live_metrics": {"type": "object", "additionalProperties": true}
+  },
+  "additionalProperties": false
+}

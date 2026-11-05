@@ -31,12 +31,16 @@ class PrecogEngine:
         self._counter = 0
         self._pending = None
         self._resolved = []
+        # Explanation context is a bounded sidecar so the public forecast contract
+        # remains backward compatible while analysts can inspect the exact inputs.
+        self._explanations = {}
 
     # ---------- the hook interface ----------
     def reset(self):
         self._counter = 0
         self._pending = None
         self._resolved = []
+        self._explanations.clear()
 
     def on_compromise(self, host):
         """Makes and publishes a forecast from `host`. Returns it, or None when no host is left to forecast."""
@@ -58,10 +62,30 @@ class PrecogEngine:
             self.contracts.validate("forecast", forecast)
         self.world.set_forecast(forecast)
         self._pending = forecast
+        topology = getattr(graph, "topology", None)
+        state_reader = getattr(graph, "states", {})
+        states = state_reader() if callable(state_reader) else (dict(state_reader) if isinstance(state_reader, dict) else {})
+        row = self.model.counts.get(host, {}) if self.model is not None else {}
+        self._explanations[forecast["forecast_id"]] = {
+            "candidate_ids": list(candidates), "host_states": states,
+            "transition_counts": {candidate: int(row.get(candidate, 0)) for candidate in candidates},
+            "alpha": self.model.alpha if self.model is not None else None,
+            "edge_likelihoods": {candidate: float(topology.edge_probability(host, candidate)) if topology else 0.0 for candidate in candidates},
+            "technique_id": self._last_technique(host),
+        }
+        if len(self._explanations) > 200:
+            self._explanations.pop(next(iter(self._explanations)))
         names = self._names(graph)
         self._audit(forecast["forecast_id"], "Forecast from %s: %s." % (names.get(host, host), ", ".join(
             "%s %d %%" % (names.get(t["host_id"], t["host_id"]), round(t["confidence"] * 100)) for t in forecast["targets"])))
         return forecast
+
+    def explanation_context(self, forecast_id):
+        """Return the captured candidate and model inputs for one forecast."""
+        from copy import deepcopy
+
+        value = self._explanations.get(forecast_id)
+        return deepcopy(value) if value is not None else None
 
     def on_attempt(self, from_host, to_host, blocked):
         """The attacker tried to move. Resolves the pending forecast as a hit (at rank 1 to 3) or a miss."""

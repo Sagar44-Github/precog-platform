@@ -38,6 +38,9 @@ export function CommandPalette({ open, onClose }) {
     { label: 'Open live console', detail: 'Go to the 3D replay console', icon: 'activity', keywords: 'workspace desktop', run: () => navigate('/console') },
     { label: 'Open mobile SOC', detail: 'Open the phone PWA screens', icon: 'smartphone', keywords: 'phone pwa', run: () => navigate('/mobile') },
     { label: 'Open incident investigations', detail: 'Review correlated alerts and analyst notes', icon: 'shield', keywords: 'cases incident investigation', run: () => navigate('/incidents') },
+    { label: 'Open Precog forecasts', detail: 'Review ranked estimates and their observed outcomes', icon: 'activity', keywords: 'forecast prediction explainability', run: () => navigate('/forecasts') },
+    { label: 'Open what-if lab', detail: 'Explore containment counterfactuals without changing the replay', icon: 'sliders', keywords: 'what if counterfactual containment', run: () => navigate('/lab') },
+    { label: 'Open model analytics', detail: 'Review calibration and run held-out experiments', icon: 'clock', keywords: 'evaluation metrics model calibration', run: () => navigate('/analytics') },
     { label: 'Open network twin', detail: 'Explore demo assets, paths and recorded states', icon: 'network', keywords: 'hosts topology digital twin', run: () => navigate('/twin') },
     { label: 'Open replay studio', detail: 'Step through a scripted replay and compare runs', icon: 'play', keywords: 'replay studio runs timeline', run: () => navigate('/replay') },
     { label: 'Open scenario library', detail: 'Choose or build a scripted scenario', icon: 'layers', keywords: 'scenario builder library', run: () => navigate('/scenarios') },
@@ -148,7 +151,10 @@ export default function AppShell({ children }) {
       : location.pathname.startsWith('/hosts') ? 'Asset directory'
     : location.pathname.includes('/edit') || location.pathname.endsWith('/new') ? 'Scenario builder'
       : location.pathname.startsWith('/scenarios') ? 'Scenario library'
-        : location.pathname.includes('/compare') ? 'Run comparison'
+    : location.pathname.startsWith('/forecasts') ? (location.pathname.split('/').length > 2 ? 'Forecast explanation' : 'Precog forecasts')
+      : location.pathname.startsWith('/lab') ? 'What-if lab'
+        : location.pathname.startsWith('/analytics') ? 'Model analytics'
+    : location.pathname.includes('/compare') ? 'Run comparison'
           : location.pathname.startsWith('/runs') ? 'Run history' : 'Live console'
   const closePalette = () => setPaletteOpen(false)
 
@@ -219,6 +225,15 @@ export default function AppShell({ children }) {
           </NavLink>
           <NavLink to="/runs" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
             <Icon name="clock" /><span>Run history</span>
+          </NavLink>
+          <NavLink to="/forecasts" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
+            <Icon name="activity" /><span>Forecasts</span>
+          </NavLink>
+          <NavLink to="/lab" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
+            <Icon name="sliders" /><span>What-if lab</span>
+          </NavLink>
+          <NavLink to="/analytics" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
+            <Icon name="clock" /><span>Analytics</span>
           </NavLink>
         </nav>
         <div className="app-sidebar-spacer" />

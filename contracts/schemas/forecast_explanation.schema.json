@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/forecast_explanation.schema.json",
+  "title": "Forecast explanation",
+  "type": "object",
+  "required": ["forecast_id", "context_source", "candidate_set", "excluded", "from_host", "transition_counts", "alpha", "formula", "formula_denominator", "target_arithmetic", "baseline_rule_based", "baseline_uniform", "technique_hint", "technique_table", "calibration_bin", "metric_standard_error", "model_card", "outcome"],
+  "properties": {
+    "forecast_id": {"type": "string", "minLength": 1}, "context_source": {"enum": ["captured", "reconstructed"]}, "from_host": {"type": "string", "minLength": 1},
+    "candidate_set": {"type": "array", "items": {"type": "string"}},
+    "excluded": {"type": "array", "items": {"type": "object", "required": ["host_id", "state", "reason"], "properties": {"host_id": {"type": "string"}, "state": {"type": "string"}, "reason": {"type": "string"}}, "additionalProperties": false}},
+    "transition_counts": {"type": "array", "items": {"type": "object", "required": ["host_id", "count"], "properties": {"host_id": {"type": "string"}, "count": {"type": "integer", "minimum": 0}}, "additionalProperties": false}},
+    "alpha": {"type": ["number", "null"], "minimum": 0}, "formula": {"type": "string"}, "formula_denominator": {"type": "number", "minimum": 0},
+    "target_arithmetic": {"type": "array", "items": {"type": "object", "required": ["host_id", "transition_count", "confidence", "model_probability", "formula"], "properties": {"host_id": {"type": "string"}, "transition_count": {"type": "integer", "minimum": 0}, "confidence": {"type": "number", "minimum": 0, "maximum": 1}, "model_probability": {"type": "number", "minimum": 0, "maximum": 1}, "formula": {"type": "string"}}, "additionalProperties": false}},
+    "baseline_rule_based": {"$ref": "#/$defs/rankings"}, "baseline_uniform": {"$ref": "#/$defs/rankings"},
+    "technique_hint": {"type": ["object", "null"], "additionalProperties": true}, "technique_table": {"enum": ["repo", "lookup"]},
+    "calibration_bin": {"type": ["object", "null"], "additionalProperties": true}, "metric_standard_error": {"type": ["number", "null"], "minimum": 0},
+    "model_card": {"$ref": "#/$defs/model_card"}, "outcome": {"type": "object", "required": ["status", "result"], "properties": {"status": {"type": "string"}, "result": {"type": ["object", "null"]}}, "additionalProperties": false}
+  },
+  "$defs": {
+    "rankings": {"type": "array", "items": {"type": "object", "required": ["rank", "host_id", "confidence"], "properties": {"rank": {"type": "integer", "minimum": 1, "maximum": 3}, "host_id": {"type": "string"}, "confidence": {"type": "number", "minimum": 0, "maximum": 1}}, "additionalProperties": false}},
+    "model_card": {"type": "object", "required": ["data_source", "training_sequences", "network_hosts", "held_out_forecasts", "precision_at_1_standard_error", "limitations"], "properties": {"data_source": {"type": "string"}, "training_sequences": {"type": "integer"}, "network_hosts": {"type": "integer"}, "held_out_forecasts": {"type": "integer"}, "precision_at_1_standard_error": {"type": "number"}, "limitations": {"type": "array", "items": {"type": "string"}}}, "additionalProperties": false}
+  },
+  "additionalProperties": false
+}

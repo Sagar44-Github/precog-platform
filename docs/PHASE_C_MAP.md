@@ -4,9 +4,9 @@
 
 **Starting point:** `phase-c2-replay-studio` at `7c64a07`
 
-**Current work branch:** `phase-c3-digital-twin`
+**Current work branch:** `phase-c4-precog-lab`
 
-**Scope now:** C1, C2 and C3 are complete. C4–C7 remain gated on review and approval of the preceding item.
+**Scope now:** C1–C4 are complete. C5–C7 remain gated.
 
 ## Phase B inventory
 
@@ -17,7 +17,7 @@ The repository contains `docs/phase-b1/README.md`, `docs/DEMO_SCRIPT_V2.md`, Pha
 | **C1 Incident investigation** | Distinct security alerts, ATT&CK technique labels, alert timeline, live graph, forecast summaries, audit log, and single-host simulated containment. Phase B1 adds the workspace shell and mobile SOC routes. | Incident correlation and lifecycle; typed incident timeline; notes and status controls; incident filters, detail, exports, notifications and deep links; incident contracts; analyst/viewer authorization. | `lead-core/backend/addons/` (incident service, routes, role checks and world-state integration), `contracts/schemas/`, `contracts/samples/`, `lead-core/integration/tests/`, `web/src/areas/incidents/`, `web/src/App.jsx`, `web/src/shared/`, `docs/INCIDENTS.md`, `docs/audit/screenshots/phase-c/`. |
 | **C2 Replay studio and builder** | Four shipped deterministic replay scenarios and start/pause/resume/restart controls. | Delivered in this phase: visual timeline builder, server validation and dry run, bounded user scenario library, step/step-back/seek and breakpoints, speed control, snapshots/time travel, persisted run archive and comparisons. | `graph/graph_replay/`, `lead-core/backend/addons/replay_studio.py`, `lead-core/backend/addons/routes.py`, replay contracts and tests, `web/src/areas/replay/`, `web/src/App.jsx`, `web/src/shared/`, `docs/REPLAY_STUDIO.md`. |
 | **C3 Network digital twin** | A live 3D console graph and a separate interactive 3D landing scene, plus graph topology and a phone-friendly SOC view. | Delivered: read-only topology, host detail/history, feasible paths and segmentation projection; interactive zone-based 3D map with state/risk/forecast/exposure overlays, camera presets, focus, recorded-run scrubber, Lite map/list and phone host inventory. | `lead-core/backend/addons/network_twin.py`, `lead-core/backend/addons/routes.py`, `contracts/`, `web/src/areas/twin/`, `web/src/areas/console/Scene3D.jsx`, `sceneModel.js`, `sceneDecorations.js`, `objects3d.js`, tests and browser audit. |
-| **C4 Precog decision and what-if lab** | Markov top-three forecasts, baseline/session metrics, calibration chart and a reproducible offline evaluation command. | Per-forecast candidate exclusions and formula explanation; read-only what-if; server evaluation runs, cache and experiment log; model card and per-profile analysis. | `lead-core/precog/precog_engine/`, `lead-core/backend/addons/`, forecast/what-if/evaluation contracts and tests, new forecast/lab/analytics web areas. |
+| **C4 Precog decision and what-if lab** | Markov top-three forecasts, baseline/session metrics, calibration chart and a reproducible offline evaluation command. | Delivered: per-forecast trace, read-only what-if, held-out evaluation endpoint/cache/log, model card, profile breakdown and analyst screens. | `lead-core/precog/precog_engine/`, `lead-core/backend/addons/`, six new contracts and samples, C4 integration/browser tests, `web/src/areas/precog/`, `docs/PRECOG_LAB.md`. |
 | **C5 Response governance** | Propose/confirm/cancel for a single-host simulated containment, expiry, and audit events. | Role and playbook policy; impact previews; zone/path/top-three actions; approval records; release proposal/confirmation; governance history and UI. | `viz/viz_containment/` or a new add-on module, `lead-core/backend/addons/`, containment/approval contracts and tests, `web/src/areas/containment/`, role-aware navigation. |
 | **C6 Connected story and final verification** | Phase B1 command palette, workspace navigation, theme persistence, and a 4–6 minute Golden Path demo script. | Entity-wide links/search, case report exports, notification centre, onboarding/help updates, ten-minute script, full Phase C route audits and final report. | `web/src/shared/`, workflow areas delivered by C1–C5, `docs/DEMO_SCRIPT_V3.md`, `docs/PHASE_C_REPORT.md`, audit scripts and screenshots. |
 | **C7 Optional maintenance** | Audit documents eight npm advisories and an unverified Node 22 runtime. | Separate, incremental dependency-family upgrades with full regression after each. | `web/package.json`, lockfile, CI/runtime docs; only after C1–C6 are green and approved. |
@@ -114,4 +114,30 @@ New endpoints: `GET /api/x/topology`, `GET /api/x/topology/paths`, `GET /api/x/t
 | Hosted bundle | `copy_dist('web/dist', 'lead-core/backend/web_dist')` | **28 files copied**. |
 | Diff hygiene | `git diff --check`; pinned NIDS path check | No whitespace errors and no edits under `lead-core/backend/nids/`. |
 
-C3 implementation and verification are complete on `phase-c3-digital-twin`. C4–C7 remain gated. Public hosting and physical-phone installation are not verified.
+C3 implementation and verification are complete on `phase-c3-digital-twin`. Public hosting and physical-phone installation are not verified.
+
+## C4 delivered
+
+C4 adds a forecast queue and deep-linked explanation view, a read-only counterfactual sandbox, and a model analytics/evaluation lab. Explanations show the captured feasible candidates, exclusions, transition counts, smoothing alpha, filled-in Markov formula, same-candidate rule and uniform baselines, technique-table source, calibration bin, held-out standard error and model card. The sample fixture is clearly marked when its historical candidate context must be reconstructed.
+
+`POST /api/x/whatif` compares ranked candidates before and after hypothetical containment and reports the probability mass affected alongside the latest unchanged forecast. Tests confirm it does not alter world version, graph state, pending/resolved engine state, or production model files. `GET /api/x/analytics/model` shows the shipped evaluation and separate offline detector report. Analyst/admin `POST /api/x/analytics/evaluate` runs the existing held-out evaluator with bounded inputs, an in-memory parameter cache and an atomic, 50-entry experiment log under ignored backend data. The shipped result and model files are never overwritten.
+
+New authenticated routes: `GET /api/x/forecasts/{id}/explain`, `POST /api/x/whatif`, `GET /api/x/analytics/model`, `POST /api/x/analytics/evaluate`, and `GET /api/x/analytics/experiments`. Six JSON Schema/sample pairs were added: `forecast_explanation`, `whatif_request`, `whatif_result`, `evaluation_request`, `evaluation_run`, and `model_card`. See [PRECOG_LAB.md](PRECOG_LAB.md) for the calculation and limits.
+
+## C4 verification
+
+| Check | Command or procedure | Result |
+|---|---|---|
+| Full Python suite | `.venv/Scripts/python.exe -m pytest -o "addopts=" -p no:cacheprovider --tb=short` | **415 collected; 414 passed, 1 skipped**, 2 existing Scapy deprecation warnings. The skip is the optional external Precog repository test. The C4-specific tests were rerun after the final assertions and passed. |
+| Offline detector suite | `.venv/Scripts/python.exe -m pytest tests -o "addopts=" -p no:cacheprovider --tb=short` from `detect/offline_model/` | **50 passed, 1 skipped**. |
+| Web suite | `npm test` from `web/` | **126 passed, 0 failed, 0 skipped** across 24 web test files. Existing React server-render `useLayoutEffect` warnings remain. |
+| Contracts | `.venv/Scripts/python.exe contracts/check_contracts.py` | **42 contracts OK** (six added for C4). |
+| Browser audit | `npm run audit:browser` with software WebGL, sample/live at 390×844, 820×1180 and 1440×900 | **144 checks; 0 failures, 0 browser errors, 0 axe violations**. Covered the forecast trace, what-if, seed-zero evaluation, and the existing workflows in both modes. |
+| Browser evidence | `docs/audit/phase-c/c4/browser-audit-results.json`; `docs/audit/screenshots/phase-c/c4/` | **144 screenshots**: 72 checks/screenshots per mode. |
+| Precog parity and guardrails | `test_precog_lab.py` | Seed zero matches shipped held-out metrics; a changed seed is deterministic; model and shipped result files stay unchanged; what-if is pure; roles, input bounds, rate limit, cache and experiment persistence pass. |
+| Golden Path | `.venv/Scripts/python.exe lead-core/integration/golden_path.py --runs 2 --speed 1` | **2 of 2 PASS**; propose then confirm, one simulated action, blocked-hit outcome, re-evaluation and replay completion. |
+| Hosted-style readiness | `.venv/Scripts/python.exe docs/audit/run_hosted_check.py` | **13 checks OK; READY for the demo**. The local Windows audit helper no longer leaves a locked redirected log file. Public Render hosting and physical-phone installation were not tested. |
+| Web build and hosted bundle | `npm run build` then `copy_dist('web/dist', 'lead-core/backend/web_dist')` | Build succeeded; **30 files copied**. Main application chunk **194.17 kB** (62.22 kB gzip); 3D renderer remains lazy-loaded at **817.38 kB** (236.68 kB gzip). Vite's existing large-chunk warning remains. |
+| Scope and hygiene | `git diff --check`; `git diff --name-only -- lead-core/backend/nids` | No whitespace errors and no changes under the pinned NIDS source tree. |
+
+C4 is complete on `phase-c4-precog-lab`. C5–C7 remain gated. Cloud deployment and physical-phone behavior are not verified.
