@@ -185,6 +185,9 @@ class StandInReplay:
     def resume(self):
         return dict(SAMPLE_REPLAY, state="running")
 
+    def step(self):
+        return dict(SAMPLE_REPLAY, state="paused", position=3)
+
     def restart(self):
         return dict(SAMPLE_REPLAY, position=0)
 
@@ -201,6 +204,7 @@ def test_replay_controls_with_a_stand_in(logged_in, hooks):
     assert logged_in.post("/api/x/replay/start", json={"scenario_id": "golden-path", "speed": 2}).get_json()["speed"] == 2.0
     assert logged_in.post("/api/x/replay/pause").get_json()["state"] == "paused"
     assert logged_in.post("/api/x/replay/resume").get_json()["state"] == "running"
+    assert logged_in.post("/api/x/replay/step").get_json()["position"] == 3
     assert logged_in.post("/api/x/replay/restart").get_json()["position"] == 0
 
 

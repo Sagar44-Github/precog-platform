@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/host_inventory.schema.json",
+  "title": "Demo host inventory",
+  "type": "object",
+  "properties": {
+    "items": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "host_id": { "type": "string", "minLength": 1 },
+          "name": { "type": "string", "minLength": 1 },
+          "zone": { "type": "string", "minLength": 1 },
+          "address": { "type": "string", "minLength": 1 },
+          "role": { "type": "string", "minLength": 1 },
+          "state": { "type": "string", "enum": ["normal", "compromised", "contained"] },
+          "risk_score": { "type": "number", "minimum": 0, "maximum": 100 },
+          "criticality": { "type": "number", "minimum": 0, "maximum": 1 },
+          "services": { "type": "array", "items": { "type": "string" } },
+          "weaknesses": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "string", "pattern": "^DEMO-[0-9]+$" },
+                "cvss": { "type": "number", "minimum": 0, "maximum": 10 },
+                "service": { "type": "string" },
+                "description": { "type": "string" },
+                "simulated": { "const": true }
+              },
+              "required": ["id", "cvss", "service", "description", "simulated"],
+              "additionalProperties": false
+            }
+          },
+          "reachable_hosts": { "type": "array", "items": { "type": "string" } },
+          "state_history": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "ts": { "type": "string", "minLength": 1 },
+                "from_state": { "type": ["string", "null"], "enum": ["normal", "compromised", "contained", null] },
+                "state": { "type": "string", "enum": ["normal", "compromised", "contained"] }
+              },
+              "required": ["ts", "from_state", "state"],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": ["host_id", "name", "zone", "address", "role", "state", "risk_score", "criticality", "services", "weaknesses", "reachable_hosts", "state_history"],
+        "additionalProperties": false
+      }
+    },
+    "total": { "type": "integer", "minimum": 0 }
+  },
+  "required": ["items", "total"],
+  "additionalProperties": false
+}

@@ -1,0 +1,41 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/session_comparison.schema.json",
+  "title": "Replay session comparison",
+  "description": "Side-by-side operational metrics from two finished simulated replay sessions.",
+  "type": "object",
+  "required": ["left", "right", "simulation_only", "note"],
+  "additionalProperties": false,
+  "properties": {
+    "left": {"$ref": "#/$defs/session"},
+    "right": {"$ref": "#/$defs/session"},
+    "simulation_only": {"const": true},
+    "note": {"type": "string", "minLength": 1}
+  },
+  "$defs": {
+    "session": {
+      "type": "object",
+      "required": ["session_id", "scenario_id", "started_at", "ended_at", "alert_count", "severity_counts", "forecast_count", "resolved_forecasts", "hits", "misses", "precision_at_1", "precision_at_3", "containment_actions", "successful_containments"],
+      "additionalProperties": false,
+      "properties": {
+        "session_id": {"type": "string", "minLength": 1},
+        "scenario_id": {"type": ["string", "null"]},
+        "started_at": {"type": "string", "minLength": 1},
+        "ended_at": {"type": "string", "minLength": 1},
+        "alert_count": {"type": "integer", "minimum": 0},
+        "severity_counts": {
+          "type": "object", "required": ["CRITICAL", "HIGH", "MEDIUM", "LOW"], "additionalProperties": false,
+          "properties": {"CRITICAL": {"type": "integer", "minimum": 0}, "HIGH": {"type": "integer", "minimum": 0}, "MEDIUM": {"type": "integer", "minimum": 0}, "LOW": {"type": "integer", "minimum": 0}}
+        },
+        "forecast_count": {"type": "integer", "minimum": 0},
+        "resolved_forecasts": {"type": "integer", "minimum": 0},
+        "hits": {"type": "integer", "minimum": 0},
+        "misses": {"type": "integer", "minimum": 0},
+        "precision_at_1": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "precision_at_3": {"type": ["number", "null"], "minimum": 0, "maximum": 1},
+        "containment_actions": {"type": "integer", "minimum": 0},
+        "successful_containments": {"type": "integer", "minimum": 0}
+      }
+    }
+  }
+}

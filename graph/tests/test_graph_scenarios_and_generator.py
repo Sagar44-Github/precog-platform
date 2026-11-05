@@ -115,6 +115,38 @@ def test_library_refuses_a_mismatched_file_name_or_duplicate_ids(tmp_path):
         ScenarioLibrary(tmp_path)
 
 
+def test_custom_library_saves_only_valid_scenarios_and_reloads_them(tmp_path):
+    custom = tmp_path / "custom"
+    hosts = {"host-a", "host-b", "server-b", "file-server", "db-server", "domain-controller"}
+    library = ScenarioLibrary(known_hosts=hosts, custom_folder=custom)
+    scenario = {
+        "scenario_id": "custom-recon",
+        "description": "A short simulated reconnaissance pass.",
+        "events": [{"seq": 1, "offset_ms": 0, "kind": "technique", "host": "host-a", "technique_id": "T1046"}],
+    }
+    saved = library.save_custom(scenario)
+    assert saved == scenario and (custom / "custom-recon.json").is_file()
+    assert library.get("custom-recon") == scenario
+    summary = next(item for item in library.summaries() if item["scenario_id"] == "custom-recon")
+    assert summary["custom"] is True and summary["events"] == 1
+    reloaded = ScenarioLibrary(known_hosts=hosts, custom_folder=custom)
+    assert reloaded.get("custom-recon") == scenario
+
+
+def test_custom_scenario_cannot_replace_a_shipped_id_or_reference_an_unknown_host(tmp_path):
+    hosts = {"host-a", "host-b", "server-b", "file-server", "db-server", "domain-controller"}
+    library = ScenarioLibrary(known_hosts=hosts, custom_folder=tmp_path)
+    with pytest.raises(ScenarioError, match="already exists"):
+        library.save_custom(golden())
+    invalid = {
+        "scenario_id": "custom-unknown",
+        "description": "Invalid host reference.",
+        "events": [{"seq": 1, "offset_ms": 0, "kind": "technique", "host": "ghost", "technique_id": "T1046"}],
+    }
+    with pytest.raises(ScenarioError, match="unknown host"):
+        library.save_custom(invalid)
+
+
 # ---------- the generator ----------
 def test_generator_is_repeatable_and_seed_dependent(topology):
     a = generate_sequences(topology, count=60, seed=1)

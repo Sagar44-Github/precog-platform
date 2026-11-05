@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/incident_note.schema.json",
+  "title": "Incident analyst note",
+  "type": "object",
+  "properties": {
+    "note_id": {"type": "string", "minLength": 1},
+    "created_at": {"type": "string", "minLength": 1},
+    "author": {"type": "string", "minLength": 1},
+    "text": {"type": "string", "minLength": 1, "maxLength": 2000}
+  },
+  "required": ["note_id", "created_at", "author", "text"],
+  "additionalProperties": false
+}

@@ -1,0 +1,55 @@
+{
+  "evaluation": {
+    "source": "Held-out route evaluation; Golden Path runs are excluded.",
+    "training_sequences": 240,
+    "test_sequences": 60,
+    "alpha": 0.01,
+    "node_model": { "forecasts": 149, "precision_at_1": 0.651, "precision_at_1_std_error": 0.039, "precision_at_3": 1.0, "expected_calibration_error": 0.0572 },
+    "calibration_bins": [
+      { "bin_low": 0.1, "bin_high": 0.2, "mean_confidence": 0.147, "observed_rate": 0.2, "count": 60 },
+      { "bin_low": 0.2, "bin_high": 0.3, "mean_confidence": 0.2981, "observed_rate": 0.2222, "count": 27 },
+      { "bin_low": 0.3, "bin_high": 0.4, "mean_confidence": 0.394, "observed_rate": 0.2833, "count": 60 },
+      { "bin_low": 0.4, "bin_high": 0.5, "mean_confidence": 0.4607, "observed_rate": 0.5053, "count": 95 },
+      { "bin_low": 0.5, "bin_high": 0.6, "mean_confidence": 0.5364, "observed_rate": 0.5143, "count": 35 },
+      { "bin_low": 0.7, "bin_high": 0.8, "mean_confidence": 0.7019, "observed_rate": 0.7778, "count": 27 },
+      { "bin_low": 0.9, "bin_high": 1.0, "mean_confidence": 1.0, "observed_rate": 1.0, "count": 27 }
+    ],
+    "baselines": [
+      { "name": "Rule-based (simulated edge likelihood)", "metrics": { "forecasts": 149, "precision_at_1": 0.6376, "precision_at_1_std_error": 0.0394, "precision_at_3": 1.0, "expected_calibration_error": 0.0417 } },
+      { "name": "Uniform (equal candidate probability)", "metrics": { "forecasts": 149, "precision_at_1": 0.5503, "precision_at_1_std_error": 0.0408, "precision_at_3": 1.0, "expected_calibration_error": 0.0 } }
+    ]
+  },
+  "session": {
+    "forecasts_resolved": 0,
+    "hits": 0,
+    "hit_rate": null,
+    "precision_at_1": null,
+    "precision_at_3": null,
+    "calibration_bins": [],
+    "containment_success_rate": null
+  },
+  "live_tally": {
+    "forecasts_resolved": 0,
+    "honesty_note": "Session counter, not the model's overall accuracy.",
+    "model": { "rank1_hits": 0, "precision_at_1": null },
+    "rule_based": { "rank1_hits": 0, "precision_at_1": null },
+    "uniform": { "rank1_hits": 0, "precision_at_1": null }
+  },
+  "detection_report": {
+    "model": "LCCDE ensemble (LightGBM + XGBoost + CatBoost), leaders chosen on a validation split",
+    "dataset": "CICIDS2017 (5% sample from the Western OC2 Lab repository)",
+    "split": "Stratified random 80/20 split after removing duplicate rows (not ordered by time), seed 0",
+    "precision": 0.9978,
+    "recall": 0.9971,
+    "f1": 0.9974,
+    "false_positive_rate": 0.0023,
+    "notes": "This is an offline public sample, not live traffic, and is not comparable with NIDS's live Isolation Forest detector."
+  },
+  "honesty_notes": [
+    "Evaluation uses held-out routes only; Golden Path rehearsals are excluded.",
+    "Precision@3 is 1.0 for all methods because at most three hosts are reachable.",
+    "The Markov model's precision@1 is only slightly above the rule-based baseline.",
+    "The detection report is an offline public sample and is not comparable with the live detector.",
+    "The live value is a session counter, not the model's overall accuracy."
+  ]
+}

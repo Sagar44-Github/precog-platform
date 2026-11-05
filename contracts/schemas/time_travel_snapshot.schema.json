@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/time_travel_snapshot.schema.json",
+  "title": "Replay time-travel snapshot",
+  "description": "A bounded, read-only view of the simulated world at one version.",
+  "type": "object",
+  "required": ["version", "captured_at", "session_id", "graph", "alerts", "forecast", "actions", "replay", "metrics"],
+  "additionalProperties": false,
+  "properties": {
+    "version": {"type": "integer", "minimum": 0},
+    "captured_at": {"type": "string", "format": "date-time"},
+    "session_id": {"type": ["string", "null"]},
+    "graph": {"$ref": "https://precog.local/contracts/graph_snapshot.schema.json"},
+    "alerts": {"type": "array", "items": {"$ref": "https://precog.local/contracts/security_event.schema.json"}},
+    "forecast": {"anyOf": [{"$ref": "https://precog.local/contracts/forecast.schema.json"}, {"type": "null"}]},
+    "actions": {"type": "array", "items": {"$ref": "https://precog.local/contracts/containment_action.schema.json"}},
+    "replay": {"$ref": "https://precog.local/contracts/replay_status.schema.json"},
+    "metrics": {"$ref": "https://precog.local/contracts/session_metrics.schema.json"}
+  }
+}

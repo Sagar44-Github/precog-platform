@@ -18,6 +18,13 @@ def test_reading_a_missing_log_gives_an_empty_list(tmp_path):
     assert AuditLog(tmp_path / "nothing.jsonl").read_all() == []
 
 
+def test_read_all_skips_a_corrupt_or_invalid_line_without_losing_good_entries(tmp_path, contracts):
+    path = tmp_path / "audit.jsonl"
+    good = {"ts": "2026-10-03T10:00:00Z", "type": "detection", "ref_id": "evt-1", "summary": "safe entry"}
+    path.write_bytes((json.dumps(good) + "\n{broken json}\n" + json.dumps({"wrong": "shape"}) + "\n").encode("utf-8") + b"\xff\xfe\n")
+    assert AuditLog(path, contracts).read_all() == [good]
+
+
 def test_unknown_entry_type_is_refused(audit):
     with pytest.raises(ValueError):
         audit.record("gossip", "x", "y")

@@ -18,6 +18,21 @@ export function createSceneDecorations(colors) {
   const stage = new THREE.Group()
   stage.name = 'precog-scene-atmosphere'
 
+  const hemisphere = new THREE.HemisphereLight(colors.text, colors.bg, 0.55)
+  hemisphere.name = 'ambient-hemisphere'
+  stage.add(hemisphere)
+  const directional = new THREE.DirectionalLight(colors.text, 0.9)
+  directional.name = 'key-directional'
+  directional.position.set(-90, 210, 155)
+  directional.castShadow = true
+  directional.shadow.mapSize.set(1024, 1024)
+  directional.shadow.camera.left = -320
+  directional.shadow.camera.right = 320
+  directional.shadow.camera.top = 260
+  directional.shadow.camera.bottom = -260
+  directional.shadow.bias = -0.0002
+  stage.add(directional)
+
   const grid = new THREE.GridHelper(620, 40, colors.muted, colors.muted)
   grid.name = 'ground-grid'
   grid.position.set(0, -88, -8)
@@ -33,16 +48,28 @@ export function createSceneDecorations(colors) {
     new THREE.MeshBasicMaterial({ color: colors.forecast, transparent: true, opacity: 0.16, depthWrite: false }),
   )
   outerOrbit.name = 'outer-orbit'
-  outerOrbit.position.set(0, 0, -105)
+  outerOrbit.position.set(0, -86, 0)
+  outerOrbit.rotation.x = Math.PI / 2
   stage.add(outerOrbit)
 
   ZONES.forEach((zone, index) => {
+    const platform = new THREE.Mesh(
+      new THREE.CylinderGeometry(82, 88, 3, 56),
+      new THREE.MeshStandardMaterial({ color: index === 1 ? colors.forecast : colors.accent, roughness: 0.92, metalness: 0.02, transparent: true, opacity: 0.12 }),
+    )
+    platform.name = `zone-platform-${index}`
+    platform.position.set(zone.x, -84, -28)
+    platform.castShadow = false
+    platform.receiveShadow = true
+    stage.add(platform)
+
     const field = new THREE.Mesh(
       new THREE.RingGeometry(46, 82, 72),
       new THREE.MeshBasicMaterial({ color: index === 1 ? colors.forecast : colors.accent, transparent: true, opacity: 0.055, side: THREE.DoubleSide, depthWrite: false }),
     )
     field.name = `zone-field-${index}`
-    field.position.set(zone.x, 0, -75)
+    field.position.set(zone.x, -81, -28)
+    field.rotation.x = Math.PI / 2
     stage.add(field)
 
     const orbit = new THREE.Mesh(
@@ -50,11 +77,12 @@ export function createSceneDecorations(colors) {
       new THREE.MeshBasicMaterial({ color: index === 1 ? colors.forecast : colors.accent, transparent: true, opacity: 0.2, depthWrite: false }),
     )
     orbit.name = `zone-orbit-${index}`
-    orbit.position.set(zone.x, 0, -65)
+    orbit.position.set(zone.x, -79, -28)
+    orbit.rotation.x = Math.PI / 2
     orbit.rotation.z = index === 1 ? Math.PI / 12 : -Math.PI / 18
     stage.add(orbit)
 
-    const guide = line([new THREE.Vector3(zone.x, -95, -65), new THREE.Vector3(zone.x, 95, -65)], colors.muted, 0.15)
+    const guide = line([new THREE.Vector3(zone.x, -81, -148), new THREE.Vector3(zone.x, -81, 100)], colors.muted, 0.15)
     guide.name = `zone-guide-${index}`
     stage.add(guide)
 

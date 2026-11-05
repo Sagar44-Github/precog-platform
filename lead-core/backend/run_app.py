@@ -63,6 +63,30 @@ def ensure_admin(nids_app, password):
         session.close()
 
 
+def ensure_demo_account(nids_app, username, password):
+    """Create or refresh an optional analyst/viewer account from a local secret setting."""
+    password = (password or "").strip()
+    if not password:
+        return False
+    if len(password) < 8:
+        raise SystemExit("%s must be at least 8 characters long when configured." % (username.upper() + "_PASSWORD"))
+
+    from database.models import SessionLocal, User
+
+    session = SessionLocal()
+    try:
+        user = session.query(User).filter_by(username=username).first()
+        password_hash = nids_app.bcrypt.generate_password_hash(password).decode("utf-8")
+        if user is None:
+            session.add(User(username=username, password_hash=password_hash))
+        else:
+            user.password_hash = password_hash
+        session.commit()
+        return True
+    finally:
+        session.close()
+
+
 def ensure_model():
     """NIDS's detector needs a trained model file. Train one (about 10 seconds) if it is missing."""
     ml_dir = NIDS_DIR / "ml"
@@ -109,6 +133,8 @@ def create_app():
 
     init_db()
     ensure_admin(nids_app, admin_password)
+    ensure_demo_account(nids_app, "analyst", os.environ.get("ANALYST_PASSWORD"))
+    ensure_demo_account(nids_app, "viewer", os.environ.get("VIEWER_PASSWORD"))
     ensure_model()
 
     from addons import register_addons

@@ -1,0 +1,10 @@
+{
+  "model": { "name": "markov", "alpha": 0.01 },
+  "technique_hint_source": "repo",
+  "candidate_count": 3,
+  "candidate_set": [
+    { "host_id": "server-b", "transition_count": 81, "model_probability": 0.447495, "model_rank": 1, "rule_based_probability": 0.42, "rule_based_rank": 1, "uniform_probability": 0.333333, "uniform_rank": 3 },
+    { "host_id": "file-server", "transition_count": 71, "model_probability": 0.392255, "model_rank": 2, "rule_based_probability": 0.35, "rule_based_rank": 2, "uniform_probability": 0.333333, "uniform_rank": 1 },
+    { "host_id": "host-b", "transition_count": 29, "model_probability": 0.160250, "model_rank": 3, "rule_based_probability": 0.23, "rule_based_rank": 3, "uniform_probability": 0.333333, "uniform_rank": 2 }
+  ]
+}

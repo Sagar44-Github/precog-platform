@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { Link, useNavigate, useParams } from 'react-router-dom'
 import { api } from '../../shared/api.js'
 import { EmptyState, LoadingState, useToast } from '../../shared/components.jsx'
 import { AlertVolumeChart, ForecastAccuracyChart } from '../charts/index.jsx'
@@ -52,6 +52,83 @@ export function AlertsScreen({ state }) {
         : shown.slice(0, 50).map((a) => <AlertCard key={a.event_id} alert={a} onOpen={() => navigate(`/mobile/alerts/${encodeURIComponent(a.event_id)}`)} />)}
     </div>
   )
+}
+
+export function IncidentsScreen() {
+  const [items, setItems] = useState(null)
+  const [error, setError] = useState('')
+  const [revision, setRevision] = useState(0)
+  useEffect(() => {
+    let alive = true
+    api.incidents({ limit: 100 }).then((reply) => { if (alive) { setItems(reply.items); setError('') } }).catch((reason) => { if (alive) setError(reason.message || 'Could not load incidents.') })
+    return () => { alive = false }
+  }, [revision])
+  return <div className="m-screen m-incident-screen">
+    <h1 className="m-title">Incident cases</h1>
+    <p className="m-caption m-case-intro">Cases group each simulated replay session and its alerts, predictions, and response actions.</p>
+    {items === null && !error && <LoadingState lines={3} />}
+    {error && <div className="m-case-error" role="alert"><p>{error}</p><button type="button" className="m-btn" onClick={() => { setItems(null); setRevision((value) => value + 1) }}>Retry</button></div>}
+    {items?.length === 0 && <EmptyState>No incident cases yet. Start a replay to create a simulated case.</EmptyState>}
+    {items?.map((incident) => <Link className="m-card m-case-link" to={`/mobile/incidents/${encodeURIComponent(incident.incident_id)}`} key={incident.incident_id}>
+      <div className="m-row"><span className={`m-case-status m-case-status-${incident.status}`}>{incident.status}</span><span className="m-case-severity">{incident.severity}</span></div>
+      <b>{incident.title}</b>
+      <span className="m-mono m-caption">{incident.incident_id}</span>
+      <span>{incident.alert_count} alerts · {incident.hosts.length} hosts referenced</span>
+      <span className="m-case-summary">{incident.summary}</span>
+    </Link>)}
+  </div>
+}
+
+export function IncidentDetailScreen() {
+  const { id } = useParams()
+  const navigate = useNavigate()
+  const [incident, setIncident] = useState(null)
+  const [error, setError] = useState('')
+  const [note, setNote] = useState('')
+  const [saving, setSaving] = useState(false)
+  const [revision, setRevision] = useState(0)
+  useEffect(() => {
+    let alive = true
+    api.incident(id).then((record) => { if (alive) { setIncident(record); setError('') } }).catch((reason) => { if (alive) setError(reason.message || 'Could not load this case.') })
+    return () => { alive = false }
+  }, [id, revision])
+
+  async function changeStatus(status) {
+    setSaving(true)
+    setError('')
+    try {
+      const record = await api.setIncidentStatus(id, status)
+      setIncident(record)
+    } catch (reason) { setError(reason.message || 'Could not update case status.') }
+    finally { setSaving(false) }
+  }
+
+  async function addNote(event) {
+    event.preventDefault()
+    if (!note.trim()) return
+    setSaving(true)
+    setError('')
+    try {
+      await api.addIncidentNote(id, note.trim())
+      setNote('')
+      setRevision((value) => value + 1)
+    } catch (reason) { setError(reason.message || 'Could not add the note.') }
+    finally { setSaving(false) }
+  }
+
+  return <div className="m-screen m-incident-screen">
+    <button type="button" className="m-back" onClick={() => navigate('/mobile/incidents')}>‹ Back to cases</button>
+    {!incident && !error && <LoadingState lines={3} />}
+    {error && <div className="m-case-error" role="alert"><p>{error}</p><button type="button" className="m-btn" onClick={() => { setIncident(null); setRevision((value) => value + 1) }}>Retry</button></div>}
+    {incident && <>
+      <div className="m-case-heading"><div className="m-row"><span className={`m-case-status m-case-status-${incident.status}`}>{incident.status}</span><span className="m-case-severity">{incident.severity}</span></div><h1 className="m-title">{incident.title}</h1><p className="m-case-summary">{incident.summary}</p><span className="m-mono m-caption">{incident.session_id} · {incident.incident_id}</span></div>
+      <section className="m-card m-case-control"><h2>Case status</h2><label className="m-case-field"><span>Analyst status</span><select aria-label="Incident case status" value={incident.status} disabled={saving} onChange={(event) => changeStatus(event.target.value)}><option value="open">Open</option><option value="contained">Contained</option><option value="closed">Closed</option></select></label><p className="m-caption">Status changes are audit logged. Notes and status remain in this running demo.</p></section>
+      <section className="m-card"><h2>Session timeline</h2>{incident.timeline.length ? <ol className="m-case-timeline">{incident.timeline.map((item, index) => <li key={`${item.ref_id}-${item.kind}-${index}`}><span className={`m-case-marker m-case-marker-${item.kind}`} aria-hidden="true" /><div><small>{item.kind} · {formatTime(item.ts)}</small><b>{item.label}</b><span className="m-mono m-caption">{item.ref_id}{item.host ? ` · ${item.host}` : ''}</span></div></li>)}</ol> : <EmptyState>No timeline events have been recorded.</EmptyState>}</section>
+      <section className="m-card"><h2>Alerts</h2>{incident.alerts.length ? incident.alerts.map((alert) => <div className="m-case-evidence" key={alert.event_id}><div className="m-row"><SeverityBadge severity={alert.severity} /><span className="m-mono m-caption">{alert.host}</span></div><p>{alert.explanation}</p><span className="m-caption">{alert.technique_id ? `${alert.technique_id} · ${alert.technique_name} · ` : ''}{alert.source === 'scripted' ? 'Scripted scenario' : 'NIDS detector'}</span></div>) : <EmptyState>No alert evidence recorded.</EmptyState>}</section>
+      <section className="m-card"><h2>Predictions and actions</h2>{incident.forecasts.length ? incident.forecasts.map((forecast) => <div className="m-case-evidence" key={forecast.forecast_id}><b>Forecast · {forecast.status}</b><p>{forecast.targets.map((target) => `${target.rank}. ${target.host_id} (${Math.round(target.confidence * 100)}%)`).join(' · ') || 'No candidates'}</p>{forecast.status === 'miss' && <strong>Precog missed this predicted target.</strong>}{forecast.status === 'hit' && <strong>Precog hit in this replay.</strong>}</div>) : <p className="m-caption">No forecasts yet.</p>}{incident.actions.map((action) => <div className="m-case-evidence" key={action.action_id}><b>Simulated containment · {action.status}</b><p>{action.target_host}</p><small>{action.result || action.proposed_at}</small></div>)}</section>
+      <section className="m-card"><h2>Analyst notes</h2><form className="m-case-note-form" onSubmit={addNote}><label className="m-case-field"><span>Add a note</span><textarea value={note} onChange={(event) => setNote(event.target.value)} maxLength={2000} rows={4} placeholder="Record a review observation…" /></label><div className="m-row"><small>{note.length} / 2000</small><button type="submit" className="m-btn" disabled={saving || !note.trim()}>Add note</button></div></form>{incident.notes.length ? [...incident.notes].reverse().map((entry) => <article className="m-case-note" key={entry.note_id}><p>{entry.text}</p><small>{entry.author} · {formatTime(entry.created_at)}</small></article>) : <p className="m-caption">No analyst notes yet.</p>}</section>
+    </>}
+  </div>
 }
 
 export function AlertDetailScreen({ state }) {

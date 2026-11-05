@@ -1,0 +1,14 @@
+  ok    the backend answers /api/x/health  (200, 0.0 s)
+  ok    data mode is live  (live)
+  ok    every part is registered  (missing: [])
+  ok    no part failed to load  ({})
+  ok    the web app page loads  (200)
+  ok    the install manifest is served  (/app/manifest.webmanifest 200)
+  ok    the service worker is served  (/app/sw.js 200)
+  ok    the push service worker is served  (/app/push/push-sw.js 200)
+  ok    the app icon is served  (/app/icons/icon-192.png 200)
+  ok    the state needs a sign-in (401 when signed out)  (401)
+  ok    sign in works  (200)
+  ok    the live state is served
+  ok    the four scenarios are listed
+READY for the demo

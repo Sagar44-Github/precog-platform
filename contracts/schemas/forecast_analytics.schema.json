@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/forecast_analytics.schema.json",
+  "title": "Forecast analytics",
+  "description": "Held-out Precog evaluation, baselines, calibration, session counters, and the offline detection report.",
+  "type": "object",
+  "properties": {
+    "evaluation": {
+      "type": "object",
+      "properties": {
+        "source": { "type": "string", "minLength": 1 },
+        "training_sequences": { "type": "integer", "minimum": 0 },
+        "test_sequences": { "type": "integer", "minimum": 0 },
+        "alpha": { "type": "number", "minimum": 0 },
+        "node_model": { "$ref": "#/$defs/metric_set" },
+        "calibration_bins": { "type": "array", "items": { "$ref": "#/$defs/calibration_bin" } },
+        "baselines": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "name": { "type": "string", "minLength": 1 },
+              "metrics": { "$ref": "#/$defs/metric_set" }
+            },
+            "required": ["name", "metrics"],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": ["source", "training_sequences", "test_sequences", "alpha", "node_model", "calibration_bins", "baselines"],
+      "additionalProperties": false
+    },
+    "session": { "$ref": "https://precog.local/contracts/session_metrics.schema.json" },
+    "live_tally": {
+      "type": "object",
+      "properties": {
+        "forecasts_resolved": { "type": "integer", "minimum": 0 },
+        "honesty_note": { "type": "string", "minLength": 1 },
+        "model": { "$ref": "#/$defs/session_rank_tally" },
+        "rule_based": { "$ref": "#/$defs/session_rank_tally" },
+        "uniform": { "$ref": "#/$defs/session_rank_tally" }
+      },
+      "required": ["forecasts_resolved", "honesty_note", "model", "rule_based", "uniform"],
+      "additionalProperties": false
+    },
+    "detection_report": {
+      "oneOf": [
+        { "$ref": "https://precog.local/contracts/detection_report.schema.json" },
+        { "type": "null" }
+      ]
+    },
+    "honesty_notes": { "type": "array", "items": { "type": "string", "minLength": 1 } }
+  },
+  "required": ["evaluation", "session", "live_tally", "detection_report", "honesty_notes"],
+  "additionalProperties": false,
+  "$defs": {
+    "metric_set": {
+      "type": "object",
+      "properties": {
+        "forecasts": { "type": "integer", "minimum": 0 },
+        "precision_at_1": { "type": "number", "minimum": 0, "maximum": 1 },
+        "precision_at_1_std_error": { "type": "number", "minimum": 0, "maximum": 1 },
+        "precision_at_3": { "type": "number", "minimum": 0, "maximum": 1 },
+        "expected_calibration_error": { "type": ["number", "null"], "minimum": 0, "maximum": 1 }
+      },
+      "required": ["forecasts", "precision_at_1", "precision_at_1_std_error", "precision_at_3", "expected_calibration_error"],
+      "additionalProperties": false
+    },
+    "calibration_bin": {
+      "type": "object",
+      "properties": {
+        "bin_low": { "type": "number", "minimum": 0, "maximum": 1 },
+        "bin_high": { "type": "number", "minimum": 0, "maximum": 1 },
+        "mean_confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "observed_rate": { "type": "number", "minimum": 0, "maximum": 1 },
+        "count": { "type": "integer", "minimum": 0 }
+      },
+      "required": ["bin_low", "bin_high", "mean_confidence", "observed_rate", "count"],
+      "additionalProperties": false
+    },
+    "session_rank_tally": {
+      "type": "object",
+      "properties": {
+        "rank1_hits": { "type": "integer", "minimum": 0 },
+        "precision_at_1": { "type": ["number", "null"], "minimum": 0, "maximum": 1 }
+      },
+      "required": ["rank1_hits", "precision_at_1"],
+      "additionalProperties": false
+    }
+  }
+}

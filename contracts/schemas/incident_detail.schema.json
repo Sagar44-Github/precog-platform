@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/incident_detail.schema.json",
+  "title": "Incident detail",
+  "description": "A replay-session attack chain grouped with its evidence and analyst annotations.",
+  "type": "object",
+  "properties": {
+    "incident_id": {"type": "string", "minLength": 1},
+    "session_id": {"type": "string", "minLength": 1},
+    "scenario_id": {"type": ["string", "null"]},
+    "title": {"type": "string", "minLength": 1},
+    "summary": {"type": "string", "minLength": 1},
+    "started_at": {"type": "string", "minLength": 1},
+    "ended_at": {"type": ["string", "null"]},
+    "status": {"type": "string", "enum": ["open", "contained", "closed"]},
+    "severity": {"type": "string", "enum": ["HIGH", "MEDIUM", "LOW", "NORMAL"]},
+    "alert_count": {"type": "integer", "minimum": 0},
+    "hosts": {"type": "array", "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "techniques": {"type": "array", "items": {"type": "object", "required": ["technique_id", "technique_name"], "properties": {"technique_id": {"type": "string", "minLength": 1}, "technique_name": {"type": "string", "minLength": 1}}, "additionalProperties": false}},
+    "alerts": {"type": "array", "items": {"$ref": "https://precog.local/contracts/security_event.schema.json"}},
+    "forecasts": {"type": "array", "items": {"$ref": "https://precog.local/contracts/forecast.schema.json"}},
+    "actions": {"type": "array", "items": {"$ref": "https://precog.local/contracts/containment_action.schema.json"}},
+    "timeline": {"type": "array", "items": {"type": "object", "required": ["kind", "ts", "label", "ref_id", "host"], "properties": {"kind": {"type": "string", "enum": ["detection", "forecast", "containment"]}, "ts": {"type": "string", "minLength": 1}, "label": {"type": "string", "minLength": 1}, "ref_id": {"type": "string", "minLength": 1}, "host": {"type": ["string", "null"]}}, "additionalProperties": false}},
+    "notes": {"type": "array", "items": {"$ref": "https://precog.local/contracts/incident_note.schema.json"}}
+  },
+  "required": ["incident_id", "session_id", "scenario_id", "title", "summary", "started_at", "ended_at", "status", "severity", "alert_count", "hosts", "techniques", "alerts", "forecasts", "actions", "timeline", "notes"],
+  "additionalProperties": false
+}

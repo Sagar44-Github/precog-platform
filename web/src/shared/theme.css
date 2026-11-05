@@ -132,6 +132,7 @@ code, .mono { font-family: var(--font-mono); }
 .login-submit b { font-size: 20px; }
 .login-footer { margin: 22px 0 0; color: var(--text-muted); text-align: center; font-size: 9px; letter-spacing: 0.06em; }
 .login-footer span { color: var(--forecast-text); padding: 0 4px; }
+.login-role-note { margin: 8px 0 0; color: var(--text-muted); text-align: center; font-size: 12px; line-height: 1.5; }
 .login-corner { position: absolute; z-index: 1; bottom: 18px; color: var(--text-muted); font-size: 9px; opacity: 0.78; }
 .login-corner span { color: var(--accent); }
 .login-corner-left { left: 22px; }
@@ -167,4 +168,141 @@ code, .mono { font-family: var(--font-mono); }
   .login-corner { display: none; }
   .demo-launch-flow { grid-template-columns: 1fr; gap: 12px; }
   .demo-launch-flow > i { display: none; }
+}
+
+/* Phase B1 design tokens: restrained surfaces, explicit state colours, and a matching light theme. */
+:root {
+  color-scheme: dark;
+  --bg: hsl(215 12% 8%);
+  --surface: hsl(215 12% 11%);
+  --surface-raised: hsl(215 12% 14%);
+  --surface-sunken: hsl(215 12% 7%);
+  --surface-glass: var(--surface);
+  --border: hsl(215 12% 20%);
+  --border-strong: hsl(215 10% 42%);
+  --text: hsl(215 12% 92%);
+  --text-muted: hsl(215 10% 66%);
+  --text-slate: hsl(215 10% 70%);
+  --text-red: hsl(8 55% 72%);
+  --accent: hsl(212 60% 64%);
+  --accent-ink: hsl(215 30% 8%);
+  --focus-ring: 2px solid var(--accent);
+  --state-normal: hsl(215 10% 52%);
+  --state-compromised: hsl(8 50% 52%);
+  --state-contained: hsl(174 45% 48%);
+  --forecast: hsl(260 45% 62%);
+  --forecast-text: hsl(260 55% 80%);
+  --severity-critical: hsl(8 50% 60%);
+  --severity-high: hsl(28 55% 58%);
+  --severity-medium: hsl(46 50% 54%);
+  --severity-low: hsl(215 10% 62%);
+  --grid-line: hsl(215 12% 45% / 0.11);
+  --glow-cyan: transparent;
+  --glow-violet: transparent;
+  --glow-red: transparent;
+  --glow-cyan-ring-outer: transparent;
+  --glow-cyan-ring-inner: transparent;
+  --surface-topbar-start: var(--surface);
+  --surface-topbar-end: var(--surface);
+  --surface-replay-control: var(--surface-raised);
+  --surface-map-radial: transparent;
+  --surface-map-card: var(--surface);
+  --surface-panel-start: var(--surface);
+  --surface-panel-end: var(--surface);
+  --surface-inset: var(--bg);
+  --surface-mobile-top: var(--surface);
+  --surface-mobile-card-start: var(--surface);
+  --surface-mobile-card-end: var(--surface);
+  --surface-mobile-pill: var(--surface-raised);
+  --surface-mobile-alert: var(--surface);
+  --surface-mobile-tabs: var(--surface);
+  --surface-login-start: var(--surface);
+  --surface-login-end: var(--surface);
+  --surface-demo-start: var(--surface-raised);
+  --surface-demo-end: var(--surface);
+  --surface-contained-wash: hsl(174 45% 48% / 0.09);
+  --surface-contained-wash-hover: hsl(174 45% 48% / 0.16);
+  --surface-contained-wash-mobile: hsl(174 45% 48% / 0.08);
+  --border-accent-wash: hsl(212 60% 64% / 0.3);
+  --shadow-soft: hsl(215 30% 2% / 0.1);
+  --shadow-panel: hsl(215 30% 2% / 0.13);
+  --shadow-card: hsl(215 30% 2% / 0.14);
+  --shadow-dialog: hsl(215 30% 2% / 0.32);
+  --shadow-login: hsl(215 30% 2% / 0.28);
+  --shadow-launch: hsl(215 30% 2% / 0.16);
+  --shadow-phone: hsl(215 30% 2% / 0.12);
+  --overlay: hsl(215 30% 3% / 0.62);
+  --radius-s: 6px;
+  --radius-m: 8px;
+  --radius-l: 12px;
+}
+
+:root[data-theme="light"] {
+  color-scheme: light;
+  --bg: hsl(210 20% 97%);
+  --surface: hsl(0 0% 100%);
+  --surface-raised: hsl(210 18% 94%);
+  --surface-sunken: hsl(210 18% 95%);
+  --surface-glass: var(--surface);
+  --border: hsl(215 14% 84%);
+  --border-strong: hsl(215 12% 52%);
+  --text: hsl(215 20% 13%);
+  --text-muted: hsl(215 10% 38%);
+  --text-slate: hsl(215 10% 34%);
+  --text-red: hsl(8 58% 39%);
+  --accent: hsl(212 62% 42%);
+  --accent-ink: hsl(0 0% 100%);
+  --state-normal: hsl(215 12% 42%);
+  --state-compromised: hsl(8 54% 44%);
+  --state-contained: hsl(174 58% 31%);
+  --forecast: hsl(260 48% 52%);
+  --forecast-text: hsl(260 48% 42%);
+  --severity-critical: hsl(8 58% 46%);
+  --severity-high: hsl(28 68% 40%);
+  --severity-medium: hsl(42 74% 35%);
+  --severity-low: hsl(215 12% 43%);
+  --grid-line: hsl(215 12% 45% / 0.09);
+  --surface-replay-control: var(--surface-raised);
+  --surface-map-radial: transparent;
+  --surface-map-card: var(--surface);
+  --surface-panel-start: var(--surface);
+  --surface-panel-end: var(--surface);
+  --surface-inset: var(--surface-raised);
+  --surface-mobile-pill: var(--surface-raised);
+  --surface-demo-start: var(--surface-raised);
+  --surface-demo-end: var(--surface);
+  --surface-contained-wash: hsl(174 58% 31% / 0.08);
+  --surface-contained-wash-hover: hsl(174 58% 31% / 0.14);
+  --surface-contained-wash-mobile: hsl(174 58% 31% / 0.07);
+  --border-accent-wash: hsl(212 62% 42% / 0.28);
+  --shadow-soft: hsl(215 20% 20% / 0.05);
+  --shadow-panel: hsl(215 20% 20% / 0.06);
+  --shadow-card: hsl(215 20% 20% / 0.07);
+  --shadow-dialog: hsl(215 20% 20% / 0.18);
+  --shadow-login: hsl(215 20% 20% / 0.12);
+  --shadow-launch: hsl(215 20% 20% / 0.07);
+  --shadow-phone: hsl(215 20% 20% / 0.06);
+  --overlay: hsl(215 20% 10% / 0.36);
+}
+
+/* Keep legacy screens in the same calm visual language while their feature pages arrive in later phases. */
+.sim-badge { border-radius: 4px; color: var(--text-muted); }
+.login-card, .demo-launch, .m-card, .m-threat { border-radius: var(--radius-l); box-shadow: 0 8px 24px var(--shadow-soft); }
+.login-brand-mark { border-radius: 8px; box-shadow: none; }
+.demo-launch-button { border-radius: 6px; background: var(--accent); box-shadow: none; }
+.demo-launch-button:hover { box-shadow: none; transform: none; }
+.m-card { background: var(--surface); }
+.m-threat { background: var(--surface-raised); }
+.m-tabs { backdrop-filter: none; }
+.m-top { backdrop-filter: none; }
+.m-screen p:not(.m-caption), .m-card > p:not(.m-caption) { line-height: 1.55; }
+.login-theme-toggle { position: absolute; z-index: 2; top: 18px; right: 18px; }
+.m-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.m-top-actions { display: flex; align-items: center; gap: 7px; }
+.m-theme-toggle { min-width: 36px; min-height: 36px; padding-inline: 8px; }
+.m-theme-toggle span { display: none; }
+
+@media (max-width: 620px) {
+  .m-screen p:not(.m-caption), .m-card > p:not(.m-caption) { font-size: 16px; }
+  .login-theme-toggle { top: 12px; right: 12px; }
 }

@@ -5,6 +5,7 @@ an attack graph and scores risk. If `attackgraph` is not installed, a plain netw
 connections and a simple likelihood (the fallback named in the TRD). `self.engine` says which one is in use.
 """
 import json
+import copy
 from pathlib import Path
 
 import networkx as nx
@@ -125,3 +126,13 @@ class Topology:
         """Risk score of a host (0 to 10), from the simulated weaknesses and how critical the host is."""
         self._check_known(host_id)
         return float(self._risk.get(host_id, 0.0))
+
+    def asset_profile(self, host_id):
+        """Return the static services and explicitly simulated weaknesses for one known host."""
+        self._check_known(host_id)
+        info = self._assets.get(host_id, {})
+        return {
+            "services": list(info.get("services", [])),
+            "criticality": float(info.get("criticality", 0.5)),
+            "weaknesses": [dict(copy.deepcopy(vulnerability), simulated=True) for vulnerability in info.get("vulns", [])],
+        }

@@ -1,5 +1,6 @@
 import { useEffect, useReducer, useRef, useState } from 'react'
 import { api } from '../../shared/api.js'
+import { useAuth } from '../../shared/AuthContext.jsx'
 import {
   accuracyText, attackPath, clamp01, containReducer, formatTime, forecastRows, hostName, hostStateMeta, initialContain, mitreUrl,
   outcomeText, severityMeta, sliderComplete, threatLevel,
@@ -138,7 +139,9 @@ export function SlideToConfirm({ onConfirm, disabled }) {
 }
 
 /** Contain button + confirmation sheet. api is injectable so it can be tested. */
-export function ContainFlow({ state, client = api, onDone }) {
+export function ContainFlow({ state, client = api, onDone, canContain: allowed }) {
+  const auth = useAuth()
+  const canContain = allowed ?? (auth?.permissions?.can_contain !== false)
   const [flow, dispatch] = useReducer(containReducer, initialContain)
   const rows = forecastRows(state)
   const target = rows[0]
@@ -168,7 +171,7 @@ export function ContainFlow({ state, client = api, onDone }) {
     dispatch({ type: 'cancel' })
   }
 
-  if (!target) return null
+  if (!target || !canContain) return null
   const open = flow.step === 'confirming' || flow.step === 'sending'
   return (
     <div>

@@ -29,6 +29,15 @@ test('a normal, unpredicted host is only a sphere', () => {
   assert.equal(group.children.length, 1)          // no labels in Node: they need a browser canvas
 })
 
+test('host models retain state shapes and expose selection, risk, and shield effects', () => {
+  const selected = makeHostObject({ id: 'w', name: 'Web Server', role: 'Web server', shape: 'sphere', radius: 4, state: 'normal', risk: 72, weaknessCount: 2, overlay: 'risk', predicted: null, selected: true }, colors)
+  assert.ok(selected.getObjectByName('host-model-tower'))
+  assert.ok(selected.getObjectByName('selection-outline'))
+  assert.ok(selected.getObjectByName('heat-overlay'))
+  const contained = makeHostObject({ id: 'd', name: 'Database', shape: 'cube', radius: 8, state: 'contained', predicted: null }, colors)
+  assert.ok(contained.getObjectByName('containment-shield'))
+})
+
 test('a cone is placed between two hosts, wider and stronger when more confident', () => {
   const strong = placeCone(makeCone(colors, 0.74), { x: 0, y: 0, z: 0 }, { x: 0, y: 100, z: 0 }, 0.74)
   const weak = placeCone(makeCone(colors, 0.07), { x: 0, y: 0, z: 0 }, { x: 0, y: 100, z: 0 }, 0.07)

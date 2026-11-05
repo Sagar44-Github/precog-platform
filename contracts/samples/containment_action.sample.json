@@ -1,6 +1,14 @@
 {
   "action_id": "act-000001",
   "target_host": "server-b",
+  "target_hosts": ["server-b"],
+  "operation": "contain",
+  "playbook": "host",
+  "related_action_id": null,
+  "session_id": "ses-000001",
+  "previous_states": [
+    { "host_id": "server-b", "state": "normal" }
+  ],
   "forecast_id": "fc-000001",
   "requested_by": "mobile",
   "status": "pending_confirmation",

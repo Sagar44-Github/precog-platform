@@ -35,6 +35,17 @@ test('predicted targets carry their percentage, others do not', () => {
   assert.equal(by.a.predicted, null)
 })
 
+test('asset profiles add role, risk, simulated weakness count, selected state, and overlay to scene nodes', () => {
+  const assets = [{ host_id: 's', role: 'Web server', risk_score: 73, weaknesses: [{ id: 'DEMO-1' }, { id: 'DEMO-2' }] }]
+  const { nodes } = buildScene(world({ forecast }), assets, { selectedHostId: 's', overlay: 'weakness' })
+  const server = nodes.find((node) => node.id === 's')
+  assert.equal(server.role, 'Web server')
+  assert.equal(server.risk, 73)
+  assert.equal(server.weaknessCount, 2)
+  assert.equal(server.selected, true)
+  assert.equal(server.overlay, 'weakness')
+})
+
 test('cones exist only for a pending forecast and grow stronger with confidence', () => {
   assert.deepEqual(buildScene(world()).cones, [])
   assert.deepEqual(buildScene(world({ forecast: { ...forecast, status: 'hit' } })).cones, [])

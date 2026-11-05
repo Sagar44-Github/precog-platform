@@ -12,6 +12,14 @@ export function readSceneColors(getVar) {
   return colors
 }
 
-export const browserVar = (name) => (typeof document === 'undefined' ? '' : getComputedStyle(document.documentElement).getPropertyValue(name))
+export function browserVar(name, documentRef = globalThis.document, getStyle = globalThis.getComputedStyle) {
+  if (!documentRef?.documentElement || typeof getStyle !== 'function') return ''
+  const value = getStyle(documentRef.documentElement).getPropertyValue(name).trim()
+  if (!value) return ''
+  const context = documentRef.createElement?.('canvas')?.getContext?.('2d')
+  if (!context) return value
+  context.fillStyle = value
+  return context.fillStyle || value
+}
 
 export const prefersReducedMotion = () => typeof window !== 'undefined' && typeof window.matchMedia === 'function' && window.matchMedia('(prefers-reduced-motion: reduce)').matches

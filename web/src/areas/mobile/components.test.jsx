@@ -2,9 +2,9 @@ import test from 'node:test'
 import assert from 'node:assert/strict'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { MemoryRouter } from 'react-router-dom'
-import { AccuracyCounter, AlertCard, AttackPath2D, ForecastBars, OutcomeCard, SeverityBadge, StateChip, ThreatLevelCard } from './components.jsx'
+import { AccuracyCounter, AlertCard, AttackPath2D, ContainFlow, ForecastBars, OutcomeCard, SeverityBadge, StateChip, ThreatLevelCard } from './components.jsx'
 import { TabBar } from './index.jsx'
-import { HomeScreen } from './screens.jsx'
+import { HomeScreen, IncidentsScreen, IncidentDetailScreen } from './screens.jsx'
 import { ToastProvider } from '../../shared/components.jsx'
 
 const alert = { event_id: 'evt-000001', ts: '2026-10-03T10:00:01Z', host: 'host-a', severity: 'HIGH', explanation: 'Workstation A sent a 2500-byte TCP packet to port 22 (SSH, remote login) on Workstation B.',
@@ -16,6 +16,10 @@ const state = {
   metrics: { forecasts_resolved: 1, hits: 1, hit_rate: 1, calibration_bins: [] },
 }
 const html = (el) => renderToStaticMarkup(<MemoryRouter>{el}</MemoryRouter>)
+
+test('viewer mobile access does not render a containment action', () => {
+  assert.equal(html(<ContainFlow state={state} canContain={false} />), '')
+})
 
 test('severity badge shows icon and word, not colour alone', () => {
   const out = html(<SeverityBadge severity="HIGH" />)
@@ -77,11 +81,16 @@ test('outcome card says a miss as plainly as a hit', () => {
   assert.equal(html(<OutcomeCard forecast={state.forecast} state={state} />), '')
 })
 
-test('the tab bar has four tabs, a high-alert count and a forecast dot', () => {
+test('the tab bar has five tabs, a high-alert count and a forecast dot', () => {
   const out = html(<TabBar state={state} />)
-  for (const word of ['Home', 'Alerts', 'Forecast', 'History']) assert.match(out, new RegExp(word))
+  for (const word of ['Home', 'Alerts', 'Cases', 'Forecast', 'History']) assert.match(out, new RegExp(word))
   assert.match(out, /1 high alerts/)
   assert.match(out, /A forecast is pending/)
+})
+
+test('mobile incident routes show their loading state and use the cases route', () => {
+  assert.match(html(<IncidentsScreen />), /Incident cases/)
+  assert.match(html(<IncidentDetailScreen />), /Loading/)
 })
 
 test('the home screen shows the threat level, the contain button, the latest alert and the accuracy', () => {

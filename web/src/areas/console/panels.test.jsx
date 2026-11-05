@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { renderToStaticMarkup } from 'react-dom/server'
-import { MemoryRouter } from 'react-router-dom'
+import { StaticRouter } from 'react-router-dom/server.js'
 import { AlertsPanel, ConsoleContain, ForecastPanel, LeftRail, NodeDetailPanel, ReplayControls, SceneSummary, TimelineStrip, TopBar } from './panels.jsx'
 import { AlertVolumeChart, ForecastAccuracyChart } from '../charts/index.jsx'
 
@@ -14,12 +14,10 @@ const state = {
   replay: { state: 'waiting_for_decision', scenario_id: 'golden-path', speed: 1, position: 3 },
   metrics: { forecasts_resolved: 1, hits: 1, hit_rate: 1, calibration_bins: [] },
 }
-const html = (el) => renderToStaticMarkup(<MemoryRouter>{el}</MemoryRouter>)
+const html = (el) => renderToStaticMarkup(<StaticRouter location="/console">{el}</StaticRouter>)
 
-test('the top bar shows the name, the simulation badge, the threat level and the connection', () => {
+test('the replay top bar shows the threat level and the connection', () => {
   const out = html(<TopBar state={state} stale={false} />)
-  assert.match(out, /Precog SOC/)
-  assert.match(out, /SIMULATION/)
   assert.match(out, /Threat: Under attack/)
   assert.match(out, /Connected/)
   assert.match(html(<TopBar state={state} stale />), /Offline · stale data/)
@@ -42,6 +40,16 @@ test('an idle replay can only be started', () => {
   assert.match(out, /aria-label="Restart replay"[^>]*disabled/)
 })
 
+test('viewer replay controls are read-only and analysts cannot restart', () => {
+  const viewer = html(<ReplayControls replay={state.replay} permissions={{ can_run_replay: false, can_restart_replay: false }} />)
+  assert.match(viewer, /Viewer access · read only/)
+  assert.doesNotMatch(viewer, /aria-label="Scenario"/)
+  assert.doesNotMatch(viewer, /Start/)
+  const analyst = html(<ReplayControls replay={state.replay} permissions={{ can_run_replay: true, can_restart_replay: false }} />)
+  assert.match(analyst, /aria-label="Scenario"/)
+  assert.doesNotMatch(analyst, /aria-label="Restart replay"/)
+})
+
 test('the left rail has Graph, Alerts and Reports with the selected one marked', () => {
   const out = html(<LeftRail view="alerts" onChange={() => {}} />)
   for (const word of ['Graph', 'Alerts', 'Reports']) assert.match(out, new RegExp(word))
@@ -51,6 +59,7 @@ test('the left rail has Graph, Alerts and Reports with the selected one marked',
 test('the contain button names the top predicted host, and is absent without a forecast', () => {
   assert.match(html(<ConsoleContain state={state} />), /Contain Web Server B/)
   assert.equal(html(<ConsoleContain state={{ ...state, forecast: null }} />), '')
+  assert.equal(html(<ConsoleContain state={state} allowed={false} />), '')
 })
 
 test('the forecast panel shows the forecast bars, the contain button and the attack path', () => {

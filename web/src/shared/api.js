@@ -45,6 +45,15 @@ async function request(method, path, body) {
 export const apiGet = (path) => request('GET', path)
 export const apiPost = (path, body = {}) => request('POST', path, body)
 
+function withQuery(path, values = {}) {
+  const query = new URLSearchParams()
+  Object.entries(values).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') query.set(key, String(value))
+  })
+  const suffix = query.toString()
+  return suffix ? `${path}?${suffix}` : path
+}
+
 // Named helpers, one per backend endpoint the screens need. Names match docs: TRD section 11.
 export const api = {
   health: () => apiGet('/api/x/health'),
@@ -54,20 +63,44 @@ export const api = {
   state: (since) => apiGet(since === null || since === undefined ? '/api/x/state' : `/api/x/state?since=${since}`),
   alerts: (limit = 50) => apiGet(`/api/x/alerts?limit=${limit}`),
   alert: (id) => apiGet(`/api/x/alerts/${encodeURIComponent(id)}`),
+  searchAlerts: (filters = {}) => apiGet(withQuery('/api/x/alerts/search', filters)),
+  assets: () => apiGet('/api/x/assets'),
+  audit: (filters = {}) => apiGet(withQuery('/api/x/audit', filters)),
+  incidents: (filters = {}) => apiGet(withQuery('/api/x/incidents', filters)),
+  incident: (id) => apiGet(`/api/x/incidents/${encodeURIComponent(id)}`),
+  addIncidentNote: (id, text) => apiPost(`/api/x/incidents/${encodeURIComponent(id)}/notes`, { text }),
+  setIncidentStatus: (id, status) => request('PATCH', `/api/x/incidents/${encodeURIComponent(id)}/status`, { status }),
+  reports: () => apiGet('/api/x/reports'),
+  report: (sessionId) => apiGet(`/api/x/reports/${encodeURIComponent(sessionId)}`),
+  system: () => apiGet('/api/x/system'),
   graph: () => apiGet('/api/x/graph'),
-  forecasts: (status) => apiGet(status ? `/api/x/forecasts?status=${status}` : '/api/x/forecasts'),
+  forecasts: (filters = {}) => apiGet(withQuery('/api/x/forecasts', filters)),
   currentForecast: () => apiGet('/api/x/forecasts/current'),
+  forecast: (id) => apiGet(`/api/x/forecasts/${encodeURIComponent(id)}`),
+  whatIfForecast: (fromHost) => apiGet(withQuery('/api/x/forecasts/what-if', { from_host: fromHost })),
+  analytics: () => apiGet('/api/x/analytics'),
+  containmentActions: (filters = {}) => apiGet(withQuery('/api/x/containment/actions', filters)),
   proposeContainment: (targetHost, forecastId, requestedBy) =>
     apiPost('/api/x/containment/propose', { target_host: targetHost, forecast_id: forecastId, requested_by: requestedBy }),
+  proposeContainmentPlaybook: (playbook, options = {}) =>
+    apiPost('/api/x/containment/playbooks/propose', { playbook, ...options }),
+  proposeContainmentRelease: (containmentActionId) =>
+    apiPost('/api/x/containment/release/propose', { containment_action_id: containmentActionId }),
   confirmContainment: (actionId) => apiPost('/api/x/containment/confirm', { action_id: actionId }),
   cancelContainment: (actionId) => apiPost('/api/x/containment/cancel', { action_id: actionId }),
   session: () => apiGet('/api/x/session'),
   sessions: () => apiGet('/api/x/sessions'),
+  compareSessions: (left, right) => apiGet(withQuery('/api/x/sessions/compare', { left, right })),
+  timeTravel: (filters = {}) => apiGet(withQuery('/api/x/time-travel', filters)),
   precogMetrics: () => apiGet('/api/x/metrics/precog'),
+  replayScenarios: () => apiGet('/api/x/replay/scenarios'),
+  replayScenario: (scenarioId) => apiGet(`/api/x/replay/scenarios/${encodeURIComponent(scenarioId)}`),
+  saveReplayScenario: (scenario) => apiPost('/api/x/replay/scenarios', scenario),
   replayStatus: () => apiGet('/api/x/replay/status'),
   startReplay: (scenarioId, speed = 1) => apiPost('/api/x/replay/start', { scenario_id: scenarioId, speed }),
   pauseReplay: () => apiPost('/api/x/replay/pause'),
   resumeReplay: () => apiPost('/api/x/replay/resume'),
+  stepReplay: () => apiPost('/api/x/replay/step'),
   restartReplay: () => apiPost('/api/x/replay/restart'),
   registerPush: (token) => apiPost('/api/x/push/register', { token }),
 }

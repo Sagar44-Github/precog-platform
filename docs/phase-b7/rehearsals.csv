@@ -1,0 +1,2 @@
+timestamp_utc,speed,result,failed_checks,to_decision_s,decision_to_finish_s
+2026-11-04T19:21:32Z,1.0,PASS,,5.48,2.45

@@ -38,6 +38,12 @@
       "items": {
         "$ref": "https://precog.local/contracts/containment_action.schema.json"
       }
+    },
+    "alerts": {
+      "type": "array",
+      "items": {
+        "$ref": "https://precog.local/contracts/security_event.schema.json"
+      }
     }
   },
   "required": [

@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/forecast_explanation.schema.json",
+  "title": "Forecast explanation",
+  "description": "The candidate set, transition counts, model probabilities, baseline rankings, and hint source captured when a forecast was made.",
+  "type": "object",
+  "properties": {
+    "model": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "enum": ["markov", "rule_based_fallback"] },
+        "alpha": { "type": ["number", "null"], "minimum": 0 }
+      },
+      "required": ["name", "alpha"],
+      "additionalProperties": false
+    },
+    "technique_hint_source": { "type": "string", "enum": ["repo", "lookup"] },
+    "candidate_count": { "type": "integer", "minimum": 0 },
+    "candidate_set": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "host_id": { "type": "string", "minLength": 1 },
+          "transition_count": { "type": "integer", "minimum": 0 },
+          "model_probability": { "type": "number", "minimum": 0, "maximum": 1 },
+          "model_rank": { "type": ["integer", "null"], "minimum": 1 },
+          "rule_based_probability": { "type": "number", "minimum": 0, "maximum": 1 },
+          "rule_based_rank": { "type": ["integer", "null"], "minimum": 1 },
+          "uniform_probability": { "type": "number", "minimum": 0, "maximum": 1 },
+          "uniform_rank": { "type": ["integer", "null"], "minimum": 1 }
+        },
+        "required": ["host_id", "transition_count", "model_probability", "model_rank", "rule_based_probability", "rule_based_rank", "uniform_probability", "uniform_rank"],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": ["model", "technique_hint_source", "candidate_count", "candidate_set"],
+  "additionalProperties": false
+}

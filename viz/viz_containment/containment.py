@@ -38,29 +38,80 @@ class ContainmentService:
 
     # ---------- the hook interface ----------
     def propose(self, world, target_host, forecast_id, requested_by):
+        return self.propose_many(world, [target_host], forecast_id, requested_by, "host")
+
+    def propose_many(self, world, target_hosts, forecast_id, requested_by, playbook):
+        """Propose one confirmed action that affects a bounded, explicit set of simulated hosts."""
+        graph = self._graph()
+        targets = list(dict.fromkeys(target_hosts or []))
+        if not targets:
+            raise HookError("no_targets", "This playbook did not resolve to any hosts.", 409)
+        with self._lock:
+            self._prune()
+            previous_states = []
+            for host_id in targets:
+                state = self._host_state(graph, host_id)
+                if state == "contained":
+                    raise HookError("already_contained", "%s is already contained." % self._name(graph, host_id), 409)
+                previous_states.append({"host_id": host_id, "state": state})
+            return self._propose_action(graph, targets, forecast_id, requested_by, "contain", playbook, previous_states)
+
+    def propose_release(self, world, containment_action_id, requested_by):
+        """Propose a two-step release for a previously executed containment action."""
         graph = self._graph()
         with self._lock:
             self._prune()
-            state = self._host_state(graph, target_host)
-            if state == "contained":
-                raise HookError("already_contained", "%s is already contained." % self._name(graph, target_host), 409)
-            for action_id in self._pending:
-                existing = self._get(action_id)
-                if existing["target_host"] == target_host:
-                    return existing  # asking again for the same host just returns the open request
-                raise HookError("pending_exists", "Another containment request is waiting for an answer. Confirm or cancel it first.", 409)
-            self._counter += 1
-            action = {"action_id": "act-%06d" % self._counter, "target_host": target_host, "forecast_id": forecast_id,
-                      "requested_by": requested_by, "status": "pending_confirmation", "proposed_at": self._clock(),
-                      "confirmed_at": None, "result": None}
-            self._validate(action)
-            self.world.upsert_action(action)
-            timer = threading.Timer(self.confirm_seconds, self._expire, args=(action["action_id"],))
-            timer.daemon = True
-            self._pending[action["action_id"]] = {"timer": timer}
-            timer.start()
-            self._audit(action["action_id"], "Containment of %s proposed from the %s." % (self._name(graph, target_host), requested_by))
-            return dict(action)
+            source = self._existing(containment_action_id)
+            if source.get("operation", "contain") != "contain" or source["status"] != "executed":
+                raise HookError("not_releasable", "Only an executed containment action can be released.", 409)
+            for action in self.world.actions():
+                if action.get("operation") == "release" and action.get("related_action_id") == containment_action_id and action["status"] in ("pending_confirmation", "executed"):
+                    raise HookError("release_exists", "This containment already has a pending or completed release.", 409)
+
+            targets = source.get("target_hosts") or [source["target_host"]]
+            for host_id in targets:
+                if self._host_state(graph, host_id) != "contained":
+                    raise HookError("not_contained", "%s is no longer contained." % self._name(graph, host_id), 409)
+            saved = {entry["host_id"]: entry["state"] for entry in source.get("previous_states", [])}
+            path = set(graph.snapshot().get("compromised_path", []))
+            previous_states = [
+                {"host_id": host_id, "state": saved.get(host_id, "compromised" if host_id in path else "normal")}
+                for host_id in targets
+            ]
+            return self._propose_action(graph, targets, None, requested_by, "release", "release", previous_states, containment_action_id)
+
+    def _propose_action(self, graph, targets, forecast_id, requested_by, operation, playbook, previous_states, related_action_id=None):
+        for action_id in self._pending:
+            existing = self._get(action_id)
+            if existing and existing.get("operation", "contain") == operation and existing.get("target_hosts", [existing["target_host"]]) == targets:
+                return existing
+            raise HookError("pending_exists", "Another response request is waiting for an answer. Confirm or cancel it first.", 409)
+        self._counter += 1
+        action = {
+            "action_id": "act-%06d" % self._counter,
+            "target_host": targets[0],
+            "target_hosts": targets,
+            "operation": operation,
+            "playbook": playbook,
+            "related_action_id": related_action_id,
+            "previous_states": previous_states,
+            "forecast_id": forecast_id,
+            "requested_by": requested_by,
+            "status": "pending_confirmation",
+            "proposed_at": self._clock(),
+            "confirmed_at": None,
+            "result": None,
+        }
+        self._validate(action)
+        self.world.upsert_action(action)
+        timer = threading.Timer(self.confirm_seconds, self._expire, args=(action["action_id"],))
+        timer.daemon = True
+        self._pending[action["action_id"]] = {"timer": timer}
+        timer.start()
+        names = ", ".join(self._name(graph, host_id) for host_id in targets)
+        verb = "Release of" if operation == "release" else "Containment of"
+        self._audit(action["action_id"], "%s %s proposed from the %s playbook by %s." % (verb, names, playbook, requested_by))
+        return dict(action)
 
     def confirm(self, world, action_id):
         graph = self._graph()
@@ -72,16 +123,35 @@ class ContainmentService:
             entry = self._pending.pop(action_id, None)
             if entry is not None:
                 entry["timer"].cancel()
-            if self._host_state(graph, action["target_host"]) == "contained":
-                action.update(status="cancelled", result="The host was already contained.")
-                self.world.upsert_action(action)
-                raise HookError("already_contained", "%s is already contained." % self._name(graph, action["target_host"]), 409)
-            graph.set_host_state(action["target_host"], "contained")
-            action.update(status="executed", confirmed_at=self._clock(), result="Contained (simulated). Nothing on a real network changed.")
+            targets = action.get("target_hosts") or [action["target_host"]]
+            operation = action.get("operation", "contain")
+            if operation == "release":
+                for host_id in targets:
+                    if self._host_state(graph, host_id) != "contained":
+                        action.update(status="cancelled", result="Release cancelled because a target was no longer contained.")
+                        self.world.upsert_action(action)
+                        raise HookError("not_contained", "%s is no longer contained." % self._name(graph, host_id), 409)
+                previous = {entry["host_id"]: entry["state"] for entry in action.get("previous_states", [])}
+                for host_id in targets:
+                    graph.set_host_state(host_id, previous.get(host_id, "normal"))
+                result = "Released %d host%s (simulated). Nothing on a real network changed." % (len(targets), "" if len(targets) == 1 else "s")
+            else:
+                for host_id in targets:
+                    if self._host_state(graph, host_id) == "contained":
+                        action.update(status="cancelled", result="Containment cancelled because a target was already contained.")
+                        self.world.upsert_action(action)
+                        raise HookError("already_contained", "%s is already contained." % self._name(graph, host_id), 409)
+                for host_id in targets:
+                    graph.set_host_state(host_id, "contained")
+                result = "Contained %d host%s (simulated). Nothing on a real network changed." % (len(targets), "" if len(targets) == 1 else "s")
+            action.update(status="executed", confirmed_at=self._clock(), result=result)
             self._validate(action)
             self.world.upsert_action(action)
-            self._audit(action_id, "Containment of %s confirmed and executed (simulated)." % self._name(graph, action["target_host"]))
-            self._start_reeval(action_id)
+            names = ", ".join(self._name(graph, host_id) for host_id in targets)
+            verb = "Release of" if operation == "release" else "Containment of"
+            self._audit(action_id, "%s %s confirmed and executed (simulated)." % (verb, names))
+            if operation == "contain":
+                self._start_reeval(action_id)
             return dict(action)
 
     def cancel(self, world, action_id):

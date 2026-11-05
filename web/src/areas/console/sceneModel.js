@@ -20,12 +20,14 @@ export function pulseScale(elapsedMs) {
   return elapsedMs < half ? 1 + 0.6 * (elapsedMs / half) : 1.6 - 0.6 * ((elapsedMs - half) / half)
 }
 
-export const coneWidth = (confidence) => 0.6 + confidence * 5
-export const coneOpacity = (confidence) => 0.15 + confidence * 0.65
+export const coneWidth = (confidence) => 0.6 + confidence * 2.4
+export const coneOpacity = (confidence) => 0.05 + confidence * 0.18
 
-export function buildScene(state) {
+export function buildScene(state, assets = [], options = {}) {
   if (!state || !state.graph) return { nodes: [], links: [], cones: [], zones: [] }
   const hosts = state.graph.hosts
+  const assetList = Array.isArray(assets) ? assets : (assets?.items || [])
+  const assetById = Object.fromEntries(assetList.map((asset) => [asset.host_id, asset]))
   const perZone = {}
   hosts.forEach((h) => { perZone[h.zone] = (perZone[h.zone] || 0) + 1 })
   const seen = {}
@@ -39,8 +41,12 @@ export function buildScene(state) {
     const index = seen[h.zone] || 0
     seen[h.zone] = index + 1
     const style = NODE_STYLE[h.state] || NODE_STYLE.normal
+    const asset = assetById[h.host_id] || {}
     return { id: h.host_id, name: h.name, zone: h.zone, state: h.state, ...style, ...layoutFor(h.zone, index, perZone[h.zone]),
-             predicted: predicted[h.host_id] ?? null }
+             role: asset.role || '', risk: Number(asset.risk_score) || 0,
+             weaknessCount: Array.isArray(asset.weaknesses) ? asset.weaknesses.length : 0,
+             predicted: predicted[h.host_id] ?? null, selected: h.host_id === options.selectedHostId,
+             overlay: options.overlay || 'risk' }
   })
   const links = state.graph.edges.map((e) => ({ key: `${e.from_host}>${e.to_host}`, source: e.from_host, target: e.to_host, onPath: onPath(e.from_host, e.to_host) }))
   const cones = forecast ? forecast.targets.map((t) => ({ from: forecast.from_host, to: t.host_id, confidence: t.confidence,

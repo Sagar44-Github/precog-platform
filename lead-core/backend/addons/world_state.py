@@ -6,10 +6,13 @@ All methods are safe to call from several threads at once.
 """
 import copy
 import threading
+from collections import deque
+from datetime import datetime, timezone
 
 MAX_ALERTS = 200
 
 MAX_SESSIONS = 20
+MAX_TIME_TRAVEL_SNAPSHOTS = 200
 
 
 def _empty_graph():
@@ -34,11 +37,13 @@ class WorldState:
 
         self._lock = threading.RLock()
         self._contracts = contracts
+        self._history = deque(maxlen=MAX_TIME_TRAVEL_SNAPSHOTS)
 
         self.version = 0
         self._reset_locked()
 
         self._sessions = []
+        self._incident_annotations = {}
 
         self._push_tokens = []
         self._detection_report = None
@@ -51,11 +56,26 @@ class WorldState:
 
     def _bump(self):
         self.version += 1
+        snapshot = {
+            "version": self.version,
+            "captured_at": datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"),
+            "session_id": self._session.get("session_id") if self._session else None,
+            "graph": copy.deepcopy(self._graph),
+            "alerts": copy.deepcopy(self._alerts[:20]),
+            "forecast": copy.deepcopy(self._forecasts[-1]) if self._forecasts else None,
+            "actions": copy.deepcopy(self._actions[-20:]),
+            "replay": copy.deepcopy(self._replay),
+            "metrics": copy.deepcopy(self._metrics),
+        }
+        self._check("time_travel_snapshot", snapshot)
+        self._history.append(snapshot)
         return self.version
 
     def _reset_locked(self):
         self._graph = _empty_graph()
+        self._host_history = {}
         self._alerts = []
+        self._session_alerts = []
 
         self._forecasts = []
         self._actions = []
@@ -91,6 +111,10 @@ class WorldState:
         with self._lock:
             return copy.deepcopy(self._graph)
 
+    def host_state_history(self, host_id):
+        with self._lock:
+            return copy.deepcopy(self._host_history.get(host_id, []))
+
     def alerts(self, limit=50):
 
         with self._lock:
@@ -105,10 +129,17 @@ class WorldState:
         return None
 
 
-    def forecasts(self, status=None):
+    def forecasts(self, status=None, include_archived=False):
         with self._lock:
-
-            items = [f for f in self._forecasts if status is None or f["status"] == status]
+            items = []
+            if include_archived:
+                active_id = self._session.get("session_id") if self._session is not None else None
+                for record in reversed(self._sessions):
+                    if active_id is not None and record.get("session_id") == active_id:
+                        continue
+                    items.extend(record.get("forecasts", []))
+            items.extend(self._forecasts)
+            items = [f for f in items if status is None or f["status"] == status]
             return copy.deepcopy(items)
 
     def current_forecast(self):
@@ -116,10 +147,17 @@ class WorldState:
         with self._lock:
             return copy.deepcopy(self._current_forecast_locked())
 
-    def actions(self):
-
+    def actions(self, include_archived=False):
         with self._lock:
-            return copy.deepcopy(self._actions)
+            items = []
+            if include_archived:
+                active_id = self._session.get("session_id") if self._session is not None else None
+                for record in reversed(self._sessions):
+                    if active_id is not None and record.get("session_id") == active_id:
+                        continue
+                    items.extend(record.get("actions", []))
+            items.extend(self._actions)
+            return copy.deepcopy(items)
 
     def get_action(self, action_id):
 
@@ -146,6 +184,47 @@ class WorldState:
         with self._lock:
             return copy.deepcopy(self._sessions)
 
+    def time_travel(self, session_id=None, limit=120):
+        """Return bounded read-only snapshots in chronological order."""
+        with self._lock:
+            snapshots = list(self._history)
+            if session_id:
+                snapshots = [item for item in snapshots if item.get("session_id") == session_id]
+            return copy.deepcopy(snapshots[-max(1, min(int(limit), MAX_TIME_TRAVEL_SNAPSHOTS)):])
+
+    def incident_sessions(self):
+        """Return the bounded session history plus the live session with its alert evidence."""
+        with self._lock:
+            records = copy.deepcopy(self._sessions)
+            if self._session is not None:
+                current = copy.deepcopy(self._session)
+                current["alerts"] = copy.deepcopy(self._session_alerts)
+                current["forecasts"] = copy.deepcopy(self._forecasts)
+                current["actions"] = copy.deepcopy(self._actions)
+                records = [item for item in records if item.get("session_id") != current.get("session_id")]
+                records.insert(0, current)
+            for record in records:
+                incident_id = "inc-" + record["session_id"]
+                annotation = self._incident_annotations.get(incident_id, {})
+                record["status"] = annotation.get("status")
+                record["notes"] = copy.deepcopy(annotation.get("notes", []))
+            return records
+
+    def add_incident_note(self, incident_id, note):
+        with self._lock:
+            annotation = self._incident_annotations.setdefault(incident_id, {"status": None, "notes": []})
+            annotation["notes"].append(copy.deepcopy(note))
+            del annotation["notes"][:-100]
+            self._bump()
+            return copy.deepcopy(note)
+
+    def set_incident_status(self, incident_id, status):
+        with self._lock:
+            annotation = self._incident_annotations.setdefault(incident_id, {"status": None, "notes": []})
+            annotation["status"] = status
+            self._bump()
+            return status
+
     def detection_report(self):
         with self._lock:
             return copy.deepcopy(self._detection_report)
@@ -157,7 +236,17 @@ class WorldState:
     # ---------- writing (each one bumps the version) ----------
     def set_graph(self, graph):
         with self._lock:
-            self._graph = copy.deepcopy(self._check("graph_snapshot", graph))
+            checked = self._check("graph_snapshot", graph)
+            previous = {host["host_id"]: host["state"] for host in self._graph.get("hosts", [])}
+            now = datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+            for host in checked.get("hosts", []):
+                host_id, state = host["host_id"], host["state"]
+                prior_state = previous.get(host_id)
+                history = self._host_history.setdefault(host_id, [])
+                if prior_state != state:
+                    history.append({"ts": now, "from_state": prior_state, "state": state})
+                    del history[:-20]
+            self._graph = copy.deepcopy(checked)
             return self._bump()
 
     def add_alert(self, alert):
@@ -165,17 +254,23 @@ class WorldState:
             self._check("security_event", alert)
             self._alerts.insert(0, copy.deepcopy(alert))
             del self._alerts[MAX_ALERTS:]
+            if self._session is not None:
+                self._session_alerts.append(copy.deepcopy(alert))
+                del self._session_alerts[:-MAX_ALERTS]
             return self._bump()
 
     def set_forecast(self, forecast):
         """Store a new forecast. An older pending forecast becomes 'superseded'."""
         with self._lock:
+            forecast = copy.deepcopy(forecast)
+            if self._session is not None:
+                forecast.setdefault("session_id", self._session.get("session_id"))
             self._check("forecast", forecast)
             for old in self._forecasts:
                 if old["status"] == "pending" and old["forecast_id"] != forecast["forecast_id"]:
                     old["status"] = "superseded"
             self._forecasts = [f for f in self._forecasts if f["forecast_id"] != forecast["forecast_id"]]
-            self._forecasts.append(copy.deepcopy(forecast))
+            self._forecasts.append(forecast)
             return self._bump()
 
     def resolve_forecast(self, forecast_id, status, outcome):
@@ -193,6 +288,9 @@ class WorldState:
 
     def upsert_action(self, action):
         with self._lock:
+            action = copy.deepcopy(action)
+            if self._session is not None:
+                action.setdefault("session_id", self._session.get("session_id"))
             self._check("containment_action", action)
             for index, existing in enumerate(self._actions):
                 if existing["action_id"] == action["action_id"]:
@@ -214,14 +312,26 @@ class WorldState:
 
     def set_session(self, record):
         with self._lock:
+            prior_id = self._session.get("session_id") if self._session else None
             self._session = copy.deepcopy(self._check("session_record", record))
+            if prior_id != record["session_id"]:
+                self._session_alerts = copy.deepcopy(record.get("alerts", self._alerts))
             return self._bump()
 
     def archive_session(self):
         """Move the current session into the history list (used when a replay ends)."""
         with self._lock:
             if self._session is not None:
-                self._sessions.insert(0, copy.deepcopy(self._session))
+                archived = copy.deepcopy(self._session)
+                archived["alerts"] = copy.deepcopy(self._session_alerts)
+                archived["forecasts"] = copy.deepcopy(self._forecasts)
+                archived["actions"] = copy.deepcopy(self._actions)
+                session_id = archived.get("session_id")
+                for forecast in archived["forecasts"]:
+                    forecast.setdefault("session_id", session_id)
+                self._check("session_record", archived)
+                self._sessions = [item for item in self._sessions if item["session_id"] != archived["session_id"]]
+                self._sessions.insert(0, archived)
                 del self._sessions[MAX_SESSIONS:]
             return self._bump()
 

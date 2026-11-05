@@ -32,6 +32,22 @@ A closed-loop security console that predicts where an attacker will move next an
 > [!IMPORTANT]
 > **This is a simulation.** The platform runs in **Replay Mode**: pre-recorded and scripted attack events are replayed through the same live pipeline that real traffic would use. No scan, exploit or attack tool is ever run against a real network, device or infrastructure, and **Contain** only changes an in-memory status and writes a log line.
 
+> **Phase B1 shell:** the desktop console now has a shared workspace rail, a Ctrl/Cmd+K command palette, dark/light theme support, and a mobile SOC handoff below 1024 px. The desktop and PWA remain one Flask-served web bundle. See [the B1 browser captures](docs/phase-b1/screenshots/) and [Demo Script V2](docs/DEMO_SCRIPT_V2.md). B1 adds no API routes or data contracts.
+
+> **Phase B2 workspaces:** authenticated routes now include `/app/alerts`, `/app/hosts`, `/app/audit`, `/app/system`, and `/app/settings`, with deep-linkable alert and host details. Alerts support filtering, sorting, paging, CSV/JSON export; asset records include explicitly simulated `DEMO-` weaknesses and replay state history. The contract set now has 16 checked schemas. See [B2 browser evidence](docs/phase-b2/) and [B2 requirements/technical addenda](docs/PRD_ADDENDUM_B1.md#phase-b2-product-requirements), [TRD addendum](docs/TRD_ADDENDUM_B1.md#phase-b2-route-and-api-additions).
+
+> **Phase B3 casework and reports:** `/app/incidents` and `/app/mobile/incidents` group each replay session's alert, forecast, and action evidence into an incident, with status, analyst notes, and an audit trail. `/app/reports` provides per-session printable reports plus JSON and timeline CSV export. Incident annotations live in memory for the running demo. The contract set now has 21 checked schemas. See [B3 evidence](docs/phase-b3/) and the [B3 technical addendum](docs/TRD_ADDENDUM_B1.md#phase-b3-incidents-and-session-reports).
+
+> **Phase B4 forecast intelligence:** `/app/forecasts` is a ledger across the bounded replay archive; each record opens `/app/forecasts/:id` with its captured candidate set, transition counts, smoothing value, baseline ranks, and hit/miss outcome. A read-only what-if preview recalculates candidates for a currently compromised host. `/app/analytics` compares held-out results, calibration, baselines, session counters, and DETECT's offline report. The contract set now has 24 checked schemas. See [B4 evidence](docs/phase-b4/) and the [B4 technical addendum](docs/TRD_ADDENDUM_B1.md#phase-b4-forecast-ledger-and-analytics).
+
+> **Phase B5 containment and access roles:** `/app/containment` adds host, zone, predicted-path, and Top-3 playbooks; release restores each host's prior simulated state and still requires proposal plus confirmation. The server assigns `viewer`, `analyst`, or `admin` from the authenticated account: viewers are read-only, analysts can respond and run replay, and admins can release and restart. Optional `ANALYST_PASSWORD` and `VIEWER_PASSWORD` settings create those demo accounts. The contract set now has 26 checked schemas. See [B5 evidence](docs/phase-b5/) and the [B5 technical addendum](docs/TRD_ADDENDUM_B1.md#phase-b5-containment-and-demo-roles).
+
+> **Phase B6 replay studio:** `/app/replay` adds 1×–8× controls, pause/resume, single-event stepping, a read-only 200-snapshot time-travel scrubber, and side-by-side finished-session comparisons. `/app/scenarios` provides a visual event builder; custom scenarios are checked against the replay schema and simulated host inventory before being saved locally. The contract set now has 28 checked schemas. See [B6 evidence](docs/phase-b6/) and the [B6 technical addendum](docs/TRD_ADDENDUM_B1.md#phase-b6-replay-studio-time-travel-and-scenario-builder).
+
+> **Phase B7 topology explorer:** `/app/console/topology` adds a shared, selectable 3D network scene and an isometric SVG Lite view for narrow screens, reduced-motion preferences, or unavailable WebGL. The explorer includes risk, forecast, and synthetic-weakness overlays; camera presets; host selection and focus; a mini-map; read-only time travel; and PNG export. Colors are read from theme tokens and normalized for Three.js. See [B7 evidence](docs/phase-b7/) and the [B7 technical addendum](docs/TRD_ADDENDUM_B1.md#phase-b7-topology-explorer-and-lite-mode).
+
+> **Phase B8 onboarding and accessibility:** `/app/help` provides a six-step guided tour, Golden Path quickstart, keyboard reference, and glossary; `/app/about` documents the simulation boundary, architecture, limits, and licensing. A skip link and keyboard-operated tour dialog make the expanded workspace easier to navigate. The tour can start a replay when permitted, but never confirms containment. See [B8 evidence](docs/phase-b8/) and the [B8 requirements](docs/PRD_ADDENDUM_B1.md#phase-b8-onboarding-and-accessibility), [technical notes](docs/TRD_ADDENDUM_B1.md#phase-b8-onboarding-and-accessibility).
+
 <a id="choose-your-path"></a>
 
 ### Choose your path
@@ -94,7 +110,7 @@ flowchart LR
     <td align="center"><b>6</b><br>demo hosts in 3 zones</td>
     <td align="center"><b>Top-3</b><br>forecast, with confidence</td>
     <td align="center"><b>2 steps</b><br>propose, then confirm</td>
-    <td align="center"><b>25</b><br>add-on API routes</td>
+    <td align="center"><b>45</b><br>add-on API routes</td>
   </tr>
   <tr>
     <td align="center"><b>26</b><br>ATT&amp;CK techniques mapped</td>
@@ -144,7 +160,7 @@ Every tool in this category answers **"what happened?"** Precog SOC targets the 
 ## 👀 See it
 
 > [!NOTE]
-> The images below are **design previews** drawn from the project's [UI/UX Brief](docs/), using the brief's real colours, layout and wording with illustrative numbers. Replace them with real screenshots once the screens are merged.
+> The SVGs below are design previews drawn from the project's [UI/UX Brief](docs/UI_UX_Brief.md). Real Chromium captures for the B1 shell and current screens are available under [docs/phase-b1/screenshots](docs/phase-b1/screenshots/).
 
 ### The 3D console (desktop)
 
@@ -683,6 +699,11 @@ Open `.env` and set at least these two:
 ```dotenv
 SECRET_KEY=paste-the-long-random-string-here
 ADMIN_PASSWORD=choose-a-password-you-do-not-use-anywhere-else
+# Optional demo accounts. Set unique passwords to enable role walkthroughs.
+ANALYST_PASSWORD=
+VIEWER_PASSWORD=
+# Optional local folder for validated custom replay scenarios.
+CUSTOM_SCENARIOS_DIR=
 ```
 
 NIDS ships with a published default admin login and a hardcoded secret key. `run_app.py` replaces both from the outside at start-up, so **NIDS's default password never works**.
@@ -724,6 +745,7 @@ The launcher starts the backend in live replay mode, waits for its health check,
 | Mobile app (resize the window to phone width) | <http://localhost:5000/app/mobile/> |
 
 1. **Sign in** as `admin` with the `ADMIN_PASSWORD` you set.
+   Optional `analyst` and `viewer` accounts are created only when their password variables are set. Role permissions are resolved from the authenticated account on the server.
 2. Press **Start Golden Path** on the welcome card, or use **Start** in the replay controls.
 3. Watch Workstation A turn red and the violet cones appear. The replay stops at **Waiting for your decision**.
 4. Press **Contain Web Server B** on the console (or on the phone view) and confirm.
@@ -872,7 +894,7 @@ Nothing changes in the world state until `confirm` succeeds with the action id t
 The product's own screens use the add-on endpoints under **`/api/x`**, so they never meet NIDS's redirect-style login. Every add-on endpoint except `health` and `login` returns a **JSON 401** when you are not signed in. Errors share one JSON shape with a short code and a plain-English message.
 
 <details>
-<summary><b>Add-on endpoints</b> (25 routes, click to expand)</summary>
+<summary><b>Add-on endpoints</b> (38 routes, click to expand)</summary>
 
 <br>
 
@@ -884,23 +906,43 @@ The product's own screens use the add-on endpoints under **`/api/x`**, so they n
 | `GET` | `/api/x/me` | Who is signed in |
 | `GET` | `/api/x/state?since=N` | **Polling:** changes since version N |
 | `GET` | `/api/x/alerts` | Security events, newest first (limit parameter) |
+| `GET` | `/api/x/alerts/search` | Filtered and cursor-paged alerts (`q`, severity, host, technique, time range, sort, order) |
 | `GET` | `/api/x/alerts/{id}` | One alert with its explanation |
+| `GET` | `/api/x/assets` | Demo host inventory with topology, synthetic weaknesses, risk, state and history |
+| `GET` | `/api/x/audit` | Filtered, read-only audit log (`type`, reference, summary and time range) |
+| `GET` | `/api/x/incidents` | Search and page replay-session cases by text, status, and severity |
+| `GET` | `/api/x/incidents/{id}` | One session-grouped case with its timeline and linked evidence |
+| `POST` | `/api/x/incidents/{id}/notes` | Add a bounded in-memory analyst note; writes a scrubbed audit record |
+| `PATCH` | `/api/x/incidents/{id}/status` | Set incident status to open, contained, or closed; writes a scrubbed audit record |
+| `GET` | `/api/x/reports` | List current and archived replay session report summaries |
+| `GET` | `/api/x/reports/{session_id}` | Session alerts, forecasts, actions, timeline, and honest counters |
+| `GET` | `/api/x/system` | Runtime versions, hooks, modules, data mode and readiness checks |
 | `GET` | `/api/x/graph` | Current graph snapshot |
-| `GET` | `/api/x/forecasts` | Forecasts, filterable by status |
+| `GET` | `/api/x/forecasts` | Current forecasts; add `include_archived=1` for bounded history, with status, hint source, session, and starting-host filters |
 | `GET` | `/api/x/forecasts/current` | The pending forecast |
+| `GET` | `/api/x/forecasts/{forecast_id}` | One saved forecast with its candidate counts, probabilities, and baseline rankings |
+| `GET` | `/api/x/forecasts/what-if?from_host=...` | Read-only preview for a currently compromised host; does not change replay state |
+| `GET` | `/api/x/analytics` | Held-out Precog evaluation, calibration, baselines, session tally, and offline detection report |
 | `POST` | `/api/x/containment/propose` | Step 1: propose containing a target (target host, forecast id) |
 | `POST` | `/api/x/containment/confirm` | Step 2: confirm with the action id |
 | `POST` | `/api/x/containment/cancel` | Cancel a pending action |
-| `GET` | `/api/x/containment/actions` | List actions |
+| `GET` | `/api/x/containment/actions` | List current actions; `include_archived=1` adds bounded session history |
+| `POST` | `/api/x/containment/playbooks/propose` | Resolve a host, zone, predicted path, or Top-3 playbook into one explicit target list; still requires `/confirm` |
+| `POST` | `/api/x/containment/release/propose` | Propose a release of an executed containment; `/confirm` restores the saved prior states |
 | `GET` | `/api/x/session` | Current session record |
 | `GET` | `/api/x/sessions` | Past sessions |
+| `GET` | `/api/x/sessions/compare?left=...&right=...` | Compare two finished replay sessions with explicitly session-scoped counters |
+| `GET` | `/api/x/time-travel?limit=...&session_id=...` | Read-only bounded snapshots from the in-memory replay history |
 | `GET` | `/api/x/metrics/precog` | precision@k, calibration bins, hit-rate |
 | `GET` | `/api/x/metrics/detection` | Static offline detection results |
 | `GET` | `/api/x/replay/scenarios` | Available scenarios |
+| `GET` | `/api/x/replay/scenarios/{scenario_id}` | Inspect a scenario's validated events |
+| `POST` | `/api/x/replay/scenarios` | Validate and save a local custom scenario (analyst/admin) |
 | `GET` | `/api/x/replay/status` | Current replay state |
 | `POST` | `/api/x/replay/start` | Start a scenario (scenario id, speed) |
 | `POST` | `/api/x/replay/pause` | Pause |
 | `POST` | `/api/x/replay/resume` | Resume |
+| `POST` | `/api/x/replay/step` | Advance one event from paused state |
 | `POST` | `/api/x/replay/restart` | Restart |
 | `POST` | `/api/x/push/register` | Register a phone's push token |
 
@@ -930,15 +972,29 @@ Data passed between roles is agreed **first**, in writing. `contracts/schemas/` 
 | `packet_record` | NIDS's native packet row plus the detector's result fields |
 | `security_event` | Id, time, host, severity, risk score, explanation, ATT&CK technique, source |
 | `graph_snapshot` | Hosts with state, observed edges, the ordered compromised path |
-| `forecast` | Up to three targets with confidence, a technique hint, status and outcome |
-| `containment_action` | Target, requesting client, status, proposed and confirmed times |
+| `forecast` | Up to three targets, technique hint, status/outcome, and captured explanation when available |
+| `forecast_explanation` | Candidate transitions, model probabilities, smoothing value, and model/rule/uniform ranks |
+| `what_if_forecast` | Read-only forecast preview and explanation for a compromised source host |
+| `forecast_analytics` | Held-out results, calibration bins, baselines, session tally, and detection report |
+| `containment_action` | Target list, operation, playbook, prior states, requesting client, status, and timestamps |
+| `containment_playbook_request` | Validated host, zone, predicted-path, or Top-3 selector |
+| `operator_profile` | Authenticated demo role and server-resolved permissions |
 | `reeval_result` | Whether the attack progressed and whether the chain ended early |
-| `audit_entry` | One line per detection, forecast or containment |
+| `audit_entry` | One line per detection, forecast, containment, or incident case change |
+| `incident_detail` | Session-grouped case evidence, timeline, status, and notes |
+| `incident_note` | Author, timestamp, and bounded analyst note text |
+| `incident_page` | Filtered, paged incident records |
+| `report_page` | Current and archived replay report summaries |
+| `session_report` | Per-session alert, forecast, action, timeline, and metric record |
 | `world_state` | `version`, `changed`, graph, alerts, forecast, actions, replay, metrics |
 | `session_record` | Every forecast with its outcome, plus containment actions |
 | `session_metrics` | Hit-rate, precision@1, precision@3, calibration bins, containment success rate |
 | `replay_status` | `idle`, `running`, `paused`, `waiting_for_decision` or `finished` |
 | `detection_report` | Model, dataset, split, precision, recall, F1, false-positive rate, notes |
+| `alert_page` | Filtered alert records, total, cursor and applied filters |
+| `audit_page` | Filtered scrubbed audit records, total, cursor and applied filters |
+| `host_inventory` | Demo asset profile, risk, services, simulated weaknesses and replay state history |
+| `system_status` | Runtime versions, data mode, modules, hooks and readiness checks |
 
 <details>
 <summary><b>Example: a forecast</b></summary>

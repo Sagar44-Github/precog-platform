@@ -1,7 +1,6 @@
 import { useEffect, useReducer, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api, apiGet } from '../../shared/api.js'
-import { SimulationBadge } from '../../shared/components.jsx'
 import { AccuracyCounter, AttackPath2D, ForecastBars, OutcomeCard, SeverityBadge, StateChip } from '../mobile/index.jsx'
 import { AlertVolumeChart, ForecastAccuracyChart } from '../charts/index.jsx'
 import { containReducer, formatTime, hostName, initialContain, replayButtons, replayWord, sceneSummary, SPEEDS, threatLevel, timelineMarks } from './logic.js'
@@ -9,41 +8,44 @@ import { containReducer, formatTime, hostName, initialContain, replayButtons, re
 // The console's panels (owner: VIZ). The phone components (SeverityBadge, StateChip, ForecastBars, OutcomeCard, AccuracyCounter,
 // AttackPath2D) come from GRAPH's area through its entry file; VIZ never edits GRAPH's files.
 
-export function ReplayControls({ replay, client = api }) {
+export function ReplayControls({ replay, client = api, permissions = null }) {
   const [scenarios, setScenarios] = useState([])
   const [scenario, setScenario] = useState('golden-path')
   const [speed, setSpeed] = useState(1)
   const [problem, setProblem] = useState('')
   useEffect(() => { apiGet('/api/x/replay/scenarios').then(setScenarios).catch(() => setScenarios([])) }, [])
   const enabled = replayButtons(replay)
+  const canRunReplay = permissions?.can_run_replay !== false
+  const canRestartReplay = permissions?.can_restart_replay !== false
   const run = (call) => () => { setProblem(''); call().catch((e) => setProblem(e.message)) }
   const waiting = replay && replay.state === 'waiting_for_decision'
   return (
     <div className="c-replay" role="group" aria-label="Replay controls">
       <span className="c-control-label">REPLAY CONTROL</span>
+      {!canRunReplay ? <span className="c-replay-word">Viewer access · read only</span> : <>
       <select className="c-select-scenario" aria-label="Scenario" value={scenario} onChange={(e) => setScenario(e.target.value)} disabled={!enabled.start}>
         {(scenarios.length ? scenarios : [{ scenario_id: 'golden-path' }]).map((s) => <option key={s.scenario_id} value={s.scenario_id}>{s.scenario_id}</option>)}
       </select>
       <button type="button" className="c-btn c-btn-start" disabled={!enabled.start} onClick={run(() => client.startReplay(scenario, speed))}>Start <span aria-hidden="true">▶</span></button>
       <button type="button" className="c-btn c-btn-icon" aria-label="Pause replay" title="Pause replay" disabled={!enabled.pause} onClick={run(() => client.pauseReplay())}>Ⅱ</button>
       <button type="button" className="c-btn c-btn-icon" aria-label="Resume replay" title="Resume replay" disabled={!enabled.resume} onClick={run(() => client.resumeReplay())}>▶</button>
-      <button type="button" className="c-btn c-btn-icon" aria-label="Restart replay" title="Restart replay" disabled={!enabled.restart} onClick={run(() => client.restartReplay())}>↺</button>
+      {canRestartReplay && <button type="button" className="c-btn c-btn-icon" aria-label="Restart replay" title="Restart replay" disabled={!enabled.restart} onClick={run(() => client.restartReplay())}>↺</button>}
       <select aria-label="Speed" value={speed} onChange={(e) => setSpeed(Number(e.target.value))} disabled={!enabled.start}>
         {SPEEDS.map((s) => <option key={s} value={s}>{s}×</option>)}
       </select>
       <span className={waiting ? 'c-replay-word c-waiting' : 'c-replay-word'}><i aria-hidden="true" />{replayWord(replay)}</span>
+      </>}
       {problem && <span className="c-error" role="alert">{problem}</span>}
     </div>
   )
 }
 
-export function TopBar({ state, stale }) {
+export function TopBar({ state, stale, permissions }) {
   const level = threatLevel(state)
   return (
     <header className="c-top">
-      <div className="c-brand-lockup"><span className="c-brand-glyph" aria-hidden="true">◈</span><div><strong aria-label="Precog SOC">PRECOG <em>SOC</em></strong><small>THREAT OPERATIONS CENTER</small></div></div>
-      <div className="c-top-state"><SimulationBadge />{level && <span className={`c-threat c-threat-${level.key}`} aria-label={`Threat: ${level.word}`} aria-live="polite"><span aria-hidden="true">{level.icon}</span><span><small>THREAT LEVEL</small><b>{level.word}</b></span></span>}</div>
-      <ReplayControls replay={state ? state.replay : null} />
+      <div className="c-top-state">{level && <span className={`c-threat c-threat-${level.key}`} aria-label={`Threat: ${level.word}`} aria-live="polite"><span aria-hidden="true">{level.icon}</span><span><small>THREAT LEVEL</small><b>{level.word}</b></span></span>}</div>
+      <ReplayControls replay={state ? state.replay : null} permissions={permissions} />
       <div className="c-top-actions"><Link to="/mobile" className="c-mobile-link"><span aria-hidden="true">▣</span> Phone view</Link><span className="c-conn" role="status"><i aria-hidden="true" />{stale ? 'Offline · stale data' : 'Connected'}</span></div>
     </header>
   )
@@ -67,7 +69,7 @@ export function LeftRail({ view, onChange }) {
 }
 
 /** Contain button for the console: propose, then confirm in a dialog. It mirrors the phone's wording (UI/UX brief 6.7). */
-export function ConsoleContain({ state, client = api, onDone }) {
+export function ConsoleContain({ state, client = api, onDone, allowed = true }) {
   const [flow, dispatch] = useReducer(containReducer, initialContain)
   const forecast = state && state.forecast && state.forecast.status === 'pending' ? state.forecast : null
   const target = forecast ? forecast.targets[0] : null
@@ -83,7 +85,7 @@ export function ConsoleContain({ state, client = api, onDone }) {
     return () => clearInterval(timer)
   }, [flow.step])
 
-  if (!target) return null
+  if (!target || !allowed) return null
   const open = flow.step === 'confirming' || flow.step === 'sending'
   const confirm = () => {
     dispatch({ type: 'confirm' })
@@ -111,12 +113,12 @@ export function ConsoleContain({ state, client = api, onDone }) {
   )
 }
 
-export function ForecastPanel({ state, resolved, onDone }) {
+export function ForecastPanel({ state, resolved, onDone, canContain = true }) {
   return (
     <div className="c-panel-body">
       <div className="c-panel-heading"><span className="c-eyebrow">PREC0G ENGINE / NEXT MOVE</span><h2>Predicted targets</h2><p>Ranked from the current attack path</p></div>
       <ForecastBars state={state} />
-      <ConsoleContain state={state} onDone={onDone} />
+      <ConsoleContain state={state} onDone={onDone} allowed={canContain} />
       <h3 className="c-section-title">Attack path</h3>
       <AttackPath2D state={state} />
       <OutcomeCard forecast={resolved} state={state} />
@@ -124,7 +126,7 @@ export function ForecastPanel({ state, resolved, onDone }) {
   )
 }
 
-export function NodeDetailPanel({ state, hostId, onClose, onDone }) {
+export function NodeDetailPanel({ state, hostId, onClose, onDone, canContain = true }) {
   const host = state.graph.hosts.find((h) => h.host_id === hostId)
   if (!host) return null
   const alerts = state.alerts.filter((a) => a.host === hostId).slice(0, 5)
@@ -138,7 +140,7 @@ export function NodeDetailPanel({ state, hostId, onClose, onDone }) {
       <h3>Recent alerts</h3>
       {alerts.length === 0 ? <p className="c-muted">No alerts for this host.</p> : alerts.map((a) => (
         <p key={a.event_id} className="c-row"><SeverityBadge severity={a.severity} /><span>{a.explanation}</span></p>))}
-      {predicted && <><ForecastBars state={state} /><ConsoleContain state={state} onDone={onDone} /></>}
+      {predicted && <><ForecastBars state={state} /><ConsoleContain state={state} onDone={onDone} allowed={canContain} /></>}
     </div>
   )
 }
