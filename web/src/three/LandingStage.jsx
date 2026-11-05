@@ -4,11 +4,13 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import data from '../landing/data.generated.json'
 import { demoState } from '../landing/demoState.js'
 import { createQualityManager, qualitySettings, recordFrame } from '../landing/qualityManager.js'
+import { useTheme } from '../shared/theme-context.jsx'
 import { readBrowserTokenColors, readBrowserTokenStyles } from './tokenColors.js'
 
-function makeLabel(text, height, color, fontFamily = 'JetBrains Mono, monospace') {
+function makeLabel(text, height, color, fontToken = '--font-mono') {
   const canvas = document.createElement('canvas')
   const context = canvas.getContext('2d')
+  const fontFamily = getComputedStyle(document.documentElement).getPropertyValue(fontToken).trim() || 'monospace'
   const fontSize = 96
   const padding = 24
   context.font = `500 ${fontSize}px ${fontFamily}`
@@ -61,7 +63,7 @@ function makeHost(host, colors, styles, detail) {
   ring.rotation.x = Math.PI / 2
   ring.position.y = 0.23
   ring.visible = false
-  const label = makeLabel(host.name, 0.39, styles.text, 'Inter, sans-serif')
+  const label = makeLabel(host.name, 0.39, styles.text, '--font-ui')
   label.position.y = 1.56
   group.add(pedestal, baseRing, sphere, octahedron, cube, ring, label)
   group.position.set(host.position[0], 0, host.position[1])
@@ -97,9 +99,10 @@ function curveBetween(from, to, lift = 0.7) {
   return new THREE.QuadraticBezierCurve3(start, middle, end)
 }
 
-function createScene(canvas, { activeStep, onSelectHost }) {
+function createScene(canvas, { activeStep, onSelectHost, theme }) {
   const styles = readBrowserTokenStyles()
   const colors = readBrowserTokenColors()
+  canvas.dataset.theme = theme
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: false, alpha: false, powerPreference: 'low-power' })
   renderer.outputColorSpace = THREE.SRGBColorSpace
   renderer.toneMapping = THREE.NoToneMapping
@@ -344,6 +347,7 @@ function createScene(canvas, { activeStep, onSelectHost }) {
 }
 
 export default function LandingStage({ activeStep, onSelectHost, onFailure }) {
+  const { theme } = useTheme()
   const canvasRef = useRef(null)
   const sceneRef = useRef(null)
   const selectedCallback = useRef(onSelectHost)
@@ -356,7 +360,7 @@ export default function LandingStage({ activeStep, onSelectHost, onFailure }) {
     if (!canvas) return undefined
     let scene
     try {
-      scene = createScene(canvas, { activeStep, onSelectHost: (host) => selectedCallback.current?.(host) })
+      scene = createScene(canvas, { activeStep, theme, onSelectHost: (host) => selectedCallback.current?.(host) })
       sceneRef.current = scene
     } catch (error) {
       failureCallback.current?.(error)
@@ -369,7 +373,7 @@ export default function LandingStage({ activeStep, onSelectHost, onFailure }) {
       scene?.dispose()
       sceneRef.current = null
     }
-  }, [])
+  }, [theme])
 
   useEffect(() => { sceneRef.current?.draw(activeStep) }, [activeStep])
   return <canvas ref={canvasRef} className="landing-canvas" aria-hidden="true" data-landing-renderer="three" />

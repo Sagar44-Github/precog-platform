@@ -22,11 +22,11 @@ const sizes = [
   { name: '1440x900', width: 1440, height: 900 },
 ]
 const routeSpecs = [
-  ['mobile', '/app/mobile'],
-  ['mobile-alerts', '/app/mobile/alerts'],
-  ['mobile-alert-detail', null],
-  ['mobile-forecast', '/app/mobile/forecast'],
-  ['mobile-history', '/app/mobile/history'],
+  ['landing', '/app/'],
+  ['alerts', '/app/alerts'],
+  ['alert-detail', null],
+  ['reports', '/app/reports'],
+  ['report-detail', null],
   ['incidents', '/app/incidents'],
   ['incident-detail', null],
   ['replay-studio', '/app/replay'],
@@ -36,7 +36,6 @@ const routeSpecs = [
   ['network-twin', '/app/twin'],
   ['asset-directory', '/app/hosts'],
   ['host-detail', '/app/hosts/host-a'],
-  ['mobile-hosts', '/app/mobile/hosts'],
   ['forecasts', '/app/forecasts'],
   ['forecast-detail', '/app/forecasts/fc-000001'],
   ['whatif-lab', '/app/lab'],
@@ -107,11 +106,13 @@ async function checkViewport(page, mode, routeName, path, size) {
   await page.setViewportSize({ width: size.width, height: size.height })
   await page.goto(path, { waitUntil: 'domcontentloaded', timeout: 30000 })
   if (routeName === 'network-twin') await page.locator('.twin-page-head h1').waitFor({ timeout: 12000 }).catch(() => {})
+  if (routeName === 'landing') await page.getByRole('heading', { level: 1 }).waitFor({ timeout: 12000 }).catch(() => {})
   if (routeName === 'asset-directory') await page.locator('.twin-directory-card, .twin-error').first().waitFor({ timeout: 12000 }).catch(() => {})
   if (routeName === 'host-detail') await page.locator('.twin-host-detail h1, .twin-error').first().waitFor({ timeout: 12000 }).catch(() => {})
-  if (routeName === 'mobile-hosts') await page.locator('.m-host-card, .m-title').first().waitFor({ timeout: 12000 }).catch(() => {})
+  if (routeName === 'alerts') await page.getByRole('heading', { name: 'Alerts' }).waitFor({ timeout: 12000 }).catch(() => {})
+  if (routeName === 'reports') await page.getByRole('heading', { name: 'Session reports' }).waitFor({ timeout: 12000 }).catch(() => {})
   if (routeName === 'response-governance') await page.getByRole('heading', { name: 'Response governance' }).waitFor({ timeout: 12000 }).catch(() => {})
-  if (routeName === 'console' && size.width >= 1024) {
+  if (routeName === 'console') {
     await page.locator('.c-app').waitFor({ timeout: 8000 }).catch(() => {})
     await page.waitForFunction(() => document.querySelector('.c-scene canvas'), null, { timeout: 15000 }).catch(() => {})
   }
@@ -123,7 +124,7 @@ async function checkViewport(page, mode, routeName, path, size) {
     title: document.title,
     bodyTextPreview: document.body.innerText.slice(0, 360),
     canvasCount: document.querySelectorAll('canvas').length,
-    hasConsoleHandoff: Boolean(document.querySelector('.console-handoff')),
+    hasSidebar: Boolean(document.querySelector('.app-sidebar')),
     hasCommandTrigger: Boolean(document.querySelector('.command-trigger')),
     overflowElements: Array.from(document.querySelectorAll('body *')).map((element) => {
       const rect = element.getBoundingClientRect()
@@ -134,9 +135,11 @@ async function checkViewport(page, mode, routeName, path, size) {
   const failures = []
   if (state.scrollWidth > state.width) failures.push(`horizontal overflow ${state.scrollWidth}px > ${state.width}px`)
   if (!state.hasSimulationLabel) failures.push('SIMULATION label missing')
-  if (routeName === 'console' && size.width < 1024 && !state.hasConsoleHandoff) failures.push('narrow console handoff is missing')
-  if (routeName === 'console' && size.width >= 1024 && !state.hasCommandTrigger) failures.push('desktop command palette trigger is missing')
-  if (['incidents', 'incident-detail', 'replay-studio', 'scenario-library', 'scenario-builder', 'scenario-edit', 'run-history', 'run-detail', 'run-compare', 'network-twin', 'asset-directory', 'host-detail', 'mobile-hosts', 'forecasts', 'forecast-detail', 'whatif-lab', 'analytics-lab', 'response-governance'].includes(routeName)) {
+  if (routeName === 'console' && state.canvasCount === 0) failures.push('3D canvas is missing')
+  if (routeName === 'console' && !state.hasCommandTrigger) failures.push('command palette trigger is missing')
+  if (!['login', 'landing'].includes(routeName) && !state.hasSidebar) failures.push('shared navigation sidebar is missing')
+  if (routeName === 'landing' && !await page.locator('.landing-stage-visual').count()) failures.push('public landing page did not render its demonstration stage')
+  if (['login', 'landing', 'alerts', 'alert-detail', 'reports', 'report-detail', 'incidents', 'incident-detail', 'replay-studio', 'scenario-library', 'scenario-builder', 'scenario-edit', 'run-history', 'run-detail', 'run-compare', 'network-twin', 'asset-directory', 'host-detail', 'forecasts', 'forecast-detail', 'whatif-lab', 'analytics-lab', 'response-governance'].includes(routeName)) {
     await page.addScriptTag({ path: join(repoRoot, 'web', 'node_modules', 'axe-core', 'axe.min.js') })
     const accessibility = await page.evaluate(async () => {
       const result = await window.axe.run(document, { runOnly: { type: 'tag', values: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'] } })
@@ -195,7 +198,7 @@ async function runMode(browser, mode, port, dbDir, errors) {
     await page.locator('#login-password').fill(password)
     await page.locator('button[type="submit"]').click()
     await page.waitForURL('**/app/console', { timeout: 15000 })
-    await page.locator('.app-shell, .console-handoff').first().waitFor({ timeout: 15000 })
+    await page.locator('.app-shell').waitFor({ timeout: 15000 })
 
     const scenarioId = `user-browser-audit-${mode}`
     await page.goto(`${base}/app/scenarios/new`, { waitUntil: 'domcontentloaded' })
@@ -309,6 +312,12 @@ async function runMode(browser, mode, port, dbDir, errors) {
     })
     const alertId = alerts[0]?.event_id
     if (!alertId) errors.push(`${mode} mode did not provide an alert id for the alert-detail route`)
+    const reportSessionId = await page.evaluate(async () => {
+      const response = await fetch('/api/x/reports')
+      const result = response.ok ? await response.json() : null
+      return result?.items?.[0]?.session_id || null
+    })
+    if (!reportSessionId) errors.push(`${mode} mode did not provide a session report after the replay`)
     const incidentId = await page.evaluate(async () => {
       const response = await fetch('/api/x/incidents?limit=1')
       const result = response.ok ? await response.json() : null
@@ -316,8 +325,10 @@ async function runMode(browser, mode, port, dbDir, errors) {
     })
     for (const size of sizes) {
       for (const [routeName, path] of [...routeSpecs, ...c2Routes]) {
-        const route = routeName === 'mobile-alert-detail'
-          ? (alertId ? `/app/mobile/alerts/${encodeURIComponent(alertId)}` : '/app/mobile/alerts')
+        const route = routeName === 'alert-detail'
+          ? (alertId ? `/app/alerts/${encodeURIComponent(alertId)}` : '/app/alerts')
+          : routeName === 'report-detail'
+            ? (reportSessionId ? `/app/reports/${encodeURIComponent(reportSessionId)}` : '/app/reports')
           : routeName === 'incident-detail'
             ? (incidentId ? `/app/incidents/${encodeURIComponent(incidentId)}` : '/app/incidents')
           : path
@@ -342,7 +353,7 @@ async function runMode(browser, mode, port, dbDir, errors) {
             failures.push('3D canvas is missing at desktop width')
           }
         } else if (routeName === 'console') {
-          check.canvas = { rendered: false, reason: 'console handoff is shown below 1024px' }
+          check.canvas = { rendered: true, width: size.width, viewport: size.name }
         }
         if (routeName === 'network-twin' && size.width >= 1024) {
           check.twin = await page.evaluate(() => ({
@@ -436,22 +447,49 @@ async function runMode(browser, mode, port, dbDir, errors) {
         await page.getByRole('button', { name: /Search commands/ }).waitFor({ timeout: 10000 })
         await page.keyboard.press('Control+k')
         await page.getByRole('dialog', { name: 'Command palette' }).waitFor({ timeout: 5000 })
-        await page.getByRole('textbox', { name: 'Search commands' }).fill('Open mobile SOC')
+        await page.getByRole('textbox', { name: 'Search commands' }).fill('Open alert explorer')
         await page.keyboard.press('Enter')
-        await page.waitForURL('**/app/mobile')
-        report.shellInteractions = { commandPaletteNavigation: 'Ctrl+K search and Enter opened Mobile SOC' }
+        await page.waitForURL('**/app/alerts')
+        report.shellInteractions = { commandPaletteNavigation: 'Ctrl+K search and Enter opened the alert explorer' }
 
         await page.goto(`${base}/app/console`, { waitUntil: 'domcontentloaded' })
         await page.getByRole('button', { name: /Search commands/ }).waitFor({ timeout: 10000 })
         await page.keyboard.press('Control+k')
         await page.getByRole('option', { name: /Switch to light theme/ }).click()
         await page.waitForFunction(() => document.documentElement.dataset.theme === 'light')
+        await page.waitForFunction(() => document.querySelector('.c-scene')?.dataset.theme === 'light', null, { timeout: 8000 })
         await page.reload({ waitUntil: 'domcontentloaded' })
         await page.waitForFunction(() => document.documentElement.dataset.theme === 'light')
+        await page.locator('.c-scene').waitFor({ timeout: 8000 })
+        const lightCanvasTheme = await page.locator('.c-scene').getAttribute('data-theme')
+        if (lightCanvasTheme !== 'light') throw new Error('3D scene did not restore the persisted light theme')
         await page.keyboard.press('Control+k')
         await page.getByRole('option', { name: /Switch to dark theme/ }).click()
         await page.waitForFunction(() => document.documentElement.dataset.theme === 'dark')
-        report.shellInteractions.themePersistence = 'light/dark switch and persisted reload verified'
+        await page.waitForFunction(() => document.querySelector('.c-scene')?.dataset.theme === 'dark', null, { timeout: 8000 })
+        const darkCanvas = await page.evaluate(() => ({
+          theme: document.querySelector('.c-scene')?.dataset.theme,
+          background: getComputedStyle(document.documentElement).getPropertyValue('--bg').trim(),
+        }))
+        if (darkCanvas.background !== '#000000') throw new Error(`dark theme background is ${darkCanvas.background}, expected #000000`)
+
+        await page.keyboard.press('Control+k')
+        await page.getByRole('textbox', { name: 'Search commands' }).fill('Open alert explorer')
+        await page.keyboard.press('Enter')
+        await page.waitForURL('**/app/alerts')
+        await page.goBack()
+        await page.waitForURL('**/app/console')
+        await page.goForward()
+        await page.waitForURL('**/app/alerts')
+        await page.locator('.app-brand').click()
+        await page.waitForURL((url) => url.pathname === '/app' || url.pathname === '/app/')
+        await page.goBack()
+        await page.waitForURL('**/app/alerts')
+        report.shellInteractions = {
+          themePersistence: '3D scene updated immediately in both directions; pitch-black background and persisted reload verified',
+          browserNavigation: 'back, forward, and sidebar logo return to landing verified',
+          darkScene: darkCanvas,
+        }
       } catch (error) {
         report.shellInteractions = {
           error: error.message,

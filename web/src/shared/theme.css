@@ -1,17 +1,52 @@
-/* PROVISIONAL colour tokens (owner: LEAD-CORE).
-   The final colour system comes from the UI/UX brief. Change colours here only, never inside screens.
-   Meaning of colours: red = what happened, violet = what Precog predicts, teal = what you did. */
+@font-face {
+  font-family: 'Geist Sans';
+  src: url('/app/fonts/GeistSans.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Geist Mono';
+  src: url('/app/fonts/GeistMono.woff2') format('woff2');
+  font-style: normal;
+  font-weight: 100 900;
+  font-display: swap;
+}
+
+/* Shared design tokens. Component styles use these semantic names rather than local palettes. */
 :root {
-  --bg: #070b14;
-  --surface: #0d1422;
-  --surface-raised: #141f31;
-  --surface-glass: rgba(14, 23, 39, 0.9);
-  --surface-sunken: #080e19;
-  --border: #202d42;
-  --text: #e8f1ff;
-  --text-muted: #91a3bc;
-  --accent: #56dce7;
-  --accent-ink: #04151b;
+  --bg: #000000;
+  --surface: hsl(0 0% 5%);
+  --surface-raised: hsl(0 0% 9%);
+  --surface-glass: hsl(0 0% 5% / 0.96);
+  --surface-sunken: hsl(0 0% 3%);
+  --border: hsl(0 0% 17%);
+  --border-strong: hsl(0 0% 30%);
+  --text: hsl(0 0% 93%);
+  --text-muted: hsl(0 0% 65%);
+  --text-slate: hsl(0 0% 72%);
+  --accent: hsl(212 80% 70%);
+  --accent-ink: hsl(0 0% 4%);
+  --interactive-hover: hsl(0 0% 12%);
+  --interactive-active: hsl(0 0% 16%);
+  --disabled: hsl(0 0% 40%);
+  --success: hsl(164 59% 51%);
+  --warning: hsl(38 82% 63%);
+  --error: hsl(5 72% 65%);
+  --info: hsl(212 80% 70%);
+  --focus-ring: 2px solid var(--accent);
+
+  --font-ui: 'Geist Sans', system-ui, sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, monospace;
+  --text-xs: 11px;
+  --text-sm: 12px;
+  --text-md: 14px;
+  --text-lg: 16px;
+  --text-xl: 20px;
+  --text-2xl: 24px;
+  --line-tight: 1.2;
+  --line-normal: 1.5;
+  --line-relaxed: 1.65;
 
   --severity-critical: #ff5d69;
   --severity-high: #ff875f;
@@ -34,19 +69,12 @@
   --surface-panel-start: rgba(15, 23, 37, 0.98);
   --surface-panel-end: rgba(10, 16, 28, 0.99);
   --surface-inset: rgba(7, 12, 22, 0.7);
-  --surface-mobile-top: rgba(7, 11, 20, 0.88);
-  --surface-mobile-card-start: rgba(18, 28, 45, 0.94);
-  --surface-mobile-card-end: rgba(11, 18, 31, 0.96);
-  --surface-mobile-pill: rgba(8, 14, 25, 0.54);
-  --surface-mobile-alert: rgba(7, 12, 22, 0.55);
-  --surface-mobile-tabs: rgba(11, 18, 31, 0.94);
   --surface-login-start: rgba(20, 31, 49, 0.96);
   --surface-login-end: rgba(9, 15, 27, 0.96);
   --surface-demo-start: rgba(13, 20, 34, 0.96);
   --surface-demo-end: rgba(18, 26, 43, 0.92);
   --surface-contained-wash: rgba(56, 223, 189, 0.08);
   --surface-contained-wash-hover: rgba(56, 223, 189, 0.16);
-  --surface-contained-wash-mobile: rgba(56, 223, 189, 0.07);
   --border-accent-wash: rgba(86, 220, 231, 0.35);
   --shadow-soft: rgba(0, 0, 0, 0.18);
   --shadow-panel: rgba(0, 0, 0, 0.22);
@@ -54,28 +82,47 @@
   --shadow-dialog: rgba(0, 0, 0, 0.3);
   --shadow-login: rgba(0, 0, 0, 0.46);
   --shadow-launch: rgba(0, 0, 0, 0.5);
-  --shadow-phone: rgba(0, 0, 0, 0.26);
   --glow-cyan-ring-outer: rgba(61, 214, 229, 0.025);
   --glow-cyan-ring-inner: rgba(61, 214, 229, 0.018);
 
-  --font-ui: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  --font-mono: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  --radius-s: 4px;
+  --radius-m: 6px;
+  --radius-l: 8px;
+  --radius-xl: 12px;
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --duration-fast: 120ms;
+  --duration-normal: 180ms;
+  --z-sidebar: 10;
+  --z-header: 12;
+  --z-toast: 30;
+  --z-dialog: 100;
 }
 
 * { box-sizing: border-box; }
 
-html, body, #root { height: 100%; }
+html, body, #root { min-height: 100%; }
+html { scroll-behavior: smooth; }
 
 body {
   margin: 0;
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-ui);
+  font-size: var(--text-md);
+  line-height: var(--line-normal);
   padding: env(safe-area-inset-top, 0) env(safe-area-inset-right, 0) env(safe-area-inset-bottom, 0) env(safe-area-inset-left, 0);
 }
 
 a { color: var(--accent); }
 code, .mono { font-family: var(--font-mono); }
+button, input, select, textarea { font: inherit; }
+button:disabled, input:disabled, select:disabled, textarea:disabled { color: var(--disabled); cursor: not-allowed; }
+button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
 .card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; }
 .muted { color: var(--text-muted); }
 .stale-banner { background: color-mix(in srgb, var(--severity-medium) 14%, var(--surface)); color: var(--severity-medium); padding: 8px 12px; text-align: center; font-size: 14px; }
@@ -170,33 +217,40 @@ code, .mono { font-family: var(--font-mono); }
   .demo-launch-flow > i { display: none; }
 }
 
-/* Phase B1 design tokens: restrained surfaces, explicit state colours, and a matching light theme. */
+/* Geist-inspired neutral hierarchy. Dark mode keeps a true black page canvas. */
 :root {
   color-scheme: dark;
-  --bg: hsl(215 12% 8%);
-  --surface: hsl(215 12% 11%);
-  --surface-raised: hsl(215 12% 14%);
-  --surface-sunken: hsl(215 12% 7%);
+  --bg: #000000;
+  --surface: hsl(0 0% 5%);
+  --surface-raised: hsl(0 0% 9%);
+  --surface-sunken: hsl(0 0% 3%);
   --surface-glass: var(--surface);
-  --border: hsl(215 12% 20%);
-  --border-strong: hsl(215 10% 42%);
-  --text: hsl(215 12% 92%);
-  --text-muted: hsl(215 10% 66%);
-  --text-slate: hsl(215 10% 70%);
-  --text-red: hsl(8 55% 72%);
-  --accent: hsl(212 60% 64%);
-  --accent-ink: hsl(215 30% 8%);
+  --border: hsl(0 0% 17%);
+  --border-strong: hsl(0 0% 30%);
+  --text: hsl(0 0% 93%);
+  --text-muted: hsl(0 0% 65%);
+  --text-slate: hsl(0 0% 72%);
+  --text-red: hsl(5 72% 72%);
+  --accent: hsl(212 80% 70%);
+  --accent-ink: hsl(0 0% 4%);
+  --interactive-hover: hsl(0 0% 12%);
+  --interactive-active: hsl(0 0% 16%);
+  --disabled: hsl(0 0% 40%);
+  --success: hsl(164 59% 51%);
+  --warning: hsl(38 82% 63%);
+  --error: hsl(5 72% 65%);
+  --info: hsl(212 80% 70%);
   --focus-ring: 2px solid var(--accent);
-  --state-normal: hsl(215 10% 52%);
-  --state-compromised: hsl(8 50% 52%);
-  --state-contained: hsl(174 45% 48%);
-  --forecast: hsl(260 45% 62%);
-  --forecast-text: hsl(260 55% 80%);
-  --severity-critical: hsl(8 50% 60%);
-  --severity-high: hsl(28 55% 58%);
-  --severity-medium: hsl(46 50% 54%);
-  --severity-low: hsl(215 10% 62%);
-  --grid-line: hsl(215 12% 45% / 0.11);
+  --state-normal: hsl(0 0% 62%);
+  --state-compromised: hsl(5 72% 65%);
+  --state-contained: hsl(164 59% 51%);
+  --forecast: hsl(265 78% 75%);
+  --forecast-text: hsl(265 80% 84%);
+  --severity-critical: hsl(5 80% 68%);
+  --severity-high: hsl(24 88% 68%);
+  --severity-medium: hsl(42 86% 67%);
+  --severity-low: hsl(0 0% 65%);
+  --grid-line: hsl(0 0% 42% / 0.12);
   --glow-cyan: transparent;
   --glow-violet: transparent;
   --glow-red: transparent;
@@ -210,31 +264,20 @@ code, .mono { font-family: var(--font-mono); }
   --surface-panel-start: var(--surface);
   --surface-panel-end: var(--surface);
   --surface-inset: var(--bg);
-  --surface-mobile-top: var(--surface);
-  --surface-mobile-card-start: var(--surface);
-  --surface-mobile-card-end: var(--surface);
-  --surface-mobile-pill: var(--surface-raised);
-  --surface-mobile-alert: var(--surface);
-  --surface-mobile-tabs: var(--surface);
   --surface-login-start: var(--surface);
   --surface-login-end: var(--surface);
   --surface-demo-start: var(--surface-raised);
   --surface-demo-end: var(--surface);
-  --surface-contained-wash: hsl(174 45% 48% / 0.09);
-  --surface-contained-wash-hover: hsl(174 45% 48% / 0.16);
-  --surface-contained-wash-mobile: hsl(174 45% 48% / 0.08);
-  --border-accent-wash: hsl(212 60% 64% / 0.3);
-  --shadow-soft: hsl(215 30% 2% / 0.1);
-  --shadow-panel: hsl(215 30% 2% / 0.13);
-  --shadow-card: hsl(215 30% 2% / 0.14);
-  --shadow-dialog: hsl(215 30% 2% / 0.32);
-  --shadow-login: hsl(215 30% 2% / 0.28);
-  --shadow-launch: hsl(215 30% 2% / 0.16);
-  --shadow-phone: hsl(215 30% 2% / 0.12);
-  --overlay: hsl(215 30% 3% / 0.62);
-  --radius-s: 6px;
-  --radius-m: 8px;
-  --radius-l: 12px;
+  --surface-contained-wash: hsl(164 59% 51% / 0.09);
+  --surface-contained-wash-hover: hsl(164 59% 51% / 0.16);
+  --border-accent-wash: hsl(212 80% 70% / 0.3);
+  --shadow-soft: hsl(0 0% 0% / 0.1);
+  --shadow-panel: hsl(0 0% 0% / 0.16);
+  --shadow-card: hsl(0 0% 0% / 0.2);
+  --shadow-dialog: hsl(0 0% 0% / 0.42);
+  --shadow-login: hsl(0 0% 0% / 0.3);
+  --shadow-launch: hsl(0 0% 0% / 0.25);
+  --overlay: hsl(0 0% 0% / 0.72);
 }
 
 :root[data-theme="light"] {
@@ -252,6 +295,13 @@ code, .mono { font-family: var(--font-mono); }
   --text-red: hsl(8 58% 39%);
   --accent: hsl(212 62% 42%);
   --accent-ink: hsl(0 0% 100%);
+  --interactive-hover: hsl(210 18% 94%);
+  --interactive-active: hsl(210 15% 90%);
+  --disabled: hsl(215 8% 55%);
+  --success: hsl(164 60% 30%);
+  --warning: hsl(38 80% 33%);
+  --error: hsl(5 68% 44%);
+  --info: hsl(212 62% 42%);
   --state-normal: hsl(215 12% 42%);
   --state-compromised: hsl(8 54% 44%);
   --state-contained: hsl(174 58% 31%);
@@ -268,12 +318,10 @@ code, .mono { font-family: var(--font-mono); }
   --surface-panel-start: var(--surface);
   --surface-panel-end: var(--surface);
   --surface-inset: var(--surface-raised);
-  --surface-mobile-pill: var(--surface-raised);
   --surface-demo-start: var(--surface-raised);
   --surface-demo-end: var(--surface);
   --surface-contained-wash: hsl(174 58% 31% / 0.08);
   --surface-contained-wash-hover: hsl(174 58% 31% / 0.14);
-  --surface-contained-wash-mobile: hsl(174 58% 31% / 0.07);
   --border-accent-wash: hsl(212 62% 42% / 0.28);
   --shadow-soft: hsl(215 20% 20% / 0.05);
   --shadow-panel: hsl(215 20% 20% / 0.06);
@@ -281,28 +329,17 @@ code, .mono { font-family: var(--font-mono); }
   --shadow-dialog: hsl(215 20% 20% / 0.18);
   --shadow-login: hsl(215 20% 20% / 0.12);
   --shadow-launch: hsl(215 20% 20% / 0.07);
-  --shadow-phone: hsl(215 20% 20% / 0.06);
   --overlay: hsl(215 20% 10% / 0.36);
 }
 
-/* Keep legacy screens in the same calm visual language while their feature pages arrive in later phases. */
+/* Shared surfaces follow the same restrained shape and elevation. */
 .sim-badge { border-radius: 4px; color: var(--text-muted); }
-.login-card, .demo-launch, .m-card, .m-threat { border-radius: var(--radius-l); box-shadow: 0 8px 24px var(--shadow-soft); }
+.login-card, .demo-launch { border-radius: var(--radius-l); box-shadow: 0 8px 24px var(--shadow-soft); }
 .login-brand-mark { border-radius: 8px; box-shadow: none; }
 .demo-launch-button { border-radius: 6px; background: var(--accent); box-shadow: none; }
 .demo-launch-button:hover { box-shadow: none; transform: none; }
-.m-card { background: var(--surface); }
-.m-threat { background: var(--surface-raised); }
-.m-tabs { backdrop-filter: none; }
-.m-top { backdrop-filter: none; }
-.m-screen p:not(.m-caption), .m-card > p:not(.m-caption) { line-height: 1.55; }
 .login-theme-toggle { position: absolute; z-index: 2; top: 18px; right: 18px; }
-.m-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
-.m-top-actions { display: flex; align-items: center; gap: 7px; }
-.m-theme-toggle { min-width: 36px; min-height: 36px; padding-inline: 8px; }
-.m-theme-toggle span { display: none; }
 
 @media (max-width: 620px) {
-  .m-screen p:not(.m-caption), .m-card > p:not(.m-caption) { font-size: 16px; }
   .login-theme-toggle { top: 12px; right: 12px; }
 }

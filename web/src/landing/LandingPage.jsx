@@ -140,8 +140,8 @@ export default function LandingPage() {
     setPlaying(true)
   }
 
-  function enter(destination = 'console') {
-    const requested = destination === 'mobile' ? '/mobile' : '/console'
+  function enter() {
+    const requested = '/console'
     setEntering(true)
     window.setTimeout(() => navigate(username ? requested : '/login', username ? undefined : { state: { from: requested } }), window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 260)
   }
@@ -270,7 +270,6 @@ export default function LandingPage() {
       <p>{data.credits.institution} · {data.credits.course}</p>
       <p>{data.attribution.nids} {data.attribution.attackgraph} {data.attribution.networkx} {data.attribution.three} {data.attribution.mitreNotice} Guide: {data.credits.guide}.</p>
       {data.credits.team?.length > 0 && <ul>{data.credits.team.map((member) => <li key={member.name}>{member.name} · {member.role}</li>)}</ul>}
-      <a href="/app/mobile" onClick={(event) => { event.preventDefault(); enter('mobile') }}>Open the phone SOC</a>
     </footer>
   </div>
 }

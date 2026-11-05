@@ -1,4 +1,4 @@
-.precog-page { min-width: 0; height: 100%; overflow: auto; padding: 27px clamp(18px, 3vw, 40px) 44px; color: var(--text); }
+.precog-page { min-width: 0; min-height: 100%; overflow: visible; padding: 27px clamp(18px, 3vw, 40px) 44px; color: var(--text); }
 .precog-page-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 18px; margin: 0 0 22px; }
 .precog-page-head > div { min-width: 0; }
 .precog-eyebrow { margin: 0 0 7px; color: var(--accent); font: 9px var(--font-mono); letter-spacing: .14em; text-transform: uppercase; }

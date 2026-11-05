@@ -27,7 +27,7 @@ def alert_notification(alert, host_name):
     """The notification for one alert (UI/UX brief 11.2): '{Severity} alert: {host name}' and the first sentence."""
     word = SEVERITY_WORDS.get(alert["severity"], "Alert")
     return {"title": "%s alert: %s" % (word, host_name), "body": first_sentence(alert["explanation"]),
-            "event_id": alert["event_id"], "url": "/app/mobile/alerts/" + alert["event_id"]}
+            "event_id": alert["event_id"], "url": "/app/alerts/" + alert["event_id"]}
 
 
 class LogSender:

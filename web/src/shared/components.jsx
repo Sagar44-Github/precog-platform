@@ -27,6 +27,14 @@ export function LoadingState({ lines = 3 }) {
   )
 }
 
+/** A native, keyboard-operable section disclosure with a persistent title and status. */
+export function CollapsibleSection({ title, meta, children, open = false, className = '' }) {
+  return <details className={`disclosure ${className}`.trim()} open={open}>
+    <summary><span>{title}</span>{meta && <small>{meta}</small>}</summary>
+    <div className="disclosure-body">{children}</div>
+  </details>
+}
+
 const ToastContext = createContext({ show: () => {} })
 
 /** Wrap a screen with this, then call useToast().show('text') (brief 6.14). Closes by itself after 4 seconds. */

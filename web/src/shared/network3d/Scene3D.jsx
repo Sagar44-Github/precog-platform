@@ -142,7 +142,7 @@ export default function Scene3D({ model, pendingForecast, onSelect, selectedHost
     if (!graph) return
     const nodes = model.nodes.map((n) => ({ ...n, fx: n.x, fy: n.y, fz: n.z }))
     graph.graphData({ nodes, links: model.links.map((l) => ({ ...l })) })
-  }, [model])
+  }, [model, theme])
 
   useEffect(() => {
     const graph = graphRef.current
@@ -154,7 +154,7 @@ export default function Scene3D({ model, pendingForecast, onSelect, selectedHost
     }
     const preset = CAMERA_PRESETS[cameraPreset] || CAMERA_PRESETS.isometric
     graph.cameraPosition(preset.position, { x: 0, y: 0, z: 0 }, 650)
-  }, [cameraPreset, focusHostId])
+  }, [cameraPreset, focusHostId, theme])
 
   const forecastKey = model.cones.map((cone) => `${cone.from}:${cone.to}:${cone.confidence}`).join('|')
   useEffect(() => {
@@ -163,7 +163,7 @@ export default function Scene3D({ model, pendingForecast, onSelect, selectedHost
     const targetId = model.cones[0].to
     const target = graph.graphData().nodes.find((node) => node.id === targetId)
     if (target && target.x !== undefined) graph.cameraPosition({ x: target.x + 160, y: target.y + 110, z: target.z + 245 }, { x: target.x, y: target.y, z: target.z }, 1000)
-  }, [forecastKey])
+  }, [forecastKey, theme])
 
-  return <div ref={holder} className="c-scene" role="presentation" />
+  return <div ref={holder} className="c-scene" role="presentation" data-theme={theme} />
 }

@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { api } from '../../shared/api.js'
-import { EmptyState, LoadingState, SimulationBadge } from '../../shared/components.jsx'
+import { EmptyState, LoadingState } from '../../shared/components.jsx'
 import { Icon } from '../../shared/icons.jsx'
 import { useAuth } from '../../shared/AuthContext.jsx'
-import { ThemeToggle } from '../../shared/theme-context.jsx'
 import { allowedPlaybooksForRole, filterGovernanceRecords, previewProbabilityPercent } from './logic.js'
 import './containment.css'
 
@@ -188,7 +187,6 @@ export default function ContainmentPage() {
 
   if (!topology && !error) return <div className="gov-page"><LoadingState /></div>
   return <main className="gov-page">
-    <header className="gov-topbar"><Link to="/console" className="gov-brand"><span className="gov-brand-mark"><Icon name="shield" size={18} /></span><span>PRECOG <b>SOC</b><small>RESPONSE GOVERNANCE</small></span></Link><div><span className="gov-role">{(role || 'viewer').toUpperCase()}</span><ThemeToggle /><SimulationBadge /></div></header>
     <div className="gov-content">
       <header className="gov-heading"><div><p className="gov-kicker">SIMULATED RESPONSE · PROPOSE → REVIEW → CONFIRM</p><h1>Response governance</h1><p>Preview impact, record an approval decision, then confirm the action. Containment changes only the replay’s in-memory state.</p></div><div className="gov-heading-links"><Link to="/incidents">Incidents ↗</Link><Link to="/twin">Network twin ↗</Link></div></header>
       {error && <div className="gov-error" role="alert">{error}</div>}
@@ -228,7 +226,7 @@ export default function ContainmentPage() {
         <div className="gov-history-filter"><label>Status<select value={filter} onChange={(event) => setFilter(event.target.value)}><option value="all">All statuses</option>{['pending_approval', 'pending_confirmation', 'executed', 'released', 'cancelled', 'expired', 'rejected', 'partially_executed'].map((value) => <option value={value} key={value}>{statusLabel(value)}</option>)}</select></label><label>Playbook<select value={playbookFilter} onChange={(event) => setPlaybookFilter(event.target.value)}><option value="all">All playbooks</option>{playbooks.map((item) => <option key={item.playbook_id} value={item.playbook_id}>{item.label}</option>)}</select></label><span>Audit logged · {records.revision} updates</span></div>
         {shownRecords.length === 0 ? <EmptyState>No governance actions yet. Preview a playbook to begin.</EmptyState> : <div className="gov-record-list">{shownRecords.map((record) => <RecordCard key={record.action_id} record={record} release={record.playbook_id === 'release-host'} busy={busy} canOperate={role !== 'viewer'} canAdminApprove={role === 'admin'} onConfirm={(item) => { setActiveRecord(item); setConfirming(true) }} onCancel={doCancel} onApprove={doApprove} onReject={doReject} />)}</div>}
       </section>
-      <footer className="gov-footer"><span>PRECOG SOC · SIMULATION</span><span>No real hosts, accounts or network controls are changed.</span><Link to="/mobile">Open phone SOC ↗</Link></footer>
+      <footer className="gov-footer"><span>PRECOG SOC · SIMULATION</span><span>No real hosts, accounts or network controls are changed.</span></footer>
     </div>
     {confirming && active && <div className="gov-modal-backdrop"><section className="gov-confirm-dialog" role="dialog" aria-modal="true" aria-labelledby="gov-confirm-title"><p className="gov-kicker">SIMULATED ACTION CONFIRMATION</p><h2 id="gov-confirm-title">Confirm {labelFor(active.playbook_id).toLowerCase()}?</h2><p>This affects {active.preview_snapshot.hosts_affected.map((host) => host.name).join(', ')} in the demo state. Legitimate simulated use may be interrupted; no real network changes occur.</p><div className="gov-form-actions"><button className="gov-button gov-button-quiet" type="button" onClick={() => setConfirming(false)}>Go back</button><button className="gov-button gov-button-primary" type="button" disabled={busy} onClick={doConfirm}>Confirm simulated action</button></div></section></div>}
   </main>

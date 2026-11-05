@@ -50,10 +50,10 @@ test('viewer replay controls are read-only and analysts cannot restart', () => {
   assert.doesNotMatch(analyst, /aria-label="Restart replay"/)
 })
 
-test('the left rail has Graph, Alerts and Reports with the selected one marked', () => {
+test('the console view tabs use a compact operator hierarchy with the selected view marked', () => {
   const out = html(<LeftRail view="alerts" onChange={() => {}} />)
-  for (const word of ['Graph', 'Alerts', 'Reports']) assert.match(out, new RegExp(word))
-  assert.match(out, /aria-label="Alerts"[^>]*>|aria-pressed="true"[^>]*aria-label="Alerts"/)
+  for (const word of ['Network', 'Events', 'Metrics']) assert.match(out, new RegExp(word))
+  assert.match(out, /aria-label="Events"[^>]*>|aria-pressed="true"[^>]*aria-label="Events"/)
 })
 
 test('the contain button names the top predicted host, and is absent without a forecast', () => {
@@ -62,11 +62,12 @@ test('the contain button names the top predicted host, and is absent without a f
   assert.equal(html(<ConsoleContain state={state} allowed={false} />), '')
 })
 
-test('the forecast panel shows the forecast bars, the contain button and the attack path', () => {
+test('the forecast panel shows the forecast bars, the contain button and a collapsible attack path', () => {
   const out = html(<ForecastPanel state={state} resolved={null} />)
-  assert.match(out, /74 %/)
+  assert.match(out, /74%/)
   assert.match(out, /Contain Web Server B/)
-  assert.match(out, /Attack path/)
+  assert.match(out, /Observed attack path/)
+  assert.match(out, /<details class="disclosure c-module" open=/)
 })
 
 test('the node panel shows the host, its state, its recent alerts and Contain when it is predicted', () => {
@@ -80,6 +81,7 @@ test('the node panel shows the host, its state, its recent alerts and Contain wh
 })
 
 test('the alerts panel lists alerts or says there are none', () => {
+  assert.match(html(<AlertsPanel state={state} />), /href="\/alerts\/evt-000001"/)
   assert.match(html(<AlertsPanel state={state} />), /Workstation A sent a packet/)
   assert.match(html(<AlertsPanel state={{ ...state, alerts: [] }} />), /No alerts yet/)
 })

@@ -15,19 +15,16 @@ function render(location) {
   )
 }
 
-test('incident queue renders navigation, filters and the simulation disclosure', () => {
+test('incident queue renders its case filters and replay path inside the shared workspace', () => {
   const html = render('/incidents')
   assert.match(html, /Incident investigations/)
-  assert.match(html, /Workspace navigation/)
   assert.match(html, /Filter cases/i)
   assert.match(html, /All statuses/)
-  assert.match(html, /SIMULATION/)
   assert.match(html, /Run a replay/)
 })
 
-test('incident detail URLs render the deep-link shell and mobile friendly case actions', () => {
+test('incident detail URLs render a deep-linked investigation without a nested shell', () => {
   const html = render('/incidents/INC-0001')
-  assert.match(html, /incident response/i)
-  assert.match(html, /PRECOG/)
-  assert.match(html, /SIMULATION/)
+  assert.match(html, /Loading investigation/)
+  assert.doesNotMatch(html, /Workspace navigation/)
 })

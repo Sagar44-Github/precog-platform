@@ -8,20 +8,6 @@ import { apiGet } from './api.js'
 import GuidedTour from './GuidedTour.jsx'
 import './app-shell.css'
 
-const CONSOLE_WIDTH = 1024
-
-function useConsoleHandoff() {
-  const [handoff, setHandoff] = useState(() => typeof window !== 'undefined' && window.innerWidth < CONSOLE_WIDTH)
-  useEffect(() => {
-    const query = window.matchMedia(`(max-width: ${CONSOLE_WIDTH - 1}px)`)
-    const update = () => setHandoff(query.matches)
-    update()
-    query.addEventListener?.('change', update)
-    return () => query.removeEventListener?.('change', update)
-  }, [])
-  return handoff
-}
-
 function commandEvent(detail) {
   window.dispatchEvent(new CustomEvent('precog:console-command', { detail }))
 }
@@ -37,7 +23,6 @@ export function CommandPalette({ open, onClose }) {
 
   const commands = useMemo(() => [
     { label: 'Open live console', detail: 'Go to the 3D replay console', icon: 'activity', keywords: 'workspace desktop', run: () => navigate('/console') },
-    { label: 'Open mobile SOC', detail: 'Open the phone PWA screens', icon: 'smartphone', keywords: 'phone pwa', run: () => navigate('/mobile') },
     { label: 'Open incident investigations', detail: 'Review correlated alerts and analyst notes', icon: 'shield', keywords: 'cases incident investigation', run: () => navigate('/incidents') },
     { label: 'Open Precog forecasts', detail: 'Review ranked estimates and their observed outcomes', icon: 'activity', keywords: 'forecast prediction explainability', run: () => navigate('/forecasts') },
     { label: 'Open what-if lab', detail: 'Explore containment counterfactuals without changing the replay', icon: 'sliders', keywords: 'what if counterfactual containment', run: () => navigate('/lab') },
@@ -47,8 +32,8 @@ export function CommandPalette({ open, onClose }) {
     { label: 'Open replay studio', detail: 'Step through a scripted replay and compare runs', icon: 'play', keywords: 'replay studio runs timeline', run: () => navigate('/replay') },
     { label: 'Open scenario library', detail: 'Choose or build a scripted scenario', icon: 'layers', keywords: 'scenario builder library', run: () => navigate('/scenarios') },
     { label: 'Open run history', detail: 'Review completed runs and compare outcomes', icon: 'clock', keywords: 'runs history compare', run: () => navigate('/runs') },
-    { label: 'Show alert stream', detail: 'Open alerts in the console panel', icon: 'activity', keywords: 'alerts events', run: () => commandEvent({ type: 'view', view: 'alerts' }) },
-    { label: 'Show session report', detail: 'Open the current session report panel', icon: 'sliders', keywords: 'reports metrics', run: () => commandEvent({ type: 'view', view: 'reports' }) },
+    { label: 'Open alert explorer', detail: 'Search and review detection events', icon: 'activity', keywords: 'alerts events', run: () => navigate('/alerts') },
+    { label: 'Open session reports', detail: 'Review replay reports and timelines', icon: 'sliders', keywords: 'reports metrics', run: () => navigate('/reports') },
     ...(role === 'viewer' ? [] : [{ label: 'Start Golden Path replay', detail: 'Start the deterministic simulation', icon: 'play', keywords: 'demo replay simulation', run: () => commandEvent({ type: 'start-demo' }) }]),
     { label: `Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`, detail: 'Change the display theme', icon: theme === 'dark' ? 'sun' : 'moon', keywords: 'appearance color', run: toggleTheme },
   ], [navigate, role, theme, toggleTheme])
@@ -121,25 +106,6 @@ export function CommandPalette({ open, onClose }) {
   )
 }
 
-export function ConsoleHandoff() {
-  return (
-    <main className="console-handoff">
-      <div className="handoff-topline">
-        <Link className="handoff-brand" to="/console"><span className="brand-mark"><Icon name="activity" /></span><span>Precog <b>SOC</b></span></Link>
-        <div className="handoff-actions"><SimulationBadge /><ThemeToggle /></div>
-      </div>
-      <section className="handoff-card">
-        <div className="handoff-orbit" aria-hidden="true"><span /><i /><b /></div>
-        <p className="app-eyebrow">DESKTOP WORKSPACE · 1024 PX MINIMUM</p>
-        <h1>Open the console on a wider screen</h1>
-        <p className="handoff-copy">The 3D topology is designed for a desktop workspace. The mobile SOC keeps alerts, forecasts and session history ready on this device.</p>
-        <Link to="/mobile" className="handoff-link">Open mobile SOC <Icon name="chevron" size={17} /></Link>
-      </section>
-      <p className="handoff-footnote">All events and responses shown here are simulated.</p>
-    </main>
-  )
-}
-
 export default function AppShell({ children }) {
   const { username, role, logout } = useAuth()
   const navigate = useNavigate()
@@ -148,8 +114,15 @@ export default function AppShell({ children }) {
   const [openIncidents, setOpenIncidents] = useState(0)
   const [incidentNotice, setIncidentNotice] = useState(false)
   const [pendingResponses, setPendingResponses] = useState(0)
-  const handoff = useConsoleHandoff() && location.pathname.startsWith('/console')
-  const pageTitle = location.pathname.startsWith('/replay') ? 'Replay studio'
+  const pageTitle = location.pathname.startsWith('/alerts') ? 'Alert explorer'
+    : location.pathname.startsWith('/reports') ? 'Session reports'
+      : location.pathname.startsWith('/incidents') ? 'Incident investigations'
+        : location.pathname.startsWith('/audit') ? 'Audit log'
+          : location.pathname.startsWith('/system') ? 'System health'
+            : location.pathname.startsWith('/settings') ? 'Settings'
+              : location.pathname.startsWith('/help') ? 'Operator help'
+                : location.pathname.startsWith('/about') ? 'About Precog SOC'
+    : location.pathname.startsWith('/replay') ? 'Replay studio'
     : location.pathname.startsWith('/twin') ? 'Network twin'
       : location.pathname.startsWith('/hosts') ? 'Asset directory'
     : location.pathname.includes('/edit') || location.pathname.endsWith('/new') ? 'Scenario builder'
@@ -211,24 +184,19 @@ export default function AppShell({ children }) {
     try { await logout() } finally { navigate('/login', { replace: true }) }
   }
 
-  if (handoff) return <ConsoleHandoff />
-
   return (
     <div className="app-shell">
       <aside className="app-sidebar" aria-label="Workspace navigation">
-        <Link to="/console" className="app-brand">
+        <Link to="/" className="app-brand" title="Return to landing page">
           <span className="brand-mark"><Icon name="activity" size={21} /></span>
           <span className="brand-copy"><b>Precog <strong>SOC</strong></b><small>SIMULATION LAB</small></span>
         </Link>
         <p className="app-nav-caption">WORKSPACE</p>
         <nav className="app-primary-nav" aria-label="Main navigation">
-          <NavLink to="/console" end className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
-            <Icon name="activity" /><span>Live console</span><kbd>1</kbd>
+          <NavLink to="/console" end title="Live console" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
+            <Icon name="activity" /><span>Live console</span>
           </NavLink>
-          <NavLink to="/mobile" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
-            <Icon name="smartphone" /><span>Mobile SOC</span><kbd>2</kbd>
-          </NavLink>
-          <NavLink to="/incidents" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
+          <NavLink to="/incidents" title="Incidents" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
             <Icon name="shield" /><span>Incidents</span>{openIncidents > 0 && <b className="app-nav-count" aria-label={`${openIncidents} open incidents`}>{openIncidents}</b>}
           </NavLink>
           <NavLink to="/twin" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>

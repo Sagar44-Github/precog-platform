@@ -5,7 +5,6 @@ import { LoginPage, RequireAuth } from './shared/AuthContext.jsx'
 import { LoadingState } from './shared/components.jsx'
 import { ThemeProvider } from './shared/theme-context.jsx'
 
-const MobileApp = lazy(() => import('./areas/mobile/index.jsx'))
 const ConsoleApp = lazy(() => import('./areas/console/index.jsx'))
 const LandingPage = lazy(() => import('./landing/LandingPage.jsx'))
 const IncidentsApp = lazy(() => import('./areas/incidents/index.jsx'))
@@ -53,20 +52,19 @@ export default function App() {
         <Route path="/audit" element={<WorkspacePage><AuditPage /></WorkspacePage>} />
         <Route path="/system" element={<WorkspacePage><SystemPage /></WorkspacePage>} />
         <Route path="/settings" element={<WorkspacePage><SettingsPage /></WorkspacePage>} />
-        <Route path="/mobile/*" element={<RequireAuth><Suspense fallback={<LoadingState />}><MobileApp /></Suspense></RequireAuth>} />
-        <Route path="/incidents/*" element={<RequireAuth><Suspense fallback={<LoadingState />}><IncidentsApp /></Suspense></RequireAuth>} />
-        <Route path="/replay/*" element={<RequireAuth><AppShell><Suspense fallback={<LoadingState />}><ReplayStudioApp /></Suspense></AppShell></RequireAuth>} />
-        <Route path="/scenarios/*" element={<RequireAuth><AppShell><Suspense fallback={<LoadingState />}><ReplayStudioApp /></Suspense></AppShell></RequireAuth>} />
-        <Route path="/runs/*" element={<RequireAuth><AppShell><Suspense fallback={<LoadingState />}><ReplayStudioApp /></Suspense></AppShell></RequireAuth>} />
-        <Route path="/twin/*" element={<RequireAuth><AppShell><Suspense fallback={<LoadingState />}><TwinApp /></Suspense></AppShell></RequireAuth>} />
-        <Route path="/hosts" element={<RequireAuth><AppShell><Suspense fallback={<LoadingState />}><TwinHostsApp /></Suspense></AppShell></RequireAuth>} />
-        <Route path="/hosts/:id" element={<RequireAuth><AppShell><Suspense fallback={<LoadingState />}><TwinHostDetailApp /></Suspense></AppShell></RequireAuth>} />
-        <Route path="/forecasts" element={<RequireAuth><AppShell><Suspense fallback={<LoadingState />}><ForecastsApp /></Suspense></AppShell></RequireAuth>} />
-        <Route path="/forecasts/:id" element={<RequireAuth><AppShell><Suspense fallback={<LoadingState />}><ForecastDetailApp /></Suspense></AppShell></RequireAuth>} />
-        <Route path="/lab" element={<RequireAuth><AppShell><Suspense fallback={<LoadingState />}><WhatIfApp /></Suspense></AppShell></RequireAuth>} />
-        <Route path="/analytics" element={<RequireAuth><AppShell><Suspense fallback={<LoadingState />}><AnalyticsApp /></Suspense></AppShell></RequireAuth>} />
-        <Route path="/containment" element={<RequireAuth><Suspense fallback={<LoadingState />}><ContainmentApp /></Suspense></RequireAuth>} />
-        <Route path="/console/*" element={<RequireAuth><AppShell><Suspense fallback={<LoadingState />}><ConsoleApp /></Suspense></AppShell></RequireAuth>} />
+        <Route path="/incidents/*" element={<WorkspacePage><IncidentsApp /></WorkspacePage>} />
+        <Route path="/replay/*" element={<WorkspacePage><ReplayStudioApp /></WorkspacePage>} />
+        <Route path="/scenarios/*" element={<WorkspacePage><ReplayStudioApp /></WorkspacePage>} />
+        <Route path="/runs/*" element={<WorkspacePage><ReplayStudioApp /></WorkspacePage>} />
+        <Route path="/twin/*" element={<WorkspacePage><TwinApp /></WorkspacePage>} />
+        <Route path="/hosts" element={<WorkspacePage><TwinHostsApp /></WorkspacePage>} />
+        <Route path="/hosts/:id" element={<WorkspacePage><TwinHostDetailApp /></WorkspacePage>} />
+        <Route path="/forecasts" element={<WorkspacePage><ForecastsApp /></WorkspacePage>} />
+        <Route path="/forecasts/:id" element={<WorkspacePage><ForecastDetailApp /></WorkspacePage>} />
+        <Route path="/lab" element={<WorkspacePage><WhatIfApp /></WorkspacePage>} />
+        <Route path="/analytics" element={<WorkspacePage><AnalyticsApp /></WorkspacePage>} />
+        <Route path="/containment" element={<WorkspacePage><ContainmentApp /></WorkspacePage>} />
+        <Route path="/console/*" element={<WorkspacePage><ConsoleApp /></WorkspacePage>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       </UiPreferencesProvider>

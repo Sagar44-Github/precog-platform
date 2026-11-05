@@ -1,10 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import { Link, NavLink, Route, Routes, useNavigate, useParams } from 'react-router-dom'
+import { Link, Route, Routes, useNavigate, useParams } from 'react-router-dom'
 import { useAuth } from '../../shared/AuthContext.jsx'
 import { apiGet, apiPost } from '../../shared/api.js'
 import { Icon } from '../../shared/icons.jsx'
-import { SimulationBadge } from '../../shared/components.jsx'
-import { ThemeToggle } from '../../shared/theme-context.jsx'
 import { durationLabel, incidentStats, savedFilterList, severityTone } from './logic.js'
 import './incidents.css'
 
@@ -36,34 +34,7 @@ function useIncidentRefresh() {
 }
 
 function Frame({ children }) {
-  const { username, role, logout } = useAuth()
-  const navigate = useNavigate()
-  async function signOut() {
-    try { await logout() } finally { navigate('/login', { replace: true }) }
-  }
-  return (
-    <div className="incident-workbench">
-      <aside className="incident-rail" aria-label="Workspace navigation">
-        <Link to="/console" className="incident-brand"><span className="incident-brand-mark"><Icon name="shield" size={18} /></span><span>PRECOG <b>SOC</b><small>SIMULATION LAB</small></span></Link>
-        <p className="incident-rail-label">INVESTIGATE</p>
-        <nav className="incident-rail-nav" aria-label="Workspace">
-          <NavLink to="/console"><Icon name="activity" /><span>Live console</span></NavLink>
-          <NavLink to="/incidents"><Icon name="shield" /><span>Incidents</span></NavLink>
-          <NavLink to="/mobile"><Icon name="smartphone" /><span>Mobile SOC</span></NavLink>
-        </nav>
-        <div className="incident-rail-bottom"><span className="incident-env-dot" />Scripted environment<br /><small>In-memory response only</small></div>
-        <div className="incident-account"><span className="incident-avatar">{(username || 'A').slice(0, 1).toUpperCase()}</span><span><b>{username || 'Operator'}</b><small>{(role || 'viewer').toUpperCase()} ROLE</small></span><button type="button" onClick={signOut} aria-label="Sign out"><Icon name="logout" size={16} /></button></div>
-      </aside>
-      <div className="incident-main">
-        <header className="incident-topbar">
-          <div className="incident-crumb"><Link to="/console">Workspace</Link><Icon name="chevron" size={14} /><span>Incident response</span></div>
-          <div className="incident-top-actions"><span className="incident-role">{(role || 'viewer').toUpperCase()}</span><ThemeToggle /><SimulationBadge /></div>
-        </header>
-        <main className="incident-content">{children}</main>
-        <footer className="incident-footer"><span>PRECOG · CASE MANAGEMENT</span><span>Scripted replay evidence · simulated containment only</span></footer>
-      </div>
-    </div>
-  )
+  return <div className="incident-content">{children}</div>
 }
 
 function PageHeading({ eyebrow, title, description, actions }) {
@@ -112,7 +83,7 @@ function IncidentList() {
   const summary = incidentStats(data.items)
   return (
     <>
-      <PageHeading eyebrow="CASE MANAGEMENT · LIVE REPLAY" title="Incident investigations" description="Related scripted alerts become one case with evidence, attack path, forecast outcome and analyst decisions." actions={<><Link to="/mobile/alerts" className="incident-button incident-button-quiet">Alert stream</Link><Link to="/console" className="incident-button incident-button-primary"><Icon name="play" size={15} /> Run a replay</Link></>} />
+      <PageHeading eyebrow="CASE MANAGEMENT · LIVE REPLAY" title="Incident investigations" description="Related scripted alerts become one case with evidence, attack path, forecast outcome and analyst decisions." actions={<><Link to="/alerts" className="incident-button incident-button-quiet">Alert explorer</Link><Link to="/console" className="incident-button incident-button-primary"><Icon name="play" size={15} /> Run a replay</Link></>} />
       <div className="incident-kpis" aria-label="Incident summary">
         <div><span>VISIBLE CASES</span><b>{data.total}</b><small>matching the current view</small></div>
         <div><span>HIGH SEVERITY</span><b>{summary.high}</b><small>requires analyst review</small></div>
@@ -224,10 +195,10 @@ function IncidentDetail() {
         </section>
         <section className="incident-panel incident-timeline-panel">
           <div className="incident-panel-head"><div><p className="incident-eyebrow">CHRONOLOGICAL EVIDENCE</p><h2>Investigation timeline</h2></div><span>{timeline.length} events</span></div>
-          <ol className="incident-timeline">{timeline.map((item) => <li key={item.event_id} className={`timeline-${item.type}`}><span className="incident-timeline-dot" /><div><div className="incident-timeline-meta"><b>{item.type.replaceAll('_', ' ')}</b><time>{item.timestamp?.replace('T', ' ').replace('Z', ' UTC')}</time></div><p>{item.summary}</p>{item.ref_id && <Link to={item.type === 'alert' || item.type === 'technique' || item.type === 'compromise' ? `/mobile/alerts/${encodeURIComponent(item.ref_id)}` : `/mobile/forecast`}>Open evidence <Icon name="chevron" size={12} /></Link>}{item.actor && <small>{item.actor} · {item.role}</small>}</div></li>)}</ol>
+          <ol className="incident-timeline">{timeline.map((item) => <li key={item.event_id} className={`timeline-${item.type}`}><span className="incident-timeline-dot" /><div><div className="incident-timeline-meta"><b>{item.type.replaceAll('_', ' ')}</b><time>{item.timestamp?.replace('T', ' ').replace('Z', ' UTC')}</time></div><p>{item.summary}</p>{item.ref_id && <Link to={['alert', 'technique', 'compromise'].includes(item.type) ? `/alerts/${encodeURIComponent(item.ref_id)}` : `/forecasts/${encodeURIComponent(item.ref_id)}`}>Open evidence <Icon name="chevron" size={12} /></Link>}{item.actor && <small>{item.actor} · {item.role}</small>}</div></li>)}</ol>
         </section>
         <div className="incident-detail-stack">
-          <section className="incident-panel incident-evidence-panel"><div className="incident-panel-head"><div><p className="incident-eyebrow">DETECTION RECORDS</p><h2>Evidence <span>{incident.evidence.length}</span></h2></div></div><div className="incident-evidence-list">{incident.evidence.map((item) => <Link key={item.event_id} to={`/mobile/alerts/${encodeURIComponent(item.event_id)}`}><span className={`incident-evidence-marker tone-${severityTone(item.severity)}`} /><span><b>{item.technique_name || item.technique_id}</b><small>{item.host} · {item.event_id}</small></span><span>{item.severity}</span><Icon name="chevron" size={15} /></Link>)}</div></section>
+          <section className="incident-panel incident-evidence-panel"><div className="incident-panel-head"><div><p className="incident-eyebrow">DETECTION RECORDS</p><h2>Evidence <span>{incident.evidence.length}</span></h2></div></div><div className="incident-evidence-list">{incident.evidence.map((item) => <Link key={item.event_id} to={`/alerts/${encodeURIComponent(item.event_id)}`}><span className={`incident-evidence-marker tone-${severityTone(item.severity)}`} /><span><b>{item.technique_name || item.technique_id}</b><small>{item.host} · {item.event_id}</small></span><span>{item.severity}</span><Icon name="chevron" size={15} /></Link>)}</div></section>
           <section className="incident-panel incident-forecast-panel"><div className="incident-panel-head"><div><p className="incident-eyebrow">PRECOG · MODEL ESTIMATE</p><h2>Forecast & response</h2></div></div>{incident.forecast_outcome ? <div className="incident-outcome"><b>{incident.forecast_outcome.label?.toUpperCase()}</b><span>{incident.forecast_outcome.blocked ? 'Scripted move was blocked by a confirmed simulated action.' : 'Observed next move compared with the ranked estimate.'}</span></div> : <p className="incident-quiet-copy">{incident.forecasts.length ? 'An estimate was generated; its outcome is pending.' : 'No forecast was produced for this incident.'}</p>}{incident.forecasts.map((forecast) => <div className="incident-forecast-row" key={forecast.forecast_id}><span>{forecast.forecast_id} · {forecast.status}</span><div>{forecast.targets.map((target) => <b key={target.host_id}>{target.rank}. {target.host_id} <small>{Math.round(target.confidence * 100)}%</small></b>)}</div></div>)}{incident.actions.map((action) => <div className="incident-action-row" key={action.action_id}><span>SIMULATED CONTAINMENT</span><b>{action.target_host} · {action.status.replace('_', ' ')}</b><small>{action.result || 'No execution result recorded.'}</small></div>)}<p className="incident-sim-note">Forecasts are estimates from a scripted generator over six demo hosts, not a guarantee of real-world protection.</p></section>
         </div>
         <section className="incident-panel incident-notes-panel"><div className="incident-panel-head"><div><p className="incident-eyebrow">ANALYST WORKSPACE</p><h2>Case notes <span>{incident.notes.length}</span></h2></div><span>Audit logged</span></div><div className="incident-notes-list">{incident.notes.map((item) => <article key={item.note_id}><p>{item.body}</p><footer>{item.author} · {item.role} <time>{item.created_at?.replace('T', ' ').replace('Z', ' UTC')}</time></footer></article>)}{!incident.notes.length && <p className="incident-quiet-copy">No analyst notes yet. Record a concise observation for the next reviewer.</p>}</div>{canAnnotate && <form className="incident-note-form" onSubmit={addNote}><label htmlFor="incident-note">Add a plain-text note</label><textarea id="incident-note" maxLength={2000} value={note} onChange={(event) => setNote(event.target.value)} placeholder="What should the next analyst know?"/><div><small>{note.length} / 2000 characters · Text only</small><button className="incident-button incident-button-primary" type="submit" disabled={busy || !note.trim()}>Add note</button></div></form>}</section>

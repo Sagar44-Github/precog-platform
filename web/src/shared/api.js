@@ -55,6 +55,15 @@ export const api = {
   state: (since) => apiGet(since === null || since === undefined ? '/api/x/state' : `/api/x/state?since=${since}`),
   alerts: (limit = 50) => apiGet(`/api/x/alerts?limit=${limit}`),
   alert: (id) => apiGet(`/api/x/alerts/${encodeURIComponent(id)}`),
+  searchAlerts: (filters = {}) => {
+    const query = new URLSearchParams()
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && String(value) !== '') query.set(key, String(value))
+    })
+    return apiGet(`/api/x/alerts/search?${query.toString()}`)
+  },
+  reports: () => apiGet('/api/x/reports'),
+  report: (sessionId) => apiGet(`/api/x/reports/${encodeURIComponent(sessionId)}`),
   graph: () => apiGet('/api/x/graph'),
   forecasts: (status) => apiGet(status ? `/api/x/forecasts?status=${status}` : '/api/x/forecasts'),
   currentForecast: () => apiGet('/api/x/forecasts/current'),

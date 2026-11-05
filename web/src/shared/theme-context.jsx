@@ -1,8 +1,9 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState } from 'react'
 import { Icon } from './icons.jsx'
 
 const ThemeContext = createContext({ theme: 'dark', toggleTheme: () => {} })
 const STORAGE_KEY = 'precog-color-theme'
+const useBrowserLayoutEffect = typeof window === 'undefined' ? useEffect : useLayoutEffect
 
 function savedTheme() {
   try {
@@ -16,7 +17,7 @@ export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState(savedTheme)
   const toggleTheme = useCallback(() => setTheme((value) => value === 'dark' ? 'light' : 'dark'), [])
 
-  useEffect(() => {
+  useBrowserLayoutEffect(() => {
     document.documentElement.dataset.theme = theme
     document.documentElement.style.colorScheme = theme
     try { window.localStorage.setItem(STORAGE_KEY, theme) } catch { /* Theme still works without storage. */ }

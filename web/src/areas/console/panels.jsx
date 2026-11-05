@@ -1,12 +1,13 @@
 import { useEffect, useReducer, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { api, apiGet } from '../../shared/api.js'
-import { AccuracyCounter, AttackPath2D, ForecastBars, OutcomeCard, SeverityBadge, StateChip } from '../mobile/index.jsx'
+import { CollapsibleSection } from '../../shared/components.jsx'
+import { AccuracyCounter, AttackPath2D, ForecastBars, OutcomeCard, SeverityBadge, StateChip } from '../../shared/operational-widgets.jsx'
 import { AlertVolumeChart, ForecastAccuracyChart } from '../charts/index.jsx'
 import { containReducer, formatTime, hostName, initialContain, replayButtons, replayWord, sceneSummary, SPEEDS, threatLevel, timelineMarks } from './logic.js'
+import '../../shared/security-widgets.css'
 
-// The console's panels (owner: VIZ). The phone components (SeverityBadge, StateChip, ForecastBars, OutcomeCard, AccuracyCounter,
-// AttackPath2D) come from GRAPH's area through its entry file; VIZ never edits GRAPH's files.
+// The operator panels reuse shared event and forecast facts while keeping the app shell's presentation consistent.
 
 export function ReplayControls({ replay, client = api, canOperate = true, permissions }) {
   const mayOperate = permissions ? Boolean(permissions.can_run_replay) : canOperate
@@ -45,17 +46,17 @@ export function TopBar({ state, stale, canOperate = true }) {
     <header className="c-top">
       <div className="c-top-state">{level && <span className={`c-threat c-threat-${level.key}`} aria-label={`Threat: ${level.word}`} aria-live="polite"><span aria-hidden="true">{level.icon}</span><span><small>THREAT LEVEL</small><b>{level.word}</b></span></span>}</div>
       <ReplayControls replay={state ? state.replay : null} canOperate={canOperate} />
-      <div className="c-top-actions"><Link to="/containment" className="c-mobile-link">Response playbooks ↗</Link><Link to="/mobile" className="c-mobile-link"><span aria-hidden="true">▣</span> Phone view</Link><span className="c-conn" role="status"><i aria-hidden="true" />{stale ? 'Offline · stale data' : 'Connected'}</span></div>
+      <div className="c-top-actions"><Link to="/containment" className="c-action-link">Response governance <span aria-hidden="true">↗</span></Link><span className="c-conn" role="status"><i aria-hidden="true" />{stale ? 'Offline · stale data' : 'Connected'}</span></div>
     </header>
   )
 }
 
-export const RAIL = [['graph', 'Graph', '◉'], ['alerts', 'Alerts', '≡'], ['reports', 'Reports', '◔']]
+export const RAIL = [['graph', 'Network', '◉'], ['alerts', 'Events', '≡'], ['reports', 'Metrics', '◔']]
 
 export function LeftRail({ view, onChange }) {
   return (
     <nav className="c-rail" aria-label="Console views">
-      <span className="c-rail-caption">VIEWS</span>
+      <span className="c-rail-caption">CONSOLE VIEW</span>
       {RAIL.map(([key, label, icon]) => (
         <button type="button" key={key} className="c-rail-btn" aria-pressed={view === key} aria-label={label} title={label} onClick={() => onChange(key)}>
           <span className="c-rail-icon" aria-hidden="true">{icon}</span><span className="c-rail-label">{label}</span>
@@ -115,12 +116,13 @@ export function ConsoleContain({ state, client = api, onDone, allowed = true }) 
 export function ForecastPanel({ state, resolved, onDone, canOperate = true }) {
   return (
     <div className="c-panel-body">
-      <div className="c-panel-heading"><span className="c-eyebrow">PREC0G ENGINE / NEXT MOVE</span><h2>Predicted targets</h2><p>Ranked from the current attack path</p></div>
+      <div className="c-panel-heading"><span className="c-eyebrow">PRECOG ENGINE / MODEL ESTIMATE</span><h2>Next likely targets</h2><p>Ranked from the current scripted attack path</p></div>
       <ForecastBars state={state} />
       {canOperate ? <ConsoleContain state={state} onDone={onDone} /> : <p className="c-muted">Viewer access is read-only. An analyst can propose and confirm simulated containment.</p>}
-      <h3 className="c-section-title">Attack path</h3>
-      <AttackPath2D state={state} />
-      <OutcomeCard forecast={resolved} state={state} />
+      <CollapsibleSection className="c-module" title="Observed attack path" meta={`${state.graph.compromised_path.length} hosts`} open>
+        <AttackPath2D state={state} />
+      </CollapsibleSection>
+      {resolved && <CollapsibleSection className="c-module" title="Latest forecast outcome" meta={resolved.status === 'hit' ? 'Hit' : 'Miss'}><OutcomeCard forecast={resolved} state={state} /></CollapsibleSection>}
     </div>
   )
 }
@@ -147,12 +149,15 @@ export function NodeDetailPanel({ state, hostId, onClose, onDone, canOperate = t
 export function AlertsPanel({ state }) {
   return (
     <div className="c-panel-body">
-      <div className="c-panel-heading"><span className="c-eyebrow">DETECTION STREAM</span><h2>Security events</h2><p>Prioritized signals from the replay pipeline</p></div>
-      {state.alerts.length === 0 ? <p className="c-muted">No alerts yet. Start the replay to see activity.</p> : state.alerts.slice(0, 50).map((a) => (
-        <div key={a.event_id} className="c-alert">
-          <div className="c-row"><SeverityBadge severity={a.severity} /><span className="c-mono c-muted">{formatTime(a.ts)}</span></div>
-          <p>{a.explanation}</p>
-        </div>))}
+      <div className="c-panel-heading"><span className="c-eyebrow">DETECTION STREAM</span><h2>Security events</h2><p>{state.alerts.length} recent signals from the replay pipeline</p></div>
+      <CollapsibleSection className="c-module" title="Recent events" meta={`${state.alerts.length} records`} open>
+          {state.alerts.length === 0 ? <p className="c-muted">No alerts yet. Start the replay to see activity.</p> : state.alerts.slice(0, 50).map((a) => (
+            <Link key={a.event_id} to={`/alerts/${encodeURIComponent(a.event_id)}`} className="c-alert c-alert-link">
+              <div className="c-row"><SeverityBadge severity={a.severity} /><span className="c-mono c-muted">{formatTime(a.ts)}</span></div>
+              <p>{a.explanation}</p><small className="c-mono c-muted">{hostName(state, a.host)} · {a.event_id} ↗</small>
+            </Link>))}
+          <Link to="/alerts" className="c-panel-link">Open alert explorer ↗</Link>
+      </CollapsibleSection>
     </div>
   )
 }
@@ -160,11 +165,10 @@ export function AlertsPanel({ state }) {
 export function ReportsPanel({ state }) {
   return (
     <div className="c-panel-body">
-      <div className="c-panel-heading"><span className="c-eyebrow">SESSION INTELLIGENCE</span><h2>Model performance</h2><p>Session metrics and held-out detection results</p></div>
-      <AccuracyCounter metrics={state.metrics} />
-      <ForecastAccuracyChart metrics={state.metrics} />
-      <h3>Alert volume</h3>
-      <AlertVolumeChart alerts={state.alerts} />
+      <div className="c-panel-heading"><span className="c-eyebrow">SESSION INTELLIGENCE</span><h2>Session metrics</h2><p>Replay counters and model calibration</p></div>
+      <CollapsibleSection className="c-module" title="Forecast outcomes" meta={`${state.metrics.forecasts_resolved} resolved`} open><AccuracyCounter metrics={state.metrics} /><ForecastAccuracyChart metrics={state.metrics} /><p className="c-honesty-note">Session counters describe this replay. Precision@3 is trivial when three or fewer hosts are reachable.</p></CollapsibleSection>
+      <CollapsibleSection className="c-module" title="Alert volume" meta={`${state.alerts.length} signals`}><AlertVolumeChart alerts={state.alerts} /></CollapsibleSection>
+      <Link to="/reports" className="c-panel-link">Open session reports ↗</Link>
     </div>
   )
 }

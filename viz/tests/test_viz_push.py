@@ -33,7 +33,7 @@ def test_notification_title_and_body_follow_the_brief():
     n = alert_notification(alert(), "Workstation A")
     assert n["title"] == "High alert: Workstation A"
     assert n["body"] == "Workstation A sent a 2500-byte TCP packet to port 22 (SSH, remote login) on Workstation B."
-    assert n["url"] == "/app/mobile/alerts/evt-000001" and n["event_id"] == "evt-000001"
+    assert n["url"] == "/app/alerts/evt-000001" and n["event_id"] == "evt-000001"
 
 
 # ---------- the watcher ----------
@@ -134,7 +134,7 @@ def test_fcm_sender_posts_a_data_only_message_per_phone():
     assert headers == {"Authorization": "Bearer access-123"}
     message = body["message"]
     assert message["token"] == "tok-a" and "notification" not in message                  # data only: our service worker shows it
-    assert message["data"] == {"title": "High alert: Workstation A", "body": n["body"], "event_id": "evt-000001", "url": "/app/mobile/alerts/evt-000001"}
+    assert message["data"] == {"title": "High alert: Workstation A", "body": n["body"], "event_id": "evt-000001", "url": "/app/alerts/evt-000001"}
     assert message["webpush"]["headers"]["Urgency"] == "high" and calls[1][2]["message"]["token"] == "tok-b"
 
 

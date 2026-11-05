@@ -23,14 +23,14 @@ const pushEvent = (payload) => { const waits = []; return { data: { json: () => 
 
 test('a data message becomes a notification with title, body, tag and link', async () => {
   const { handlers, shown } = loadWorker()
-  const event = pushEvent({ data: { title: 'High alert: Workstation A', body: 'Workstation A sent a packet.', event_id: 'evt-000001', url: '/app/mobile/alerts/evt-000001' } })
+  const event = pushEvent({ data: { title: 'High alert: Workstation A', body: 'Workstation A sent a packet.', event_id: 'evt-000001', url: '/app/alerts/evt-000001' } })
   handlers.push(event)
   await Promise.all(event.waits)
   assert.equal(shown.length, 1)
   assert.equal(shown[0].title, 'High alert: Workstation A')
   assert.equal(shown[0].options.body, 'Workstation A sent a packet.')
   assert.equal(shown[0].options.tag, 'evt-000001')
-  assert.equal(shown[0].options.data.url, '/app/mobile/alerts/evt-000001')
+  assert.equal(shown[0].options.data.url, '/app/alerts/evt-000001')
 })
 
 test('a message with missing parts still shows something sensible', async () => {
@@ -39,7 +39,7 @@ test('a message with missing parts still shows something sensible', async () => 
   handlers.push(event)
   await Promise.all(event.waits)
   assert.equal(shown[0].title, 'Precog SOC')
-  assert.equal(shown[0].options.data.url, '/app/mobile/')
+  assert.equal(shown[0].options.data.url, '/app/alerts')
 })
 
 test('an unreadable message does not crash the worker', async () => {
@@ -53,9 +53,9 @@ test('an unreadable message does not crash the worker', async () => {
 test('tapping the notification closes it and opens the alert', async () => {
   const { handlers, opened } = loadWorker()
   let closed = false
-  const event = { notification: { close: () => { closed = true }, data: { url: '/app/mobile/alerts/evt-000001' } }, waitUntil: (p) => event.waits.push(p), waits: [] }
+  const event = { notification: { close: () => { closed = true }, data: { url: '/app/alerts/evt-000001' } }, waitUntil: (p) => event.waits.push(p), waits: [] }
   handlers.notificationclick(event)
   await Promise.all(event.waits)
   assert.equal(closed, true)
-  assert.deepEqual(opened, ['/app/mobile/alerts/evt-000001'])
+  assert.deepEqual(opened, ['/app/alerts/evt-000001'])
 })
