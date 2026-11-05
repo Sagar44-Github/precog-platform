@@ -265,7 +265,8 @@
   .landing-forecast-readout { margin-top: 4px; }
   .landing-forecast-readout li { min-height: 24px; font-size: 8px; }
   .landing-panel-foot { margin-top: 6px; font-size: 7px; }
-  .landing-stage-caption { right: 16px; bottom: 264px; left: 16px; align-items: flex-start; flex-direction: column; justify-content: center; gap: 1px; min-height: 24px; font-size: 7px; }
+  .landing-stage-caption { top: 286px; right: 16px; bottom: auto; left: 16px; align-items: flex-start; flex-direction: row; justify-content: flex-start; gap: 1px; min-height: 18px; font-size: 8px; }
+  .landing-stage-caption > span:first-child { display: none; }
   .landing-hud-bottom { padding: 14px 16px 12px; background: linear-gradient(0deg, var(--bg) 0%, color-mix(in srgb, var(--bg) 97%, transparent) 88%, transparent 100%); }
   .landing-current-step { display: block; margin-bottom: 9px; }
   .landing-current-step .landing-kicker { margin-bottom: 4px; font-size: 8px; }

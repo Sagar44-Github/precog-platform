@@ -232,7 +232,8 @@ function createScene(canvas, { activeStep, onSelectHost }) {
     camera.aspect = width / height
     if (width < height) {
       camera.position.set(centerX + 24, 14, centerZ + 3)
-      controls.target.set(centerX, 0, centerZ)
+      // Keep the hero copy clear on phones by placing the network below it.
+      controls.target.set(centerX, 2.3, centerZ)
       camera.fov = 42
     } else {
       camera.position.set(centerX + 8, 9, centerZ + 11)
