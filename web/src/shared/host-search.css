@@ -1,0 +1,13 @@
+.host-search { position: relative; display: grid; gap: 4px; min-width: 210px; max-width: 290px; color: var(--text-muted); font: 9px var(--font-mono); text-transform: uppercase; }
+.host-search input { width: 100%; min-height: 34px; padding: 0 10px; border: 1px solid var(--border-strong); border-radius: 7px; outline: 0; background: var(--surface-raised); color: var(--text); font: 10px var(--font-ui); text-transform: none; }
+.host-search input:focus-visible { border-color: var(--accent); outline: var(--focus-ring); outline-offset: 1px; }
+.host-search-results { position: absolute; z-index: 20; top: calc(100% + 4px); left: 0; display: grid; width: min(440px, calc(100vw - 28px)); max-height: 300px; overflow: auto; border: 1px solid var(--border-strong); border-radius: 8px; background: var(--surface-raised); box-shadow: 0 16px 36px var(--shadow-panel); text-transform: none; }
+.host-search-results button { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-width: 0; padding: 9px 10px; border: 0; border-bottom: 1px solid var(--border); background: transparent; color: var(--text); text-align: left; cursor: pointer; }
+.host-search-results button:hover, .host-search-results button[aria-selected="true"] { background: var(--surface-inset); }
+.host-search-results button > span { display: grid; min-width: 0; gap: 3px; }
+.host-search-results b { overflow: hidden; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.host-search-results small, .host-search-results code, .host-search-message { color: var(--text-muted); font: 9px var(--font-mono); }
+.host-search-results small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.host-search-results code { flex: none; }
+.host-search-message { padding-top: 4px; text-transform: none; }
+@media (max-width: 620px) { .host-search { min-width: 100%; max-width: none; } .host-search-results { width: 100%; } }

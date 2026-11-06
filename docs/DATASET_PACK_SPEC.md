@@ -86,6 +86,10 @@ The `/api/x/pipeline` status object is capped to counters, one pending decision 
 
 These builders add no raw dataset or verified full-source result to the repository. Their fixture evaluation includes a deliberately tautological label-playback baseline; it is not detection performance. Precog metrics are not claimed until ordered routes have been reviewed and a separate held-out evaluation is run. `tools/datasets/build_topology_zoo.py` creates only a simulation over a selected GraphML topology after a per-file terms/citation/hash record is supplied; generated attacks and routes are not properties of the source topology. See `docs/DATASET_BUILDERS_D5.md` and the source cards under `docs/datasets/` for source-specific input requirements and status.
 
+## D6 large-topology views
+
+`GET /api/x/topology/summary?offset=0&limit=100&q=&zone=` provides an authenticated host page (maximum 200 rows), server-side text/zone filtering, counts by host state and zone, zone-to-zone feasible-edge bundles, and the current page's individual edges capped at 1,000. `GET /api/x/assets` reads the active workspace inventory. The 3D and Lite topology views collapse workspaces of 100 or more hosts into selectable zone clusters; host search expands the matching zone. The asset directory pages on the server and virtualizes its visible rows. Synthetic risk and edge likelihood remain labelled estimates.
+
 ```powershell
 python tools/datasets/build_pack.py --source synth-enterprise-30 --force
 python tools/datasets/build_pack.py --source synth-enterprise-120 --force

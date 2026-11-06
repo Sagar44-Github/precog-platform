@@ -88,7 +88,12 @@ export default function SignInScene() {
 
     const attacker = new THREE.Mesh(new THREE.SphereGeometry(0.075, 12, 10), new THREE.MeshBasicMaterial({ color: tone('--state-compromised') }))
     group.add(attacker)
-    const trailCurve = new THREE.CatmullRomCurve3([nodes[0].position, nodes[1].position, nodes[2].position, nodes[3].position])
+    const trailNodes = [nodes[0], nodes[1], nodes[2], nodes[3]]
+    const pointOnObservedPath = (progress) => {
+      const scaled = Math.max(0, Math.min(1, progress)) * (trailNodes.length - 1)
+      const segment = Math.min(trailNodes.length - 2, Math.floor(scaled))
+      return trailNodes[segment].position.clone().lerp(trailNodes[segment + 1].position, scaled - segment)
+    }
     const reduced = prefersReducedMotion()
     const start = performance.now()
     const render = (now) => {
@@ -96,7 +101,7 @@ export default function SignInScene() {
       if (!reduced) {
         group.rotation.y = Math.sin(elapsed * 0.16) * 0.065
         nodes.forEach((node, i) => { node.position.y = NODES[i][1] + Math.sin(elapsed * 0.65 + i * 0.7) * 0.025 })
-        attacker.position.copy(trailCurve.getPoint((elapsed * 0.13) % 1))
+        attacker.position.copy(pointOnObservedPath((elapsed * 0.13) % 1))
         boundary.material.opacity = 0.45 + (Math.sin(elapsed * 1.3) + 1) * 0.09
       } else attacker.position.copy(nodes[3].position)
       renderer.render(scene, camera)

@@ -1,0 +1,66 @@
+{
+  "workspace": "synth-enterprise-300",
+  "browser": "Playwright Chromium with SwiftShader software WebGL",
+  "screenshots": [
+    "topology-3d-1440x900.png",
+    "topology-lite-expanded-1440x900.png",
+    "twin-3d-1440x900.png",
+    "twin-lite-expanded-1440x900.png",
+    "twin-lite-390x844.png",
+    "twin-lite-820x1180.png",
+    "twin-lite-1440x900.png",
+    "twin-no-webgl-1440x900.png",
+    "host-directory-300-1440x900.png"
+  ],
+  "viewportChecks": [
+    {
+      "page": "twin-lite",
+      "viewport": "390x844",
+      "width": 390,
+      "scrollWidth": 390
+    },
+    {
+      "page": "twin-lite",
+      "viewport": "820x1180",
+      "width": 820,
+      "scrollWidth": 820
+    },
+    {
+      "page": "twin-lite",
+      "viewport": "1440x900",
+      "width": 1440,
+      "scrollWidth": 1440
+    }
+  ],
+  "errors": [],
+  "probes": {
+    "topology3d": {
+      "samples": 89,
+      "meanFrameMs": 17.98,
+      "p95FrameMs": 16.7,
+      "estimatedFpsFromMean": 55.6,
+      "jsHeapUsedBytes": 21215126,
+      "jsHeapLimitBytes": 4258791424,
+      "canvasPixels": 452592
+    },
+    "twin3d": {
+      "samples": 66,
+      "meanFrameMs": 24.24,
+      "p95FrameMs": 16.8,
+      "estimatedFpsFromMean": 41.3,
+      "jsHeapUsedBytes": 29099070,
+      "jsHeapLimitBytes": 4258791424,
+      "canvasPixels": 414288
+    }
+  },
+  "segmentationPreview": "active-workspace edge preview returned successfully",
+  "noWebGL": {
+    "renderedLite": true,
+    "canvasCount": 0
+  },
+  "pagedHostList": {
+    "visibleRows": 18,
+    "rowPageSize": 60,
+    "serverSearch": "found node-0025 by server-side search"
+  }
+}

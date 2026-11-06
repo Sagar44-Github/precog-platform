@@ -117,8 +117,20 @@ export const api = {
   run: (id) => apiGet(`/api/x/runs/${encodeURIComponent(id)}`),
   runSnapshots: (id) => apiGet(`/api/x/runs/${encodeURIComponent(id)}/snapshots`),
   runSnapshot: (id, version) => apiGet(`/api/x/snapshots?run=${encodeURIComponent(id)}&version=${version}`),
+  timeTravel: ({ limit = 120, session_id = '' } = {}) => {
+    const params = new URLSearchParams({ limit: String(limit) })
+    if (session_id) params.set('session_id', session_id)
+    return apiGet(`/api/x/time-travel?${params.toString()}`)
+  },
   compareRuns: (a, b) => apiGet(`/api/x/runs/compare?a=${encodeURIComponent(a)}&b=${encodeURIComponent(b)}`),
   topology: () => apiGet('/api/x/topology'),
+  assets: () => apiGet('/api/x/assets'),
+  topologySummary: ({ offset = 0, limit = 100, q = '', zone = '' } = {}) => {
+    const params = new URLSearchParams({ offset: String(offset), limit: String(limit) })
+    if (q) params.set('q', q)
+    if (zone) params.set('zone', zone)
+    return apiGet(`/api/x/topology/summary?${params.toString()}`)
+  },
   topologyPaths: (from, to, limit = 10) => apiGet(`/api/x/topology/paths?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}&limit=${limit}`),
   segmentationPreview: (from, removeFrom, removeTo) => apiGet(`/api/x/topology/segmentation-preview?from=${encodeURIComponent(from)}&remove_from=${encodeURIComponent(removeFrom)}&remove_to=${encodeURIComponent(removeTo)}`),
   host: (id) => apiGet(`/api/x/hosts/${encodeURIComponent(id)}`),

@@ -1,9 +1,12 @@
 """Read-only network digital-twin data and projections."""
 import networkx as nx
+from collections import defaultdict
 
 
 MAX_PATHS = 25
 MAX_HOST_HISTORY = 500
+MAX_TOPOLOGY_PAGE = 200
+MAX_TOPOLOGY_PAGE_EDGES = 1000
 
 
 class NetworkTwin:
@@ -31,7 +34,7 @@ class NetworkTwin:
             "description": item.get("description", "Simulated demo weakness"), "simulated": True,
         } for item in assets.get("vulns", [])]
         connections = self.topology.connections(host_id)
-        incoming = sum(host_id in targets for targets in self.topology._connections.values())
+        incoming = self.topology.incoming_count(host_id)
         return {
             "host_id": host_id, "name": host["name"], "zone": host["zone"],
             "address": host.get("address", ""), "role": host.get("role", "Demo asset"),
@@ -62,7 +65,73 @@ class NetworkTwin:
             "compromised_path": list(live.get("compromised_path", [])),
             "engine": self.topology.engine,
             "risk_basis": "attackgraph" if self.topology.engine == "attackgraph" else "networkx fallback with simulated CVSS and asset criticality",
-            "basis": "Risk and edge likelihoods are estimates from the six-host scripted demo topology and its simulated weaknesses.",
+            "basis": "Risk and edge likelihoods are simulated model estimates for the active workspace topology; they are not measured real-world exposure.",
+        }
+
+    def topology_summary(self, offset=0, limit=100, query="", zone=None):
+        """Search and page host inventory while returning graph-level zone aggregates."""
+        if isinstance(offset, bool) or not isinstance(offset, int) or not 0 <= offset <= 1_000_000:
+            raise ValueError("Topology offset must be an integer between 0 and 1000000.")
+        if isinstance(limit, bool) or not isinstance(limit, int) or not 1 <= limit <= MAX_TOPOLOGY_PAGE:
+            raise ValueError("Topology page size must be between 1 and %d." % MAX_TOPOLOGY_PAGE)
+        if not isinstance(query, str) or len(query) > 120:
+            raise ValueError("Topology search must be at most 120 characters.")
+        if zone is not None and (not isinstance(zone, str) or len(zone) > 80):
+            raise ValueError("Zone filter must be at most 80 characters.")
+
+        query_key = query.casefold().strip()
+        zone_filter = zone.casefold().strip() if zone else ""
+        ordered = sorted(self.topology.hosts.values(), key=lambda item: (item.get("zone", ""), item.get("name", ""), item["host_id"]))
+        matching = []
+        for host in ordered:
+            if zone_filter and host.get("zone", "").casefold() != zone_filter:
+                continue
+            if query_key:
+                profile = self.topology.asset_profile(host["host_id"])
+                haystack = " ".join([host["host_id"], host.get("name", ""), host.get("zone", ""),
+                    host.get("role", ""), *profile.get("services", [])]).casefold()
+                if query_key not in haystack:
+                    continue
+            matching.append(host)
+        page = matching[offset:offset + limit]
+        items = [self._host(host["host_id"]) for host in page]
+
+        graph_snapshot = self.graph.snapshot()
+        states = {item["host_id"]: item.get("state", "normal") for item in graph_snapshot.get("hosts", [])}
+        zone_stats = defaultdict(lambda: {"host_count": 0, "normal_count": 0, "compromised_count": 0,
+            "contained_count": 0, "edge_count": 0})
+        for host in ordered:
+            stats = zone_stats[host.get("zone", "unknown")]
+            stats["host_count"] += 1
+            stats[states.get(host["host_id"], "normal") + "_count"] += 1
+        edge_bundles = defaultdict(int)
+        page_edges = []
+        page_ids = {host["host_id"] for host in page}
+        truncated_edges = False
+        for source, targets in self.topology._connections.items():
+            source_zone = self.topology.hosts[source].get("zone", "unknown")
+            for target in targets:
+                target_zone = self.topology.hosts[target].get("zone", "unknown")
+                zone_stats[source_zone]["edge_count"] += 1
+                edge_bundles[(source_zone, target_zone)] += 1
+                if source in page_ids:
+                    if len(page_edges) < MAX_TOPOLOGY_PAGE_EDGES:
+                        page_edges.append({"from_host": source, "to_host": target,
+                            "likelihood": round(float(self.topology.edge_probability(source, target)), 4)})
+                    else:
+                        truncated_edges = True
+        zones = [{"zone": name, **values} for name, values in sorted(zone_stats.items())]
+        bundles = [{"from_zone": left, "to_zone": right, "count": count}
+            for (left, right), count in sorted(edge_bundles.items())]
+        next_offset = offset + len(page)
+        if next_offset >= len(matching):
+            next_offset = None
+        return {
+            "items": items, "total_hosts": len(ordered), "total_edges": sum(len(targets) for targets in self.topology._connections.values()),
+            "total_matches": len(matching), "offset": offset, "limit": limit, "next_offset": next_offset,
+            "query": query, "zone": zone, "zones": zones, "edge_bundles": bundles,
+            "page_edges": page_edges, "page_edges_truncated": truncated_edges,
+            "basis": "Host pages are exact records from the active topology. Zone link bundles aggregate feasible edges; risk and likelihood remain simulated estimates.",
         }
 
     def paths(self, source, target, limit=10):
@@ -80,7 +149,7 @@ class NetworkTwin:
             for left, right in zip(hosts, hosts[1:]):
                 likelihood *= float(self.topology.edge_probability(left, right))
             result.append({"hosts": hosts, "edges": edges, "likelihood": round(likelihood, 6)})
-        return {"from_host": source, "to_host": target, "paths": result, "basis": "Product of simulated edge likelihood estimates; routes are feasible in the demo topology."}
+        return {"from_host": source, "to_host": target, "paths": result, "basis": "Product of simulated edge likelihood estimates; routes are feasible in the active workspace topology."}
 
     def _known(self, host_id):
         if not isinstance(host_id, str) or host_id not in self.topology.hosts:
@@ -171,7 +240,7 @@ class NetworkTwin:
         for host_id in (source, remove_from, remove_to):
             self._known(host_id)
         if remove_to not in self.topology.connections(remove_from):
-            raise ValueError("The selected edge is not a feasible connection in the demo topology.")
+            raise ValueError("The selected edge is not a feasible connection in the active workspace topology.")
         graph = nx.DiGraph()
         graph.add_nodes_from(self.topology.host_ids())
         graph.add_edges_from(self.topology.feasible_edges())

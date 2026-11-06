@@ -13,10 +13,31 @@ export default function Scene3D({ model, pendingForecast, onSelect, selectedHost
   const { theme } = useTheme()
   const holder = useRef(null)
   const graphRef = useRef(null)
-  const live = useRef({ model, pendingForecast, previousStates: {}, pulses: {}, cones: [], onQualityChange })
+  const live = useRef({ model, pendingForecast, previousStates: {}, pulses: {}, cones: [], onQualityChange, lowDetail: Boolean(model?.lowDetail) })
   live.current.model = model
   live.current.pendingForecast = pendingForecast
   live.current.onQualityChange = onQualityChange
+  live.current.lowDetail = Boolean(model?.lowDetail)
+
+  function frameLargeGraph(graph, nodes, presetName) {
+    if (!graph || !nodes.length) return
+    const coords = nodes.filter((node) => Number.isFinite(node.x) && Number.isFinite(node.y) && Number.isFinite(node.z))
+    if (!coords.length) return
+    const bounds = coords.reduce((value, node) => ({
+      minX: Math.min(value.minX, node.x), maxX: Math.max(value.maxX, node.x),
+      minY: Math.min(value.minY, node.y), maxY: Math.max(value.maxY, node.y),
+      minZ: Math.min(value.minZ, node.z), maxZ: Math.max(value.maxZ, node.z),
+    }), { minX: Infinity, maxX: -Infinity, minY: Infinity, maxY: -Infinity, minZ: Infinity, maxZ: -Infinity })
+    const center = { x: (bounds.minX + bounds.maxX) / 2, y: (bounds.minY + bounds.maxY) / 2, z: (bounds.minZ + bounds.maxZ) / 2 }
+    const extent = Math.max(bounds.maxX - bounds.minX, bounds.maxY - bounds.minY, bounds.maxZ - bounds.minZ, 180)
+    const preset = CAMERA_PRESETS[presetName] || CAMERA_PRESETS.isometric
+    const direction = new THREE.Vector3(preset.position.x, preset.position.y, preset.position.z).normalize()
+    const distance = Math.max(360, extent * 0.65)
+    const controls = graph.controls()
+    controls.minDistance = Math.max(80, extent * 0.18)
+    controls.maxDistance = Math.max(540, distance * 5)
+    graph.cameraPosition({ x: center.x + direction.x * distance, y: center.y + direction.y * distance, z: center.z + direction.z * distance }, center, 650)
+  }
 
   // create the scene once
   useEffect(() => {
@@ -29,11 +50,12 @@ export default function Scene3D({ model, pendingForecast, onSelect, selectedHost
       .backgroundColor(colors.bg)
       .showNavInfo(false)
       .nodeId('id')
-      .nodeThreeObject((node) => makeHostObject(node, colors))
+      .nodeThreeObject((node) => makeHostObject(node, colors, { compact: live.current.lowDetail }))
       .nodeThreeObjectExtend(false)
       .linkColor((link) => (link.onPath ? colors.compromised : colors.muted))
       .linkOpacity(0.5)
       .linkWidth((link) => (link.onPath ? 1.2 : 0.4))
+      .linkVisibility((link) => link.visible !== false)
       .linkDirectionalParticles((link) => (reduced || !link.onPath ? 0 : 2))
       .linkDirectionalParticleWidth(1.6)
       .linkDirectionalParticleSpeed(0.0028)
@@ -50,7 +72,7 @@ export default function Scene3D({ model, pendingForecast, onSelect, selectedHost
     controls.maxDistance = 540
     const renderer = graph.renderer()
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5))
-    renderer.shadowMap.enabled = true
+    renderer.shadowMap.enabled = !live.current.lowDetail
     renderer.shadowMap.type = THREE.PCFSoftShadowMap
     renderer.toneMapping = THREE.ACESFilmicToneMapping
     renderer.toneMappingExposure = 1.05
@@ -134,7 +156,7 @@ export default function Scene3D({ model, pendingForecast, onSelect, selectedHost
       graphRef.current = null
       onReady?.(null)
     }
-  }, [theme])  // Rebuild the small six-host scene when the CSS theme changes.
+  }, [theme])  // Rebuild the shared network scene when CSS theme tokens change.
 
   // feed new data into the scene
   useEffect(() => {
@@ -142,7 +164,11 @@ export default function Scene3D({ model, pendingForecast, onSelect, selectedHost
     if (!graph) return
     const nodes = model.nodes.map((n) => ({ ...n, fx: n.x, fy: n.y, fz: n.z }))
     graph.graphData({ nodes, links: model.links.map((l) => ({ ...l })) })
-  }, [model, theme])
+    if (model.lowDetail) {
+      graph.renderer().shadowMap.enabled = false
+      frameLargeGraph(graph, nodes, cameraPreset)
+    }
+  }, [model, theme, cameraPreset])
 
   useEffect(() => {
     const graph = graphRef.current
@@ -152,9 +178,13 @@ export default function Scene3D({ model, pendingForecast, onSelect, selectedHost
       graph.cameraPosition({ x: targetNode.x + 140, y: targetNode.y + 70, z: targetNode.z + 220 }, { x: targetNode.x, y: targetNode.y, z: targetNode.z }, 900)
       return
     }
+    if (model.lowDetail) {
+      frameLargeGraph(graph, graph.graphData().nodes, cameraPreset)
+      return
+    }
     const preset = CAMERA_PRESETS[cameraPreset] || CAMERA_PRESETS.isometric
     graph.cameraPosition(preset.position, { x: 0, y: 0, z: 0 }, 650)
-  }, [cameraPreset, focusHostId, theme])
+  }, [cameraPreset, focusHostId, theme, model.lowDetail])
 
   const forecastKey = model.cones.map((cone) => `${cone.from}:${cone.to}:${cone.confidence}`).join('|')
   useEffect(() => {

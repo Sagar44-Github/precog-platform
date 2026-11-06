@@ -4,6 +4,7 @@ import { api } from '../../shared/api.js'
 import { useWorldState } from '../../shared/usePolling.js'
 import { LoadingState, StaleBanner } from '../../shared/components.jsx'
 import LiteNetworkScene from '../../shared/network3d/LiteNetworkScene.jsx'
+import HostSearch from '../../shared/HostSearch.jsx'
 import { autoViewMode, supportsWebGL } from '../../shared/network3d/camera-presets.js'
 import { buildLiteLayout } from '../../shared/network3d/lite-layout.js'
 import { downloadLitePng } from '../../shared/network3d/lite-export.js'
@@ -36,6 +37,8 @@ export default function TopologyExplorerPage() {
   const [viewportWidth, setViewportWidth] = useState(() => typeof window === 'undefined' ? 1440 : window.innerWidth)
   const [webglAvailable, setWebglAvailable] = useState(() => supportsWebGL())
   const [quality, setQuality] = useState('standard')
+  const [expandedZones, setExpandedZones] = useState([])
+  const [showConnections, setShowConnections] = useState(false)
   const [loadError, setLoadError] = useState('')
   const graphRef = useRef(null)
 
@@ -63,7 +66,8 @@ export default function TopologyExplorerPage() {
 
   const selectedSnapshot = snapshotIndex >= 0 ? snapshots[snapshotIndex] || null : null
   const viewState = selectedSnapshot || state
-  const model = useMemo(() => buildScene(viewState, assets, { selectedHostId, overlay }), [viewState?.version, selectedSnapshot?.version, assets, selectedHostId, overlay])
+  const model = useMemo(() => buildScene(viewState, assets, { selectedHostId, overlay, expandedZones, showLinks: showConnections }),
+    [viewState?.version, selectedSnapshot?.version, assets, selectedHostId, overlay, expandedZones, showConnections])
   const pendingForecast = viewState?.forecast?.status === 'pending'
   const autoMode = autoViewMode({ width: viewportWidth, reducedMotion: prefersReducedMotion(), webgl: webglAvailable })
   const actualMode = viewMode === 'auto' ? autoMode : viewMode === '3d' && webglAvailable && viewportWidth >= 1024 ? '3d' : 'lite'
@@ -72,11 +76,27 @@ export default function TopologyExplorerPage() {
 
   const handleQuality = useCallback((next) => setQuality(next), [])
   const handleGraph = useCallback((graph) => { graphRef.current = graph }, [])
-  const selectHost = useCallback((hostId) => { setSelectedHostId(hostId); setFocusHostId(hostId) }, [])
+  const selectHost = useCallback((hostId) => {
+    if (hostId?.startsWith('cluster:')) {
+      const zone = decodeURIComponent(hostId.slice('cluster:'.length))
+      setExpandedZones((zones) => zones.includes(zone) ? zones.filter((item) => item !== zone) : [...zones, zone])
+      setSelectedHostId(null)
+      setFocusHostId(null)
+      return
+    }
+    setSelectedHostId(hostId)
+    setFocusHostId(hostId)
+  }, [])
+
+  const searchHost = useCallback((host) => {
+    setExpandedZones((zones) => zones.includes(host.zone) ? zones : [...zones, host.zone])
+    setSelectedHostId(host.host_id)
+    setFocusHostId(host.host_id)
+  }, [])
 
   if (loggedOut) return <Navigate to="/login" replace />
   const pageHeading = <header className="topology-page-heading">
-    <div><p className="ops-eyebrow">NETWORK / TOPOLOGY EXPLORER</p><h2>Topology explorer</h2><p className="topology-description">Inspect the simulated attack surface, forecast field, and host state across time.</p></div>
+    <div><p className="ops-eyebrow">NETWORK / TOPOLOGY EXPLORER</p><h2>Topology explorer</h2><p className="topology-description">Inspect simulated attack surface, forecast estimates and host state across the active workspace.</p></div>
     <div className="topology-heading-meta"><span className="topology-sim-label">SIMULATION ONLY</span><Link className="ops-button ops-button-secondary" to="/console">Live console</Link></div>
   </header>
   if (!state) return <main className="topology-page"><StaleBanner stale={stale} />{pageHeading}{error ? <div className="topology-error" role="alert"><b>Topology unavailable</b><span>{error}</span><Link to="/console">Return to live console</Link></div> : <div className="topology-loading"><LoadingState /></div>}</main>
@@ -99,6 +119,7 @@ export default function TopologyExplorerPage() {
     {pageHeading}
     {loadError && <p className="topology-inline-error" role="status">{loadError}</p>}
     <div className="topology-toolbar" aria-label="Topology view controls">
+      <HostSearch label="Find and focus host" selectedHost={selectedHostId || ''} selectedName={selectedNode?.name || ''} onSelect={searchHost} />
       <div className="topology-control-group" aria-label="View mode">
         {['auto', '3d', 'lite'].map((mode) => <button type="button" key={mode} className={viewMode === mode ? 'is-active' : ''} aria-pressed={viewMode === mode} onClick={() => setViewMode(mode)}>{mode === 'auto' ? 'Auto' : mode === '3d' ? '3D' : 'Lite'}</button>)}
       </div>
@@ -108,11 +129,14 @@ export default function TopologyExplorerPage() {
       </div>
       <button type="button" className="ops-button ops-button-secondary topology-export" onClick={downloadSnapshot}>Export PNG</button>
       <span className="topology-quality" role="status">{actualMode === 'lite' ? `${autoMode === 'lite' ? 'Auto' : 'Selected'} · Lite view` : `3D · ${quality === 'reduced' ? 'quality reduced below 40 fps' : 'quality standard'}`}</span>
+      {model.lowDetail && <label className="topology-connections-toggle"><input type="checkbox" checked={showConnections} onChange={(event) => setShowConnections(event.target.checked)} /> Show individual connections</label>}
     </div>
+
+    {model.lowDetail && <div className="topology-scale-status" role="status"><b>Scale view</b><span>{model.nodes.length} visible clusters or hosts · {viewState.graph.hosts.length} total hosts · {viewState.graph.edges.length} observed links</span><span>Select a zone cluster to expand it; individual links stay hidden until requested.</span>{expandedZones.map((zone) => <button type="button" key={zone} onClick={() => { setExpandedZones((items) => items.filter((item) => item !== zone)); setSelectedHostId(null); setFocusHostId(null) }}>Collapse {zone}</button>)}</div>}
 
     <div className="topology-workspace">
       <section className={`topology-stage topology-stage-${actualMode}`} aria-label="Network topology">
-        <div className="topology-stage-heading"><div><b>{selectedSnapshot ? 'Historical topology' : 'Live topology'}</b><span>{model.nodes.length} hosts · {model.links.length} connections · {Object.keys(viewState?.graph?.hosts?.reduce((zones, host) => ({ ...zones, [host.zone]: true }), {}) || {}).length} zones</span></div><span>{viewState?.replay?.scenario_id || 'No active scenario'} · {viewState?.replay?.state || 'idle'}</span></div>
+        <div className="topology-stage-heading"><div><b>{selectedSnapshot ? 'Historical topology' : 'Live topology'}</b><span>{viewState.graph.hosts.length} hosts · {model.links.length} visible link bundles · {model.zones.length} zones</span></div><span>{viewState?.replay?.scenario_id || 'No active scenario'} · {viewState?.replay?.state || 'idle'}</span></div>
         <div className="topology-canvas-wrap">
           {actualMode === '3d' ? <Scene3D model={model} pendingForecast={pendingForecast} selectedHostId={selectedHostId} focusHostId={focusHostId} cameraPreset={cameraPreset} onSelect={selectHost} onReady={handleGraph} onQualityChange={handleQuality} autoRotate={false} /> : <LiteNetworkScene model={model} selectedHostId={selectedHostId} onSelect={selectHost} />}
           {actualMode === '3d' && <div className="topology-view-cube" aria-label="Camera view cube">{['isometric', 'top', 'side'].map((preset) => <button type="button" key={preset} aria-label={`${preset} camera view`} aria-pressed={cameraPreset === preset} onClick={() => { setFocusHostId(null); setCameraPreset(preset) }}>{preset.slice(0, 1).toUpperCase()}</button>)}</div>}

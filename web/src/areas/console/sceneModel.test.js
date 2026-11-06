@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { buildScene, buildTwinScene, coneOpacity, coneWidth, exposureScale, forecastScale, layoutFor, pulseScale, riskScale } from './sceneModel.js'
+import { buildScene, buildTwinScene, CLUSTER_THRESHOLD, coneOpacity, coneWidth, exposureScale, forecastScale, layoutFor, pulseScale, riskScale } from './sceneModel.js'
 
 const host = (id, zone, state = 'normal') => ({ host_id: id, name: id.toUpperCase(), zone, state })
 const world = (over = {}) => ({
@@ -24,7 +24,8 @@ test('every host has a fixed position and the zones sit side by side', () => {
   const by = Object.fromEntries(nodes.map((n) => [n.id, n]))
   assert.ok(by.a.x < by.s.x && by.s.x < by.d.x)
   assert.notDeepEqual([by.a.y, by.a.z], [by.b.y, by.b.z])
-  assert.deepEqual(layoutFor('dmz', 0, 1), { x: 0, y: 0, z: -0 })
+  const first = layoutFor('dmz', 0, 1)
+  assert.deepEqual([first.x, first.y, first.z], [0, 0, 0])
 })
 
 test('predicted targets carry their percentage, others do not', () => {
@@ -69,7 +70,28 @@ test('zones list their hosts', () => {
 })
 
 test('no state gives an empty scene', () => {
-  assert.deepEqual(buildScene(null), { nodes: [], links: [], cones: [], zones: [] })
+  assert.deepEqual(buildScene(null), { nodes: [], links: [], cones: [], zones: [], lowDetail: false })
+})
+
+test('large topologies cluster deterministically and expand one zone at a time', () => {
+  const hosts = Array.from({ length: 300 }, (_, index) => {
+    const zone = ['user', 'dmz', 'internal', 'application', 'data', 'management'][Math.floor(index / 50)]
+    return { host_id: `h-${index}`, name: `Host ${index}`, zone, state: index === 1 ? 'compromised' : 'normal', risk: index % 10 }
+  })
+  const links = Array.from({ length: 299 }, (_, index) => ({ key: `h-${index}>h-${index + 1}`, source: `h-${index}`, target: `h-${index + 1}`, onPath: index < 2 }))
+  const state = { graph: { hosts, edges: links.map((link) => ({ from_host: link.source, to_host: link.target })), compromised_path: ['h-0', 'h-1', 'h-2'] }, alerts: [], forecast: null }
+  const collapsed = buildScene(state)
+  assert.equal(hosts.length, 300)
+  assert.equal(collapsed.lowDetail, true)
+  assert.equal(collapsed.nodes.length, 6)
+  assert.equal(collapsed.nodes[0].isCluster, true)
+  assert.equal(collapsed.nodes.find((node) => node.zone === 'user').stateCounts.compromised, 1)
+  assert.deepEqual(collapsed, buildScene(state))
+  const expanded = buildScene(state, [], { expandedZones: ['user'] })
+  assert.equal(expanded.nodes.filter((node) => node.zone === 'user' && !node.isCluster).length, 50)
+  assert.equal(expanded.nodes.length, 55)
+  assert.ok(expanded.nodes.every((node) => Number.isFinite(node.x) && Number.isFinite(node.y) && Number.isFinite(node.z)))
+  assert.ok(CLUSTER_THRESHOLD <= hosts.length)
 })
 
 test('the pulse grows to 1.6 and back within 600 ms and is 1 outside it', () => {
@@ -117,5 +139,24 @@ test('risk and exposure values are bounded and tolerate missing values', () => {
 })
 
 test('missing twin topology returns an empty scene', () => {
-  assert.deepEqual(buildTwinScene(null, null), { nodes: [], links: [], cones: [], zones: [] })
+  assert.deepEqual(buildTwinScene(null, null), { nodes: [], links: [], cones: [], zones: [], lowDetail: false })
+})
+
+test('300-host twin collapses to zone clusters and bundles dense links', () => {
+  const zones = ['user', 'dmz', 'internal', 'application', 'data', 'management']
+  const hosts = Array.from({ length: 300 }, (_, index) => ({
+    host_id: `t-${index}`, name: `Twin ${index}`, zone: zones[Math.floor(index / 50)], state: 'normal', risk: 4, exposure: 2,
+  }))
+  const feasible_edges = Array.from({ length: 300 }, (_, index) => ({
+    from_host: `t-${index}`, to_host: `t-${(index + 50) % 300}`, likelihood: 0.4,
+  }))
+  const topology = { hosts, zones: zones.map((zone) => ({ zone, host_ids: hosts.filter((host) => host.zone === zone).map((host) => host.host_id) })), feasible_edges, compromised_path: [] }
+  const model = buildTwinScene(topology, null)
+  assert.equal(model.lowDetail, true)
+  assert.equal(model.nodes.length, zones.length)
+  assert.equal(model.nodes.filter((node) => node.isCluster).length, zones.length)
+  assert.equal(model.links.length, zones.length)
+  assert.ok(model.links.every((link) => link.count === 50))
+  const liteCompatible = buildTwinScene(topology, null, { expandedZones: ['user'] })
+  assert.equal(liteCompatible.nodes.filter((node) => node.zone === 'user' && !node.isCluster).length, 50)
 })

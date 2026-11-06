@@ -47,6 +47,17 @@ def test_reachability_paths_and_distance(topology):
     assert topology.distance("host-a", "db-server") == 2 and topology.distance("domain-controller", "host-a") is None
 
 
+def test_path_enumeration_stays_bounded_for_dense_graphs(topology):
+    hosts = list(topology.hosts.values())
+    ids = [host["host_id"] for host in hosts]
+    connections = {source: ids[index + 1:] for index, source in enumerate(ids)}
+    dense = Topology(hosts, {"feasible_connections": connections, "assets": {}}, use_attackgraph=False)
+    paths = dense.paths(ids[0], ids[-1], limit=25)
+    assert 1 <= len(paths) <= 25
+    assert all(path[0] == ids[0] and path[-1] == ids[-1] for path in paths)
+    assert [len(path) for path in paths] == sorted(len(path) for path in paths)
+
+
 def test_exploit_likelihood_follows_the_simulated_weakness(topology):
     assert topology.edge_probability("host-a", "server-b") > topology.edge_probability("host-a", "host-b")
     assert topology.edge_probability("host-a", "server-b") == pytest.approx(0.98)

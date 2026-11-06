@@ -6,6 +6,7 @@ connections and a simple likelihood (the fallback named in the TRD). `self.engin
 """
 import json
 import copy
+from itertools import islice
 from pathlib import Path
 
 import networkx as nx
@@ -34,6 +35,10 @@ class Topology:
             self._connections[source] = list(dict.fromkeys(targets))
         for host_id in self.hosts:
             self._connections.setdefault(host_id, [])
+        self._incoming_count = {host_id: 0 for host_id in self.hosts}
+        for targets in self._connections.values():
+            for target in targets:
+                self._incoming_count[target] += 1
         self._assets = data["assets"]
         for host_id in self._assets:
             self._check_known(host_id)
@@ -108,8 +113,14 @@ class Topology:
         """Feasible routes (lists of host ids) from source to target, shortest first, at most `limit`."""
         self._check_known(source)
         self._check_known(target)
-        routes = sorted(nx.all_simple_paths(self._graph, source, target), key=lambda p: (len(p), p))
-        return routes[:limit]
+        if isinstance(limit, bool) or not isinstance(limit, int) or limit < 1:
+            raise ValueError("Path limit must be a positive integer")
+        try:
+            # Yen's generator yields only the requested shortest routes. Sorting all simple paths
+            # can grow exponentially on the larger workspace graphs.
+            return list(islice(nx.shortest_simple_paths(self._graph, source, target), limit))
+        except nx.NetworkXNoPath:
+            return []
 
     def distance(self, source, target):
         """Number of hops, or None when the target cannot be reached."""
@@ -121,6 +132,10 @@ class Topology:
     def edge_probability(self, source, target):
         """How likely the step is to succeed (0 to 1), from the simulated weakness of the target."""
         return self._probability.get((source, target), 0.0)
+
+    def incoming_count(self, host_id):
+        self._check_known(host_id)
+        return self._incoming_count[host_id]
 
     def risk(self, host_id):
         """Risk score of a host (0 to 10), from the simulated weaknesses and how critical the host is."""
