@@ -1,72 +1,89 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://precog.local/contracts/evaluation_result.schema.json",
-  "title": "Workspace evaluation result",
+  "title": "Workspace held-out forecast evaluation",
+  "description": "Per-pack route forecasting metrics, baselines, calibration, sample size, and route truth provenance.",
   "type": "object",
   "properties": {
-    "workspace_id": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 64,
-      "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$"
-    },
-    "seed": {
-      "type": "integer"
-    },
+    "workspace_id": { "type": "string", "minLength": 1, "maxLength": 64, "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$" },
+    "seed": { "type": "integer", "minimum": 0 },
     "split": {
-      "type": "string",
-      "minLength": 1,
-      "maxLength": 100
-    },
-    "metrics": {
       "type": "object",
-      "propertyNames": {
-        "type": "string",
-        "minLength": 1,
-        "maxLength": 100
+      "properties": {
+        "method": { "type": "string", "enum": ["seeded-random-route"] },
+        "training_routes": { "type": "integer", "minimum": 1 },
+        "test_routes": { "type": "integer", "minimum": 1 },
+        "test_forecasts": { "type": "integer", "minimum": 1 }
       },
-      "additionalProperties": {
-        "type": "number"
-      }
+      "required": ["method", "training_routes", "test_routes", "test_forecasts"],
+      "additionalProperties": false
     },
+    "metrics": { "$ref": "#/$defs/score" },
     "baselines": {
       "type": "object",
-      "propertyNames": {
-        "type": "string",
-        "minLength": 1,
-        "maxLength": 100
+      "properties": {
+        "rule_based": { "$ref": "#/$defs/score" },
+        "uniform": { "$ref": "#/$defs/score" }
       },
-      "additionalProperties": {
-        "type": "number"
-      }
+      "required": ["rule_based", "uniform"],
+      "additionalProperties": false
     },
-    "route_provenance": {
-      "type": "string",
-      "enum": [
-        "native",
-        "derived",
-        "simulated",
-        "none"
-      ]
+    "route_provenance": { "type": "string", "enum": ["native", "derived", "simulated", "none"] },
+    "calibration_bins": { "type": "array", "items": { "$ref": "#/$defs/calibration_bin" }, "maxItems": 10 },
+    "candidate_set_distribution": {
+      "type": "object",
+      "propertyNames": { "type": "string", "pattern": "^(0|[1-9][0-9]*)$" },
+      "additionalProperties": { "type": "integer", "minimum": 0 }
     },
-    "limitations": {
-      "type": "array",
-      "items": {
-        "type": "string",
-        "minLength": 1,
-        "maxLength": 1000
+    "profile_metrics": {
+      "type": "object",
+      "propertyNames": { "type": "string", "minLength": 1, "maxLength": 100 },
+      "additionalProperties": { "$ref": "#/$defs/score" }
+    },
+    "alpha": {
+      "type": "object",
+      "properties": {
+        "chosen": { "type": "number", "exclusiveMinimum": 0 },
+        "validation_surprise": {
+          "type": "object",
+          "propertyNames": { "type": "string", "pattern": "^[0-9]+(?:\\.[0-9]+)?$" },
+          "additionalProperties": { "type": "number", "minimum": 0 }
+        }
       },
-      "maxItems": 100
+      "required": ["chosen", "validation_surprise"],
+      "additionalProperties": false
+    },
+    "limitations": { "type": "array", "items": { "type": "string", "minLength": 1, "maxLength": 1000 }, "minItems": 1, "maxItems": 100 }
+  },
+  "$defs": {
+    "score": {
+      "type": "object",
+      "properties": {
+        "forecasts": { "type": "integer", "minimum": 1 },
+        "precision_at_1": { "type": "number", "minimum": 0, "maximum": 1 },
+        "precision_at_1_std_error": { "type": "number", "minimum": 0, "maximum": 1 },
+        "precision_at_3": { "type": "number", "minimum": 0, "maximum": 1 },
+        "mean_reciprocal_rank": { "type": "number", "minimum": 0, "maximum": 1 },
+        "expected_calibration_error": { "type": "number", "minimum": 0, "maximum": 1 },
+        "max_candidates": { "type": "integer", "minimum": 1 },
+        "share_with_more_than_3_candidates": { "type": "number", "minimum": 0, "maximum": 1 }
+      },
+      "required": ["forecasts", "precision_at_1", "precision_at_1_std_error", "precision_at_3", "mean_reciprocal_rank", "expected_calibration_error", "max_candidates", "share_with_more_than_3_candidates"],
+      "additionalProperties": false
+    },
+    "calibration_bin": {
+      "type": "object",
+      "properties": {
+        "bin_low": { "type": "number", "minimum": 0, "maximum": 1 },
+        "bin_high": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 },
+        "mean_confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "observed_rate": { "type": "number", "minimum": 0, "maximum": 1 },
+        "count": { "type": "integer", "minimum": 1 }
+      },
+      "required": ["bin_low", "bin_high", "mean_confidence", "observed_rate", "count"],
+      "additionalProperties": false
     }
   },
-  "required": [
-    "workspace_id",
-    "seed",
-    "split",
-    "metrics",
-    "baselines",
-    "route_provenance",
-    "limitations"
-  ],
+  "required": ["workspace_id", "seed", "split", "metrics", "baselines", "route_provenance", "calibration_bins", "candidate_set_distribution", "profile_metrics", "alpha", "limitations"],
   "additionalProperties": false
 }
