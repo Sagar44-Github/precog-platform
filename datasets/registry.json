@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_for": "Phase D3: four deterministic project-generated synthetic packs; real-data sources remain gated proposals.",
+  "generated_for": "Phase D5: offline adapters and fixture tests for eight real dataset sources; raw data remain outside Git and source/redistribution gates remain explicit.",
   "default_workspace": "demo-6",
   "workspaces": [
     {
@@ -74,12 +74,12 @@
       "id": "lanl-cyber1",
       "name": "LANL Cyber1 authentication and system events",
       "kind": "real-dataset",
-      "status": "proposed-not-built",
-      "access_method": "request from LANL CSR using intended-use form; source files are multi-GB",
-      "redistribution_status": "builder-only-pending-terms",
+      "status": "builder-ready-needs-manual-download",
+      "access_method": "request access from LANL CSR; auth.txt.gz plus redteam.txt.gz; stage/check with tools/datasets/fetch.py; verified staging helper: tools/datasets/fetch.py",
+      "redistribution_status": "builder-only-pending-release-review",
       "source_file_checksums": [],
-      "checksums_status": "not-downloaded-in-D0; no checksum claimed",
-      "licence_summary": "LANL states it waived copyright and related rights to the extent possible; request/access conditions still apply. Do not redistribute without reviewing LANL terms for the specific release.",
+      "checksums_status": "not-downloaded-in-D5-environment; fetch.py requires an expected SHA-256 per selected source file",
+      "licence_summary": "LANL has waived copyright and related rights to the extent possible and approved public release; files still require access request and release-specific review.",
       "capabilities": {
         "detection_labels": "native",
         "host_compromise": "derived",
@@ -87,18 +87,22 @@
         "topology": "derived"
       },
       "dataset_card": "docs/datasets/lanl-cyber1.md",
-      "citation": "LANL CSR; official page supplies citation/BibTeX."
+      "citation": "LANL CSR; official page supplies citation/BibTeX.",
+      "builder": "tools/datasets/build_real_pack.py",
+      "fetch_script": "tools/datasets/fetch.py",
+      "fixture_test": "lead-core/integration/tests/test_real_dataset_builders.py",
+      "evaluation_status": "not-run-on-source-data; full source files were not downloaded. Builder writes a tautological label-playback baseline only."
     },
     {
       "id": "cse-cic-ids2018",
       "name": "CSE-CIC-IDS2018 labeled flows",
       "kind": "real-dataset",
-      "status": "proposed-not-built",
-      "access_method": "public S3 registry; no-account access listed by AWS",
-      "redistribution_status": "candidate-attribution-and-file-review-required",
+      "status": "builder-ready-needs-manual-download",
+      "access_method": "public AWS S3 bucket s3://cse-cic-ids2018; select the CICFlowMeter CSV files from the official registry; verified staging helper: tools/datasets/fetch.py",
+      "redistribution_status": "attribution-required",
       "source_file_checksums": [],
-      "checksums_status": "not-downloaded-in-D0; no checksum claimed",
-      "licence_summary": "UNB page permits redistribution with citation and AWS link. Preserve required attribution; selected file/window must be checked before repackaging.",
+      "checksums_status": "not-downloaded-in-D5-environment; fetch.py requires an expected SHA-256 per selected source file",
+      "licence_summary": "UNB permits redistribution with the dataset citation and link to the AWS registry; keep source hashes for the exact selected files.",
       "capabilities": {
         "detection_labels": "native",
         "host_compromise": "derived",
@@ -106,18 +110,22 @@
         "topology": "derived"
       },
       "dataset_card": "docs/datasets/cse-cic-ids2018.md",
-      "citation": "Sharafaldin et al. (2018), see official dataset page."
+      "citation": "Sharafaldin et al. (2018), see official dataset page.",
+      "builder": "tools/datasets/build_real_pack.py",
+      "fetch_script": "tools/datasets/fetch.py",
+      "fixture_test": "lead-core/integration/tests/test_real_dataset_builders.py",
+      "evaluation_status": "not-run-on-source-data; full source files were not downloaded. Builder writes a tautological label-playback baseline only."
     },
     {
       "id": "cic-ids2017",
       "name": "CIC-IDS2017 labeled flows",
       "kind": "real-dataset",
-      "status": "proposed-not-built",
-      "access_method": "public researcher download via UNB/CIC",
-      "redistribution_status": "candidate-attribution-and-file-review-required",
+      "status": "builder-ready-needs-manual-download",
+      "access_method": "UNB/CIC researcher download form; MachineLearningCSV.zip; select CSV files; verified staging helper: tools/datasets/fetch.py",
+      "redistribution_status": "attribution-required",
       "source_file_checksums": [],
-      "checksums_status": "not-downloaded-in-D0; no checksum claimed",
-      "licence_summary": "UNB FAQ permits redistribution/republishing/mirroring with dataset and paper citation; use the dataset-specific page and citation.",
+      "checksums_status": "not-downloaded-in-D5-environment; fetch.py requires an expected SHA-256 per selected source file",
+      "licence_summary": "CIC FAQ permits redistribution with dataset and paper citations; preserve both citations.",
       "capabilities": {
         "detection_labels": "native",
         "host_compromise": "derived",
@@ -125,18 +133,22 @@
         "topology": "derived"
       },
       "dataset_card": "docs/datasets/cic-ids2017.md",
-      "citation": "Sharafaldin, Lashkari & Ghorbani (ICISSP 2018)."
+      "citation": "Sharafaldin, Lashkari & Ghorbani (ICISSP 2018).",
+      "builder": "tools/datasets/build_real_pack.py",
+      "fetch_script": "tools/datasets/fetch.py",
+      "fixture_test": "lead-core/integration/tests/test_real_dataset_builders.py",
+      "evaluation_status": "not-run-on-source-data; full source files were not downloaded. Builder writes a tautological label-playback baseline only."
     },
     {
       "id": "ctu-13",
       "name": "CTU-13 botnet captures",
       "kind": "real-dataset",
-      "status": "proposed-not-built",
-      "access_method": "download via Stratosphere dataset page",
-      "redistribution_status": "candidate-attribution-and-file-review-required",
+      "status": "builder-ready-needs-manual-download",
+      "access_method": "Stratosphere CTU-13 page; prepare timestamped CSV export from recommended bidirectional Argus files; verified staging helper: tools/datasets/fetch.py",
+      "redistribution_status": "attribution-required",
       "source_file_checksums": [],
-      "checksums_status": "not-downloaded-in-D0; no checksum claimed",
-      "licence_summary": "Dataset overview identifies CC-BY; use attribution and exact paper citation from Stratosphere.",
+      "checksums_status": "not-downloaded-in-D5-environment; fetch.py requires an expected SHA-256 per selected source file",
+      "licence_summary": "CC BY is stated by the dataset overview; cite Stratosphere and the source paper.",
       "capabilities": {
         "detection_labels": "native",
         "host_compromise": "derived",
@@ -144,18 +156,22 @@
         "topology": "derived"
       },
       "dataset_card": "docs/datasets/ctu-13.md",
-      "citation": "Cite papers listed by Stratosphere."
+      "citation": "Cite papers listed by Stratosphere.",
+      "builder": "tools/datasets/build_real_pack.py",
+      "fetch_script": "tools/datasets/fetch.py",
+      "fixture_test": "lead-core/integration/tests/test_real_dataset_builders.py",
+      "evaluation_status": "not-run-on-source-data; full source files were not downloaded. Builder writes a tautological label-playback baseline only."
     },
     {
       "id": "cic-iot-2023",
       "name": "CIC-IoT-2023 device attack data",
       "kind": "real-dataset",
-      "status": "proposed-not-built",
-      "access_method": "official UNB page links to CICResearch download; source archive size/access needs recheck",
+      "status": "builder-only-pending-terms",
+      "access_method": "official UNB page; download selected CSV files after access requirements are met; verified staging helper: tools/datasets/fetch.py",
       "redistribution_status": "builder-only-pending-terms",
       "source_file_checksums": [],
-      "checksums_status": "not-downloaded-in-D0; no checksum claimed",
-      "licence_summary": "Official page presents citation but the reviewed page did not establish a redistribution license. No data redistribution until terms confirmed.",
+      "checksums_status": "not-downloaded-in-D5-environment; fetch.py requires an expected SHA-256 per selected source file",
+      "licence_summary": "Reviewed official page describes the data and citation but does not establish redistribution permission.",
       "capabilities": {
         "detection_labels": "native",
         "host_compromise": "derived",
@@ -163,18 +179,22 @@
         "topology": "derived"
       },
       "dataset_card": "docs/datasets/cic-iot-2023.md",
-      "citation": "Use official UNB page citation."
+      "citation": "Use official UNB page citation.",
+      "builder": "tools/datasets/build_real_pack.py",
+      "fetch_script": "tools/datasets/fetch.py",
+      "fixture_test": "lead-core/integration/tests/test_real_dataset_builders.py",
+      "evaluation_status": "not-run-on-source-data; full source files were not downloaded. Builder writes a tautological label-playback baseline only."
     },
     {
       "id": "ton-iot",
       "name": "ToN_IoT heterogeneous telemetry",
       "kind": "real-dataset",
-      "status": "proposed-not-built",
-      "access_method": "request/download instructions from UNSW project page",
+      "status": "builder-only-pending-terms",
+      "access_method": "UNSW project SharePoint link; select processed network-traffic CSVs only; verified staging helper: tools/datasets/fetch.py",
       "redistribution_status": "builder-only-pending-terms",
       "source_file_checksums": [],
-      "checksums_status": "not-downloaded-in-D0; no checksum claimed",
-      "licence_summary": "UNSW grants free academic research use; commercial use requires author approval. Redistribution rights were not established.",
+      "checksums_status": "not-downloaded-in-D5-environment; fetch.py requires an expected SHA-256 per selected source file",
+      "licence_summary": "Academic research use is granted and eight citations are requested; commercial use requires author approval. Derived redistribution remains unconfirmed.",
       "capabilities": {
         "detection_labels": "native",
         "host_compromise": "derived",
@@ -182,37 +202,45 @@
         "topology": "derived"
       },
       "dataset_card": "docs/datasets/ton-iot.md",
-      "citation": "Use UNSW project publications."
+      "citation": "Use UNSW project publications.",
+      "builder": "tools/datasets/build_real_pack.py",
+      "fetch_script": "tools/datasets/fetch.py",
+      "fixture_test": "lead-core/integration/tests/test_real_dataset_builders.py",
+      "evaluation_status": "not-run-on-source-data; full source files were not downloaded. Builder writes a tautological label-playback baseline only."
     },
     {
       "id": "unsw-nb15",
       "name": "UNSW-NB15 labeled flows",
       "kind": "real-dataset",
-      "status": "proposed-not-built",
-      "access_method": "download from UNSW project page",
+      "status": "builder-only-pending-terms",
+      "access_method": "UNSW project SharePoint link; use the four CSV source files or the train/test CSVs; verified staging helper: tools/datasets/fetch.py",
       "redistribution_status": "builder-only-pending-terms",
       "source_file_checksums": [],
-      "checksums_status": "not-downloaded-in-D0; no checksum claimed",
-      "licence_summary": "UNSW grants free academic research use; commercial use requires an agreement. Redistribution of converted data is not established.",
+      "checksums_status": "not-downloaded-in-D5-environment; fetch.py requires an expected SHA-256 per selected source file",
+      "licence_summary": "Academic research use is granted; commercial use requires agreement and derived redistribution is not established.",
       "capabilities": {
         "detection_labels": "native",
-        "host_compromise": "derived",
-        "lateral_movement_routes": "derived",
+        "host_compromise": "none",
+        "lateral_movement_routes": "none",
         "topology": "derived"
       },
       "dataset_card": "docs/datasets/unsw-nb15.md",
-      "citation": "Moustafa & Slay (MilCIS 2015)."
+      "citation": "Moustafa & Slay (MilCIS 2015).",
+      "builder": "tools/datasets/build_real_pack.py",
+      "fetch_script": "tools/datasets/fetch.py",
+      "fixture_test": "lead-core/integration/tests/test_real_dataset_builders.py",
+      "evaluation_status": "not-run-on-source-data; full source files were not downloaded. Builder writes a tautological label-playback baseline only."
     },
     {
       "id": "cidds-001",
       "name": "CIDDS-001 flow benchmark",
       "kind": "real-dataset",
-      "status": "proposed-not-built",
-      "access_method": "official Coburg page offers a 384 MB zip",
+      "status": "builder-only-pending-terms",
+      "access_method": "Coburg University dataset page; select the anonymized CSV flow files; verified staging helper: tools/datasets/fetch.py",
       "redistribution_status": "builder-only-pending-terms",
       "source_file_checksums": [],
-      "checksums_status": "not-downloaded-in-D0; no checksum claimed",
-      "licence_summary": "Official terms request citation when publishing material based on CIDDS; no explicit redistribution grant was established in the reviewed page.",
+      "checksums_status": "not-downloaded-in-D5-environment; fetch.py requires an expected SHA-256 per selected source file",
+      "licence_summary": "The page requests citation; broad redistribution permission remains unconfirmed.",
       "capabilities": {
         "detection_labels": "native",
         "host_compromise": "derived",
@@ -220,17 +248,21 @@
         "topology": "derived"
       },
       "dataset_card": "docs/datasets/cidds-001.md",
-      "citation": "Ring et al. (ECCWS 2017); official page BibTeX."
+      "citation": "Ring et al. (ECCWS 2017); official page BibTeX.",
+      "builder": "tools/datasets/build_real_pack.py",
+      "fetch_script": "tools/datasets/fetch.py",
+      "fixture_test": "lead-core/integration/tests/test_real_dataset_builders.py",
+      "evaluation_status": "not-run-on-source-data; full source files were not downloaded. Builder writes a tautological label-playback baseline only."
     },
     {
       "id": "topology-zoo",
       "name": "Internet Topology Zoo graphs",
       "kind": "topology",
-      "status": "proposed-not-built",
-      "access_method": "official site links dataset downloads including GitHub/Figshare",
-      "redistribution_status": "builder-only-pending-terms",
+      "status": "builder-ready-needs-per-file-license-review",
+      "access_method": "GraphML-only input; select a topology and review its contributor license before using tools/datasets/build_topology_zoo.py.",
+      "redistribution_status": "per-file-license-review-required",
       "source_file_checksums": [],
-      "checksums_status": "not-downloaded-in-D0; no checksum claimed",
+      "checksums_status": "no source graph downloaded; builder requires exact graph SHA-256 in the license record",
       "licence_summary": "Official summary requests citation but the reviewed page does not state a blanket license for all contributed topology files. Check each source topology license.",
       "capabilities": {
         "detection_labels": "none",
@@ -239,7 +271,9 @@
         "topology": "native"
       },
       "dataset_card": "docs/datasets/topology-zoo.md",
-      "citation": "Cite each topology source per official page."
+      "citation": "Cite each topology source per official page.",
+      "builder": "tools/datasets/build_topology_zoo.py",
+      "fixture_test": "lead-core/integration/tests/test_topology_zoo_builder.py"
     },
     {
       "id": "synth-enterprise-30",
@@ -958,20 +992,23 @@
       "id": "synth-topology-zoo",
       "name": "Synthetic replay over a Zoo-derived topology",
       "kind": "reserve",
-      "status": "deferred-license-gate",
-      "access_method": "Deferred; requires individually selected topology files with verified redistribution terms.",
-      "redistribution_status": "project-owned",
+      "status": "builder-ready-no-source-graph",
+      "access_method": "Choose a GraphML file, review its per-topology license, then use tools/datasets/build_topology_zoo.py; no graph was downloaded.",
+      "redistribution_status": "per-topology-attribution-required",
       "source_file_checksums": [],
-      "checksums_status": "not-downloaded-in-D0; no checksum claimed",
+      "checksums_status": "not-downloaded-in-D5; the builder verifies a per-file license-record SHA-256",
       "licence_summary": "Underlying topology terms vary by contributor; pack can only ship when all selected inputs permit redistribution.",
       "capabilities": {
-        "detection_labels": "none",
+        "detection_labels": "derived",
         "host_compromise": "derived",
         "lateral_movement_routes": "derived",
-        "topology": "derived"
+        "topology": "native"
       },
       "dataset_card": "docs/datasets/synth-topology-zoo.md",
-      "citation": "Project-owned simulation; cite builder version."
+      "citation": "Project-owned simulation; cite builder version.",
+      "builder": "tools/datasets/build_topology_zoo.py",
+      "fixture_test": "lead-core/integration/tests/test_topology_zoo_builder.py",
+      "evaluation_status": "fixture-only simulated-walk evaluation; no external topology pack is installed"
     }
   ]
 }

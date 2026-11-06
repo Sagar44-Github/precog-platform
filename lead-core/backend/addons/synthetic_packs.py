@@ -324,7 +324,7 @@ def _evaluation_inputs(pack_dir):
     return routes, graph, candidates
 
 
-def _evaluate_pack_contents(pack_dir, contracts_dir=None, seed=None, test_fraction=0.2):
+def _evaluate_pack_contents(pack_dir, contracts_dir=None, seed=None, test_fraction=0.2, route_provenance="simulated", limitations=None):
     pack_dir = Path(pack_dir).resolve()
     manifest = validate_pack(pack_dir, contracts_dir, require_matching_dir=False)
     routes, graph, candidates = _evaluation_inputs(pack_dir)
@@ -338,9 +338,9 @@ def _evaluate_pack_contents(pack_dir, contracts_dir=None, seed=None, test_fracti
     })
     model_doc = full_model.to_dict()
     (pack_dir / "model.json").write_bytes(_canonical_json(model_doc))
-    limitations = list(LIMITATIONS)
+    limitations = list(LIMITATIONS if limitations is None else limitations)
     result.update({"source": EVALUATOR_VERSION, "training_routes_sha256": _sha(pack_dir / "routes.jsonl"),
-                   "route_provenance": "simulated", "limitations": limitations})
+                   "route_provenance": route_provenance, "limitations": limitations})
     summary = _evaluation_contract_record(manifest["id"], seed, result, limitations)
     schema = _read_json(Path(contracts_dir or Path(__file__).resolve().parents[3] / "contracts") / "schemas" / "evaluation_result.schema.json")
     errors = sorted(Draft202012Validator(schema).iter_errors(summary), key=lambda err: list(err.path))

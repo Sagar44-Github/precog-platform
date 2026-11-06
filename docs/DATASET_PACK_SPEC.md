@@ -58,7 +58,7 @@ Scenarios are included as UTF-8 JSON and validated using the existing GRAPH scen
 
 `addons.dataset_packs.validate_pack()` rejects missing files, invalid schemas, unsafe or mismatched IDs, symlinks, oversized packs, invalid references, unknown hosts, bad model counts, missing SQLite indexes, SQLite corruption, count mismatches, and content-hash mismatches. `PackStore` is read-only, resolves IDs beneath its configured root, validates on open/list, and only lists direct child pack directories. `build_demo6_pack()` creates a sibling staging directory, validates before publication, then swaps into place with a rollback backup on replacement failure.
 
-The builder accepts the shipped demo source only in D1; it does not accept user raw files. Future real-data builders must separately document their exact input schema, time/window and sampling rules, label semantics, pseudonymization, legal gate, and checksums. D1 adds no upload, activation, route, or web runtime behavior.
+The D1 demo builder accepts the shipped demo source. D5 adds offline, source-specific builders and a checksum staging helper; these never upload or activate source data. D1 itself adds no upload, activation, route, or web runtime behavior.
 
 ## Demo equivalence
 
@@ -79,6 +79,12 @@ Synthetic packs offer two declared modes. `labels` replays non-benign labelled r
 The manifest decision policy can pause before a recorded lateral-movement event. The default safety limit is one decision point per stream; callers can set a limit from zero to 50. The analyst can propose and confirm containment with the existing two-step route, or resume manually; the existing `REPLAY_DECISION_TIMEOUT` controls automatic continuation. A target-contained event increments a bounded counterfactual feed and appears in a short recent sample as blocked. An event from a contained source is suppressed and counted. Both are labelled **“Simulated what-if on recorded data”**. The source SQLite file remains read-only. Session-local event and forecast identifiers restart for deterministic comparisons.
 
 The `/api/x/pipeline` status object is capped to counters, one pending decision point, and at most 20 recent counterfactual examples. `feed_versions.versions.pipeline` changes at batch boundaries. The large-workspace time-travel ring is reduced to 32 snapshots; the existing demo-6 ring remains unchanged. `/api/x/state` keeps its existing shape and contains only bounded alert/action collections plus the live attack-path graph, while full static topology remains available through the topology endpoint.
+
+## D5 offline real-source builders
+
+`tools/datasets/fetch.py` stages manually obtained files only after checking the operator-supplied SHA-256 values and writes `source_checksums.json` atomically. `tools/datasets/build_real_pack.py` rechecks those hashes, parses bounded CSV/CTU text or LANL gzip records, pseudonymizes endpoint IDs, emits a local-only validated pack, and never activates or publishes it. The parser caps source scanning at two million rows, events at 100,000, hosts at 500, and pack data at 25 MiB. LANL remains behind its access/release review; sources without confirmed derived-data redistribution rights are blocked from tracked `packs/` output.
+
+These builders add no raw dataset or verified full-source result to the repository. Their fixture evaluation includes a deliberately tautological label-playback baseline; it is not detection performance. Precog metrics are not claimed until ordered routes have been reviewed and a separate held-out evaluation is run. `tools/datasets/build_topology_zoo.py` creates only a simulation over a selected GraphML topology after a per-file terms/citation/hash record is supplied; generated attacks and routes are not properties of the source topology. See `docs/DATASET_BUILDERS_D5.md` and the source cards under `docs/datasets/` for source-specific input requirements and status.
 
 ```powershell
 python tools/datasets/build_pack.py --source synth-enterprise-30 --force
