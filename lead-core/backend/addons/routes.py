@@ -1178,6 +1178,24 @@ def topology_get():
     return jsonify(_out("topology", _twin().topology_view()))
 
 
+@bp.get("/topology/summary")
+@auth.json_login_required
+@auth.rate_limit(max_requests=60, window_seconds=60)
+def topology_summary_get():
+    try:
+        offset = int(request.args.get("offset", "0"))
+        limit = int(request.args.get("limit", "100"))
+    except ValueError:
+        raise ApiError("bad_request", "Topology offset and limit must be whole numbers.", 400)
+    query = request.args.get("q", "")
+    zone = request.args.get("zone")
+    try:
+        result = _twin().topology_summary(offset=offset, limit=limit, query=query, zone=zone)
+    except ValueError as exc:
+        raise ApiError("bad_request", str(exc), 400)
+    return jsonify(_out("topology_summary", result))
+
+
 @bp.get("/topology/paths")
 @auth.json_login_required
 @auth.rate_limit(max_requests=30, window_seconds=60)
@@ -1435,11 +1453,7 @@ def assets():
     graph_hook = ctx["hooks"].get("graph")
     if graph_hook is None:
         raise ApiError("not_built", "The 'graph' part has not been built yet.", 501)
-    try:
-        host_file = ctx["config"].contracts_dir / "data" / "hosts.json"
-        hosts = json.loads(host_file.read_text(encoding="utf-8"))["hosts"]
-    except (OSError, KeyError, ValueError):
-        raise ApiError("assets_unavailable", "The demo host inventory could not be loaded.", 503)
+    hosts = list(graph_hook.topology.hosts.values())
     live_hosts = {host["host_id"]: host for host in ctx["world"].graph().get("hosts", [])}
     items = []
     for host in hosts:

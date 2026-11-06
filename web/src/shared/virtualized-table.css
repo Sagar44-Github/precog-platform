@@ -1,0 +1,23 @@
+.virtual-table { min-width: 0; border: 1px solid var(--border); border-radius: 10px; background: var(--surface-inset); }
+.virtual-table-header { position: relative; z-index: 1; border-bottom: 1px solid var(--border-strong); background: var(--surface-raised); }
+.virtual-table-viewport { position: relative; overflow: auto; overscroll-behavior: contain; scrollbar-color: var(--border-strong) transparent; }
+.virtual-table-viewport:focus-visible { outline: var(--focus-ring); outline-offset: 1px; }
+.virtual-table-spacer { position: relative; min-width: 600px; }
+.virtual-table-window { position: absolute; inset: 0 0 auto; min-width: 600px; }
+.virtual-table-row { display: grid; align-items: center; min-width: 600px; box-sizing: border-box; }
+.virtual-table-head { min-height: 40px; padding: 0 12px; color: var(--text-muted); font: 8px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; }
+.virtual-table-head [role="columnheader"] { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.virtual-table-window > .virtual-table-row { padding: 0 12px; border-bottom: 1px solid var(--border); color: var(--text-muted); font-size: 10px; }
+.virtual-table-window > .virtual-table-row:hover { background: var(--surface-raised); }
+.virtual-table-empty { padding: 20px; color: var(--text-muted); font-size: 11px; }
+.virtual-table-window a { display: grid; min-width: 0; gap: 4px; color: var(--text); text-decoration: none; }
+.virtual-table-window a:hover { color: var(--accent); }
+.virtual-table-window a b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.virtual-table-window a small { color: var(--text-muted); font: 8px var(--font-mono); }
+@media (max-width: 620px) {
+  .virtual-table-spacer, .virtual-table-window, .virtual-table-row { min-width: 0; }
+  .virtual-table-row { grid-template-columns: minmax(115px, 1.4fr) minmax(62px, .8fr) minmax(72px, .85fr) minmax(86px, 1fr) !important; }
+  .virtual-table-head { font-size: 7px; padding-inline: 7px; }
+  .virtual-table-window > .virtual-table-row { padding-inline: 7px; font-size: 9px; }
+  .virtual-table-window a small { overflow-wrap: anywhere; white-space: normal; }
+}

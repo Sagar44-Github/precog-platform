@@ -23,7 +23,7 @@
             "items": {
               "type": "object",
               "properties": {
-                "id": { "type": "string", "pattern": "^DEMO-[0-9]+$" },
+                "id": { "type": "string", "pattern": "^DEMO-(SIM-)?[0-9]+$" },
                 "cvss": { "type": "number", "minimum": 0, "maximum": 10 },
                 "service": { "type": "string" },
                 "description": { "type": "string" },

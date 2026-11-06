@@ -98,3 +98,9 @@
 - Added browser coverage for both pages and the full tour flow, plus responsive screenshots across all routes in sample and live modes.
 - Rebuilt the Flask-served production bundle. No API route or data contract was added.
 - Phase evidence and five consecutive rehearsal results are stored under `docs/phase-b8/`.
+
+## Phase D6 — Scalable topology views (2026-11-06)
+
+- Added active-workspace host search and server-paged topology summaries with zone state counts and aggregated connectivity; fixed asset inventory and replay-history API wiring used by the topology screens.
+- Added deterministic 3D zone clusters, bounded link bundles, compact rendering, a dense-network Lite layout, and a virtualized/paged asset directory for the 300-host workspace.
+- Added 300-host browser evidence under `docs/audit/screenshots/phase-d6/`, including SwiftShader frame/memory probes, three viewport widths, and a forced no-WebGL run.

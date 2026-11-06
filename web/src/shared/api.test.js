@@ -56,3 +56,20 @@ test('system health and audit pages call their existing endpoints', async (t) =>
   assert.equal(url.searchParams.get('limit'), '50')
   assert.equal(url.searchParams.has('q'), false)
 })
+
+test('topology and inventory helpers expose the active workspace endpoints', async (t) => {
+  const calls = []
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = async (url) => {
+    calls.push(String(url))
+    return { ok: true, status: 200, json: async () => ({ items: [], hosts: [] }) }
+  }
+  t.after(() => { globalThis.fetch = originalFetch })
+  const { api } = await import('./api.js')
+  await api.assets()
+  await api.topologySummary({ offset: 40, limit: 20, q: 'node-0042', zone: 'application' })
+  await api.timeTravel({ limit: 200, session_id: 'session 01' })
+  assert.equal(calls[0], '/api/x/assets')
+  assert.equal(calls[1], '/api/x/topology/summary?offset=40&limit=20&q=node-0042&zone=application')
+  assert.equal(calls[2], '/api/x/time-travel?limit=200&session_id=session+01')
+})

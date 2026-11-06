@@ -9,7 +9,7 @@
     "risk_score": 42.0,
     "criticality": 0.3,
     "services": ["ssh/22", "smb/445"],
-    "weaknesses": [{"id": "DEMO-0001", "cvss": 6.5, "service": "ssh/22", "description": "Simulated weak remote-login password policy", "simulated": true}],
+    "weaknesses": [{"id": "DEMO-SIM-000001", "cvss": 6.5, "service": "ssh/22", "description": "Simulated weak remote-login password policy", "simulated": true}],
     "reachable_hosts": ["host-b", "server-b", "file-server"],
     "state_history": [{"ts": "2026-10-03T10:00:01Z", "from_state": "normal", "state": "compromised"}]
   }],

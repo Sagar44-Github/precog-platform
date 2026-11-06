@@ -1,17 +1,70 @@
 {
-  "workspace_id": "demo-6",
-  "version": 1,
-  "offset": 0,
-  "total_hosts": 1,
-  "has_more": false,
-  "hosts": [
+  "items": [
     {
-      "host_id": "host-a",
-      "name": "Workstation A",
+      "host_id": "node-0001",
+      "name": "Workstation 001",
       "zone": "user",
+      "address": "10.1.0.2",
       "role": "workstation",
-      "criticality": 0.3
+      "state": "normal",
+      "services": ["smb/445", "https/443", "dns/53"],
+      "weaknesses": [{"weakness_id": "DEMO-SIM-000001", "service": "smb/445", "cvss": 5.9, "description": "Simulated service weakness generated for this replay; not a real vulnerability.", "simulated": true}],
+      "criticality": 0.57,
+      "risk": 3.36,
+      "exposure": 8
     }
   ],
-  "edges": []
+  "total_hosts": 300,
+  "total_edges": 2400,
+  "total_matches": 300,
+  "offset": 0,
+  "limit": 1,
+  "next_offset": 1,
+  "query": "",
+  "zone": null,
+  "zones": [
+    {"zone": "application", "host_count": 48, "normal_count": 48, "compromised_count": 0, "contained_count": 0, "edge_count": 384},
+    {"zone": "data", "host_count": 42, "normal_count": 42, "compromised_count": 0, "contained_count": 0, "edge_count": 336},
+    {"zone": "dmz", "host_count": 30, "normal_count": 30, "compromised_count": 0, "contained_count": 0, "edge_count": 240},
+    {"zone": "engineering", "host_count": 48, "normal_count": 48, "compromised_count": 0, "contained_count": 0, "edge_count": 384},
+    {"zone": "operations", "host_count": 42, "normal_count": 42, "compromised_count": 0, "contained_count": 0, "edge_count": 336},
+    {"zone": "user", "host_count": 90, "normal_count": 90, "compromised_count": 0, "contained_count": 0, "edge_count": 720}
+  ],
+  "edge_bundles": [
+    {"from_zone": "application", "to_zone": "application", "count": 10},
+    {"from_zone": "application", "to_zone": "data", "count": 179},
+    {"from_zone": "application", "to_zone": "operations", "count": 195},
+    {"from_zone": "data", "to_zone": "data", "count": 18},
+    {"from_zone": "data", "to_zone": "operations", "count": 318},
+    {"from_zone": "dmz", "to_zone": "application", "count": 121},
+    {"from_zone": "dmz", "to_zone": "dmz", "count": 5},
+    {"from_zone": "dmz", "to_zone": "operations", "count": 114},
+    {"from_zone": "engineering", "to_zone": "application", "count": 118},
+    {"from_zone": "engineering", "to_zone": "data", "count": 96},
+    {"from_zone": "engineering", "to_zone": "dmz", "count": 78},
+    {"from_zone": "engineering", "to_zone": "engineering", "count": 1},
+    {"from_zone": "engineering", "to_zone": "operations", "count": 91},
+    {"from_zone": "operations", "to_zone": "application", "count": 79},
+    {"from_zone": "operations", "to_zone": "data", "count": 65},
+    {"from_zone": "operations", "to_zone": "dmz", "count": 46},
+    {"from_zone": "operations", "to_zone": "operations", "count": 6},
+    {"from_zone": "operations", "to_zone": "user", "count": 140},
+    {"from_zone": "user", "to_zone": "application", "count": 216},
+    {"from_zone": "user", "to_zone": "dmz", "count": 132},
+    {"from_zone": "user", "to_zone": "engineering", "count": 185},
+    {"from_zone": "user", "to_zone": "operations", "count": 181},
+    {"from_zone": "user", "to_zone": "user", "count": 6}
+  ],
+  "page_edges": [
+    {"from_host": "node-0001", "to_host": "node-0158", "likelihood": 0.58},
+    {"from_host": "node-0001", "to_host": "node-0163", "likelihood": 0.74},
+    {"from_host": "node-0001", "to_host": "node-0182", "likelihood": 0.82},
+    {"from_host": "node-0001", "to_host": "node-0184", "likelihood": 0.79},
+    {"from_host": "node-0001", "to_host": "node-0186", "likelihood": 0.77},
+    {"from_host": "node-0001", "to_host": "node-0192", "likelihood": 0.94},
+    {"from_host": "node-0001", "to_host": "node-0193", "likelihood": 0.65},
+    {"from_host": "node-0001", "to_host": "node-0255", "likelihood": 0.73}
+  ],
+  "page_edges_truncated": false,
+  "basis": "Host pages are exact records from the active topology. Zone link bundles aggregate feasible edges; risk and likelihood remain simulated estimates."
 }

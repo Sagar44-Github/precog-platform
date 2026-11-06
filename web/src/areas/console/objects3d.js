@@ -4,15 +4,15 @@ import { coneOpacity, coneWidth } from './sceneModel.js'
 
 // Three.js objects for the scene (owner: VIZ). Everything here except makeLabel works without a browser, so it is tested in Node.
 
-export function makeHostMesh(node, colors) {
+export function makeHostMesh(node, colors, compact = false) {
   const color = colors[node.state] || colors.normal
   const geometry = node.shape === 'octahedron' ? new THREE.OctahedronGeometry(node.radius)
     : node.shape === 'cube' ? new THREE.BoxGeometry(node.radius, node.radius, node.radius)
-      : new THREE.SphereGeometry(node.radius, 16, 12)
+      : new THREE.SphereGeometry(node.radius, compact ? 8 : 16, compact ? 6 : 12)
   const mesh = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ color, roughness: 0.68, metalness: 0.08 }))
   mesh.name = 'body'
-  mesh.castShadow = true
-  mesh.receiveShadow = true
+  mesh.castShadow = !compact
+  mesh.receiveShadow = !compact
   return mesh
 }
 
@@ -77,12 +77,12 @@ export function makeLabel(text, color, size = 4) {
 }
 
 /** Group = body + rings + labels for one host. */
-export function makeHostObject(node, colors) {
+export function makeHostObject(node, colors, { compact = false } = {}) {
   const group = new THREE.Group()
   group.name = node.id
-  group.add(makeHostMesh(node, colors))
-  addRoleModel(group, node, colors)
-  const heat = makeHeatFootprint(node, colors)
+  group.add(makeHostMesh(node, colors, compact))
+  if (!compact) addRoleModel(group, node, colors)
+  const heat = compact ? null : makeHeatFootprint(node, colors)
   if (heat) group.add(heat)
   if (node.selected) {
     const selection = makeRing(node.radius * 3.15, colors.accent, false)
@@ -90,7 +90,7 @@ export function makeHostObject(node, colors) {
     selection.name = 'selection-outline'
     group.add(selection)
   }
-  if (node.state === 'compromised') {
+  if (!compact && node.state === 'compromised') {
     const halo = new THREE.Mesh(
       new THREE.SphereGeometry(node.radius * 2.25, 24, 16),
       new THREE.MeshBasicMaterial({ color: colors.compromised, transparent: true, opacity: 0.12, side: THREE.BackSide, depthWrite: false }),
@@ -108,7 +108,7 @@ export function makeHostObject(node, colors) {
     shockwave.visible = false
     group.add(shockwave)
   }
-  if (node.state === 'contained') {
+  if (!compact && node.state === 'contained') {
     group.add(makeRing(node.radius * 1.9, colors.contained, false))
     const orbit = makeRing(node.radius * 2.35, colors.contained, false)
     orbit.rotation.x = Math.PI / 2
@@ -118,7 +118,7 @@ export function makeHostObject(node, colors) {
     shield.name = 'containment-shield'
     group.add(shield)
   }
-  if (node.predicted !== null) {
+  if (!compact && node.predicted !== null) {
     group.add(makeRing(node.radius * 2.3, colors.forecast, true))
     const glow = new THREE.Mesh(
       new THREE.SphereGeometry(node.radius * 2.0, 20, 14),
@@ -129,15 +129,15 @@ export function makeHostObject(node, colors) {
     const percentLabel = makeLabel(`${node.predicted} %`, colors.forecast, 4)
     if (percentLabel) { percentLabel.position.set(0, node.radius * 3.2, 0); group.add(percentLabel) }
   }
-  if (node.overlay === 'risk' || node.overlay === 'exposure') {
+  if (!compact && (node.overlay === 'risk' || node.overlay === 'exposure')) {
     const label = makeLabel(node.overlay === 'risk' ? `RISK ${Number(node.risk || 0).toFixed(1)}` : `LINKS ${node.exposure || 0}`, colors.text, 2.8)
     if (label) { label.position.set(0, node.radius * 2.35, 0); group.add(label) }
   }
-  if (node.overlay === 'forecast' && node.predicted !== null) {
+  if (!compact && node.overlay === 'forecast' && node.predicted !== null) {
     const label = makeLabel(`EST ${node.predicted}%`, colors.forecast, 3)
     if (label) { label.position.set(0, node.radius * 3.8, 0); group.add(label) }
   }
-  if (Array.isArray(node.services) && node.services.length) {
+  if (!compact && Array.isArray(node.services) && node.services.length) {
     node.services.slice(0, 4).forEach((service, index) => {
       const marker = new THREE.Mesh(new THREE.SphereGeometry(node.twin ? 1.8 : 1.35, 10, 8), new THREE.MeshBasicMaterial({ color: colors.accent }))
       const angle = (index / Math.min(node.services.length, 4)) * Math.PI * 2
@@ -147,10 +147,14 @@ export function makeHostObject(node, colors) {
       group.add(marker)
     })
   }
-  const name = makeLabel(node.name, colors.text, node.twin ? 5 : 3.5)
-  if (name) { name.position.set(0, -node.radius * 2.2, 0); group.add(name) }
-  const stateLabel = makeLabel(String(node.state || 'normal').toUpperCase(), colors[node.state] || colors.muted, 2.4)
-  if (stateLabel) { stateLabel.position.set(0, -node.radius * 3.1, 0); group.add(stateLabel) }
+  if (!compact || node.isCluster || node.selected) {
+    const name = makeLabel(node.name, colors.text, node.twin ? 5 : compact ? 5 : 3.5)
+    if (name) { name.position.set(0, -node.radius * 2.2, 0); group.add(name) }
+    if (!compact) {
+      const stateLabel = makeLabel(String(node.state || 'normal').toUpperCase(), colors[node.state] || colors.muted, 2.4)
+      if (stateLabel) { stateLabel.position.set(0, -node.radius * 3.1, 0); group.add(stateLabel) }
+    }
+  }
   return group
 }
 
