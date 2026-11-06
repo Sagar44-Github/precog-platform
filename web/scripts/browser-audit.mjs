@@ -359,7 +359,7 @@ async function runMode(browser, mode, port, dbDir, errors) {
           check.twin = await page.evaluate(() => ({
             canvasCount: document.querySelectorAll('.twin-map-viewport canvas').length,
             liteMap: Boolean(document.querySelector('.twin-lite-map')),
-            hostRows: document.querySelectorAll('.twin-host-row').length,
+            hostRows: document.querySelectorAll('.twin-virtual-host').length,
             heading: document.querySelector('.twin-page-head h1')?.textContent || '',
           }))
           if (!check.twin.heading.includes('Network digital twin') || check.twin.hostRows !== 6 || (!check.twin.canvasCount && !check.twin.liteMap)) failures.push('network twin did not render its topology view and six demo hosts')
@@ -385,10 +385,11 @@ async function runMode(browser, mode, port, dbDir, errors) {
     await page.setViewportSize({ width: 1440, height: 900 })
     await page.goto(`${base}/app/twin`, { waitUntil: 'domcontentloaded' })
     await page.locator('.twin-map-viewport').waitFor({ timeout: 12000 })
-    await page.locator('.twin-host-row').first().waitFor({ timeout: 12000 })
+    await page.locator('.twin-virtual-host').first().waitFor({ timeout: 12000 })
     await page.getByRole('combobox', { name: 'Topology overlay' }).selectOption('risk')
     await page.getByRole('combobox', { name: 'Camera preset' }).selectOption('top')
-    await page.getByRole('combobox', { name: 'Fly to host' }).selectOption('server-b')
+    await page.getByRole('combobox', { name: 'Find and focus host' }).fill('Web Server B')
+    await page.locator('.host-search-results [role="option"]').filter({ hasText: 'Web Server B' }).click()
     await page.getByRole('complementary', { name: /Web Server B inspector/ }).waitFor({ timeout: 8000 })
     await page.getByRole('button', { name: 'Trace routes' }).click()
     await page.getByText(/Model-based likelihood estimate/).first().waitFor({ timeout: 8000 })

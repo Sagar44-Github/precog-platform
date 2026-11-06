@@ -164,6 +164,27 @@ def test_graph_novelty_is_distinct_from_trivial_label_playback(active_synthetic)
     assert "20% warm-up" in status["detector_note"]
 
 
+@pytest.mark.parametrize("workspace_id", ("synth-enterprise-120", "synth-datacenter-300"))
+def test_additional_installed_workspaces_run_to_completion(logged_in, flask_app, workspace_id):
+    manager = flask_app.extensions["precog_workspaces"]
+    pipeline = flask_app.extensions["precog_pipeline"]
+    pipeline.stop()
+    if manager.active.pack_id != "demo-6":
+        manager.activate("demo-6")
+    activated = logged_in.post("/api/x/workspaces/%s/activate" % workspace_id, json={"confirm": True})
+    assert activated.status_code == 200, activated.get_data(as_text=True)
+    expected_events = manager.active.manifest["counts"]["events"]
+    try:
+        status = _run_to_completion(logged_in, flask_app, mode="labels", batch_size=512)
+        assert status["state"] == "finished", status
+        assert status["processed_events"] == expected_events
+        assert status["alerts"] > 0
+        assert status["simulation_note"]
+    finally:
+        pipeline.stop()
+        manager.activate("demo-6")
+
+
 def test_recorded_whatif_playbook_and_action_use_the_same_counterfactual_rule(active_synthetic):
     client, flask_app = active_synthetic
     assert flask_app.extensions["precog_lab"].dataset_context.pack_id == "synth-enterprise-30"
