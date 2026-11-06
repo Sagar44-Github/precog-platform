@@ -151,5 +151,3 @@ def test_install_switch_and_delete_are_written_to_workspace_audit(logged_in, fla
     assert deleted.status_code == 200
     audit = logged_in.get("/api/x/audit?type=workspace").get_json()["items"]
     assert any("deleted installed workspace pack tiny-workspace" in item["summary"] for item in audit)
-
-\n
