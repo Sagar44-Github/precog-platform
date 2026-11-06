@@ -62,7 +62,7 @@ The builder accepts the shipped demo source only in D1; it does not accept user 
 
 ## Demo equivalence
 
-`python tools/datasets/build_pack.py --source demo-6 --out packs/demo-6 --force` converts the existing six-host fixture, four scenarios, 300 training sequences, Precog model, and held-out evaluation. `validate_existing_demo_equivalence()` asserts the exact host inventory, feasible edges, route order, model, scenario JSON, projected event stream, and evaluation match. The existing Golden Path is also run as a regression. D1 does not yet route the live replay controller through the pack; that runtime equivalence remains a D2 gate. Existing routes, NIDS files, and default sample/live behavior remain unchanged.
+`python tools/datasets/build_pack.py --source demo-6 --out packs/demo-6 --force` converts the existing six-host fixture, four scenarios, 300 training sequences, Precog model, and held-out evaluation. `validate_existing_demo_equivalence()` asserts the exact host inventory, feasible edges, route order, model, scenario JSON, projected event stream, and evaluation match. D2 now activates validated packs through `WorkspaceManager`, rebinds topology, hosts, scenarios and the Precog model, and keeps `demo-6` as the boot default. The existing Golden Path remains the regression for unchanged demo behavior. The pipeline adapter for large SQLite event streams remains a later D4 gate.
 
 ## Commands
 

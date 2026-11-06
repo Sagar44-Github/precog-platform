@@ -13,6 +13,7 @@ from .routes import bp
 from .sample_loader import load_samples
 from .webapp import register_webapp
 from .world_state import WorldState
+from .workspaces import WorkspaceManager
 
 log = logging.getLogger("precog.addons")
 
@@ -31,6 +32,7 @@ class AddonContext:
     contracts: object
     nids: object
     flask_app: object
+    dataset_context: object = None
 
 
 def _load_role_packages(ctx, packages):
@@ -85,6 +87,12 @@ def register_addons(flask_app, repo_root, nids, packages=ROLE_PACKAGES):
         "world": world, "hooks": hooks, "config": config, "contracts": contracts,
         "nids": nids, "load_report": load_report,
     }
+    # Small role-registration tests and deployments that intentionally omit the pack
+    # bundle retain their historical lightweight startup behavior.
+    default_pack = config.repo_root / "packs" / "demo-6" / "manifest.json"
+    if default_pack.is_file() and hooks.has("graph") and hooks.has("replay") and hooks.has("precog"):
+        manager = WorkspaceManager(ctx)
+        flask_app.extensions["precog_workspaces"] = manager
     flask_app.register_blueprint(bp)
     register_webapp(flask_app, config)
 

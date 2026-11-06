@@ -9,7 +9,7 @@ import threading
 from datetime import datetime, timezone
 from pathlib import Path
 
-ENTRY_TYPES = ("detection", "forecast", "containment", "incident")
+ENTRY_TYPES = ("detection", "forecast", "containment", "incident", "workspace")
 
 _SECRET_WORDS = re.compile(r"(?i)\b(password|passwd|pwd|secret|token|api[_-]?key|authorization)\b(\s*[:=]\s*)\S+")
 _BEARER = re.compile(r"(?i)\bbearer\s+[A-Za-z0-9._~+/=-]+")

@@ -115,6 +115,10 @@
       "type": "string",
       "minLength": 1,
       "maxLength": 100
+    },
+    "workspace_version": {
+      "type": "integer",
+      "minimum": 1
     }
   },
   "required": [

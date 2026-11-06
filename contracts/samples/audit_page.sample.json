@@ -1,7 +1,7 @@
 {
-  "items": [{"ts": "2026-10-03T10:00:01Z", "type": "detection", "ref_id": "evt-000001", "summary": "High alert on host-a: Brute Force"}],
+  "items": [{"ts": "2026-10-03T10:00:01Z", "type": "workspace", "ref_id": "demo-6", "summary": "admin (admin): activated workspace demo-6."}],
   "total": 1,
   "next_cursor": null,
   "limit": 50,
-  "filters": {"type": "", "ref_id": "", "q": "", "from": "", "to": ""}
+  "filters": {"type": "workspace", "ref_id": "", "q": "", "from": "", "to": ""}
 }

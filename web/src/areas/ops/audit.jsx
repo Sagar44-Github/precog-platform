@@ -13,9 +13,9 @@ export default function AuditPage() {
   function reset() { const empty = { type: '', ref_id: '', q: '', from: '', to: '' }; setDraft(empty); setApplied(empty); setCursor('') }
 
   return <PageFrame>
-    <PageHeader eyebrow="GOVERNANCE / EVENT HISTORY" title="Audit log" description="Read-only records written by detection, forecast, containment, and incident review components. Summaries are scrubbed before storage." actions={<Button className="ops-button-secondary" type="button" onClick={refresh}>Refresh log</Button>} />
+    <PageHeader eyebrow="GOVERNANCE / EVENT HISTORY" title="Audit log" description="Read-only records written by detection, forecast, containment, incident review, and workspace changes. Summaries are scrubbed before storage." actions={<Button className="ops-button-secondary" type="button" onClick={refresh}>Refresh log</Button>} />
       <FilterBar className="ops-audit-filter" onSubmit={apply} onReset={reset}>
-      <Field label="Record type"><select value={draft.type} onChange={(event) => setDraft({ ...draft, type: event.target.value })}><option value="">All record types</option><option value="detection">Detection</option><option value="forecast">Forecast</option><option value="containment">Containment</option><option value="incident">Incident</option></select></Field>
+      <Field label="Record type"><select value={draft.type} onChange={(event) => setDraft({ ...draft, type: event.target.value })}><option value="">All record types</option><option value="detection">Detection</option><option value="forecast">Forecast</option><option value="containment">Containment</option><option value="incident">Incident</option><option value="workspace">Workspace</option></select></Field>
       <Field label="Reference id"><input value={draft.ref_id} onChange={(event) => setDraft({ ...draft, ref_id: event.target.value })} placeholder="evt-, fc-, act-" /></Field>
       <Field label="Summary search"><SearchField value={draft.q} onChange={(event) => setDraft({ ...draft, q: event.target.value })} placeholder="Search scrubbed summaries" /></Field>
       <Field label="From"><input type="date" value={draft.from} onChange={(event) => setDraft({ ...draft, from: event.target.value })} /></Field>
@@ -33,7 +33,7 @@ export default function AuditPage() {
           </tr>)}
         </tbody></table></div>
         <Pagination cursor={cursor} nextCursor={data.next_cursor} total={data.total} onPrevious={() => setCursor(String(Math.max(0, Number(cursor || 0) - 50)) || '')} onNext={() => setCursor(data.next_cursor)} />
-      </> : <EmptyMessage title="No audit records match these filters">Detection, forecast, and containment entries appear when the replay pipeline runs.</EmptyMessage>}
+      </> : <EmptyMessage title="No audit records match these filters">Detection, forecast, containment, incident, and workspace entries appear as the simulation runs and analysts make changes.</EmptyMessage>}
     </section>}
   </PageFrame>
 }

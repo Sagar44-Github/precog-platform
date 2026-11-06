@@ -18,6 +18,7 @@ import re
 
 from . import auth
 from .contracts import ContractError
+from .dataset_packs import PackError
 from .errors import ApiError
 
 bp = Blueprint("precog_addons", __name__, url_prefix="/api/x")
@@ -26,7 +27,7 @@ FORECAST_STATUSES = ("pending", "hit", "miss", "superseded")
 REQUESTERS = ("console", "mobile")
 MAX_ALERT_LIMIT = 200
 ALERT_SEVERITIES = ("HIGH", "MEDIUM", "LOW", "NORMAL")
-AUDIT_TYPES = ("detection", "forecast", "containment", "incident")
+AUDIT_TYPES = ("detection", "forecast", "containment", "incident", "workspace")
 PAGE_SORTS = ("ts", "risk_score", "severity")
 INCIDENT_STATUSES = ("open", "contained", "closed", "reopened")
 INCIDENT_SEVERITIES = ("HIGH", "MEDIUM", "LOW")
@@ -45,6 +46,20 @@ def _governance():
     if service is None:
         raise ApiError("not_built", "The response governance module is not available.", 501)
     return service
+
+
+def _workspaces():
+    service = current_app.extensions.get("precog_workspaces")
+    if service is None:
+        raise ApiError("not_built", "Dataset workspace management is unavailable.", 501)
+    return service
+
+
+def _audit_workspace(pack_id, summary):
+    events = _ctx()["hooks"].get("events")
+    recorder = getattr(events, "audit_record", None) if events is not None else None
+    if recorder is not None:
+        recorder("workspace", pack_id, "%s (%s): %s" % (current_user.username, auth.current_role(), summary))
 
 
 def _governance_result(record):
@@ -194,8 +209,97 @@ def domain_feed():
         governance.records(1)  # Refresh expired proposals before publishing the action version.
         result["versions"]["actions"] += governance.revision
         result["revision"] += governance.revision
+    result["versions"]["workspace"] = _workspaces().feed_version()
+    result["revision"] += result["versions"]["workspace"]
     result["changed"] = since is None or since != result["revision"]
     return jsonify(_out("feed_versions", result))
+
+
+@bp.get("/workspaces")
+@auth.json_login_required
+def workspaces_list():
+    service = _workspaces()
+    summaries = [_out("workspace", item) for item in service.list_workspaces()]
+    payload = {"active_workspace": service.active.pack_id, "workspaces": summaries}
+    return jsonify(_out("workspace_list", payload))
+
+
+@bp.get("/workspaces/active")
+@auth.json_login_required
+def workspace_active():
+    service = _workspaces()
+    payload = service.summary(service.active, active=True)
+    payload["workspace_version"] = service.version
+    return jsonify(_out("workspace", payload))
+
+
+@bp.get("/workspaces/<workspace_id>/card")
+@auth.json_login_required
+def workspace_card(workspace_id):
+    try:
+        payload = _workspaces().card(workspace_id)
+    except PackError as exc:
+        raise ApiError("workspace_not_found", str(exc), 404)
+    return jsonify(_out("dataset_card", payload))
+
+
+@bp.post("/workspaces/install")
+@auth.demo_role_required("admin")
+def workspace_install():
+    data = _body()
+    pack_id = _text(data, "pack_id")
+    try:
+        manifest = _workspaces().store.open(pack_id).manifest
+    except PackError as exc:
+        raise ApiError("invalid_pack", str(exc), 400)
+    # D2 deliberately installs only a pack already placed beneath the configured
+    # local packs root. Arbitrary paths and remote archives are not accepted.
+    _audit_workspace(_workspaces().active.pack_id, "validated local pack %s for workspace installation" % pack_id)
+    return jsonify(_out("pack_install_job", {"job_id": "install-%s" % pack_id, "pack_id": pack_id,
+        "state": "completed", "progress": 1.0, "message": "Validated local pack %s (%.2f MiB)." % (pack_id, manifest["size_bytes"] / 1048576)}))
+
+
+@bp.post("/workspaces/<workspace_id>/activate")
+@auth.demo_role_required("admin", "analyst")
+def workspace_activate(workspace_id):
+    data = _body()
+    if data.get("confirm") is not True:
+        raise ApiError("confirmation_required", "Confirm that switching resets the current replay state.", 400)
+    service = _workspaces()
+    previous_id = service.active.pack_id
+    try:
+        service.store.open(workspace_id)
+        _audit_workspace(previous_id, "switching to workspace %s" % workspace_id)
+        result = service.activate(workspace_id)
+    except PackError as exc:
+        raise ApiError("workspace_unavailable", str(exc), 404)
+    _audit_workspace(workspace_id, "activated from workspace %s" % previous_id)
+    result["workspace_version"] = service.version
+    return jsonify(_out("workspace", result))
+
+
+@bp.delete("/workspaces/<workspace_id>")
+@auth.demo_role_required("admin")
+def workspace_delete(workspace_id):
+    service = _workspaces()
+    if workspace_id == "demo-6":
+        raise ApiError("protected_workspace", "The default demo-6 workspace cannot be deleted.", 403)
+    if workspace_id == service.active.pack_id:
+        raise ApiError("workspace_active", "Switch away from a workspace before deleting it.", 409)
+    try:
+        pack = service.store.open(workspace_id)
+    except PackError as exc:
+        raise ApiError("workspace_not_found", str(exc), 404)
+    # Delete only a validated direct-child pack; never use an identifier as a path.
+    import shutil
+    _audit_workspace(service.active.pack_id, "deleted installed workspace pack %s" % workspace_id)
+    shutil.rmtree(pack.path)
+    service._buckets.pop(workspace_id, None)
+    data_path = service.data_root / workspace_id
+    if data_path.resolve().parent == service.data_root.resolve() and data_path.exists():
+        shutil.rmtree(data_path)
+    service.version += 1
+    return jsonify({"status": "deleted", "workspace_id": workspace_id, "workspace_version": service.version})
 
 
 # ---------- reading the state ----------

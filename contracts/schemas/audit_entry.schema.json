@@ -16,7 +16,8 @@
         "detection",
         "forecast",
         "containment",
-        "incident"
+        "incident",
+        "workspace"
       ]
     },
     "ref_id": {

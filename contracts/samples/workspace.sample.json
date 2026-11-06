@@ -17,5 +17,6 @@
     "lateral_movement_routes": "native",
     "topology": "native"
   },
-  "redistribution": "project-owned"
+  "redistribution": "project-owned",
+  "workspace_version": 1
 }

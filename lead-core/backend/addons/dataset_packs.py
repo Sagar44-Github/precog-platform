@@ -387,7 +387,7 @@ def build_demo6_pack(repo_root, output_dir, contracts_dir=None) -> dict:
             conn.close()
         (staging / "routes.jsonl").write_text("\n".join(route_lines) + "\n", encoding="utf-8", newline="\n")
         (staging / "model.json").write_bytes(_canonical_json(model))
-        evaluation = {"source": "lead-core/precog/results/precog_evaluation.json", "node_model": evaluation_doc["node_model"], "detector": evaluation_doc.get("detector"), "limitations": ["Six-host scripted simulation; not real attacker data.", "Forecast and detection metrics describe held-out generated sequences only.", "Precision@3 is trivial for this topology because candidate sets contain at most three hosts."]}
+        evaluation = {**evaluation_doc, "source": "lead-core/precog/results/precog_evaluation.json", "detector": evaluation_doc.get("detector"), "limitations": ["Six-host scripted simulation; not real attacker data.", "Forecast and detection metrics describe held-out generated sequences only.", "Precision@3 is trivial for this topology because candidate sets contain at most three hosts."]}
         (staging / "evaluation.json").write_bytes(_canonical_json(evaluation))
         (staging / "card.md").write_text("# Precog demo-6\n\nThe unchanged deterministic six-host scripted simulation used by the existing application. Scenarios and training routes are project-generated. Detection uses the existing NIDS live path. Containment is an in-memory simulated action. This pack is for demonstrating the pipeline, not measuring real-world security performance.\n", encoding="utf-8", newline="\n")
         digest, payload_size = _payload_hash(staging)

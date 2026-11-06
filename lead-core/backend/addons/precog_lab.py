@@ -182,6 +182,14 @@ class PrecogLab:
 
     def model_card(self):
         evaluation = self.shipped_evaluation()
+        dataset = getattr(self.ctx, "dataset_context", None)
+        if dataset is not None and dataset.pack_id != "demo-6":
+            limitations = list(dataset.evaluation.get("limitations", []))
+            limitations.append("Results depend on this pack's stated ground-truth provenance; derived routes are estimates.")
+            return {"data_source": dataset.manifest["source"]["name"], "training_sequences": len(dataset.training_routes),
+                    "network_hosts": len(dataset.hosts), "held_out_forecasts": evaluation["node_model"]["forecasts"],
+                    "precision_at_1_standard_error": evaluation["node_model"]["precision_at_1_std_error"],
+                    "limitations": limitations[:20]}
         return {"data_source": "graph_replay scripted generator", "training_sequences": 300,
                 "network_hosts": len(self.graph.topology.host_ids()), "held_out_forecasts": evaluation["node_model"]["forecasts"],
                 "precision_at_1_standard_error": evaluation["node_model"]["precision_at_1_std_error"],
@@ -190,11 +198,15 @@ class PrecogLab:
                                 "The offline CICIDS2017 report is a separate lab result, not live detector performance."]}
 
     def shipped_evaluation(self):
+        dataset = getattr(self.ctx, "dataset_context", None)
+        if dataset is not None and isinstance(dataset.evaluation, dict) and "node_model" in dataset.evaluation:
+            return dataset.evaluation
         return json.loads(self.evaluation_path.read_text(encoding="utf-8"))
 
     def model_overview(self):
         evaluation = self.shipped_evaluation()
-        detection = json.loads(self.detection_path.read_text(encoding="utf-8")) if self.detection_path.is_file() else None
+        dataset = getattr(self.ctx, "dataset_context", None)
+        detection = json.loads(self.detection_path.read_text(encoding="utf-8")) if self.detection_path.is_file() and (dataset is None or dataset.detector_mode == "nids-live") else None
         return {"evaluation": evaluation, "model_card": self.model_card(), "technique_source": getattr(self.engine.layer, "default_source", "lookup") if self.engine else "lookup",
                 "detection_report": detection, "live_metrics": self.ctx.world.metrics()}
 
@@ -204,7 +216,9 @@ class PrecogLab:
             if key in self._cache:
                 self._cache.move_to_end(key)
                 return copy.deepcopy(dict(self._cache[key], cached=True))
-            training = json.loads(self.training_path.read_text(encoding="utf-8"))["sequences"]
+            dataset = getattr(self.ctx, "dataset_context", None)
+            training = ([{"profile": route.get("profile", "unknown"), "path": route["path"]} for route in dataset.training_routes]
+                        if dataset is not None else json.loads(self.training_path.read_text(encoding="utf-8"))["sequences"])
             topology = self.graph.topology
             candidates = lambda here, path: topology.candidates(here, exclude=path)
             started = time.monotonic()

@@ -4,20 +4,51 @@
   "title": "Domain feed versions",
   "type": "object",
   "properties": {
-    "revision": { "type": "integer", "minimum": 0 },
-    "changed": { "type": "boolean" },
+    "revision": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "changed": {
+      "type": "boolean"
+    },
     "versions": {
       "type": "object",
       "properties": {
-        "incidents": { "type": "integer", "minimum": 0 },
-        "runs": { "type": "integer", "minimum": 0 },
-        "actions": { "type": "integer", "minimum": 0 },
-        "notes": { "type": "integer", "minimum": 0 }
+        "incidents": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "runs": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "actions": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "notes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "workspace": {
+          "type": "integer",
+          "minimum": 1
+        }
       },
-      "required": ["incidents", "runs", "actions", "notes"],
+      "required": [
+        "actions",
+        "incidents",
+        "notes",
+        "runs",
+        "workspace"
+      ],
       "additionalProperties": false
     }
   },
-  "required": ["revision", "changed", "versions"],
+  "required": [
+    "revision",
+    "changed",
+    "versions"
+  ],
   "additionalProperties": false
 }
