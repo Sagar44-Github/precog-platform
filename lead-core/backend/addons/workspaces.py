@@ -121,6 +121,7 @@ class WorkspaceManager:
             legacy_topology["feasible_connections"].setdefault(edge["src"], []).append(edge["dst"])
         topology = Topology(context.hosts, legacy_topology)
         graph = LiveGraph(topology, world=self.ctx.world)
+        graph.recorded_data = context.pack_id != "demo-6"
         self.ctx.hooks.register("graph", graph)
         self.ctx.dataset_context = context
         base = self.ctx.hooks.get("events")
@@ -191,6 +192,9 @@ class WorkspaceManager:
     def activate(self, pack_id):
         with self._lock:
             pack = self.store.open(pack_id)
+            pipeline = self.ctx.flask_app.extensions.get("precog_pipeline")
+            if pipeline is not None:
+                pipeline.stop()
             replay = self.ctx.hooks.get("replay")
             if replay is not None and replay.status().get("state") in ("running", "paused", "waiting_for_decision"):
                 replay.stop()

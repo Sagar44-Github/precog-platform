@@ -27,11 +27,9 @@
           },
           "zone": {
             "type": "string",
-            "enum": [
-              "user",
-              "dmz",
-              "internal"
-            ]
+            "minLength": 1,
+            "maxLength": 100,
+            "description": "Workspace-specific zone name. The six-host demo continues to use user, dmz, and internal."
           },
           "state": {
             "type": "string",

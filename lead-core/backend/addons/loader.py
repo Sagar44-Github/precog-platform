@@ -14,6 +14,7 @@ from .sample_loader import load_samples
 from .webapp import register_webapp
 from .world_state import WorldState
 from .workspaces import WorkspaceManager
+from .dataset_pipeline import DatasetPipeline
 
 log = logging.getLogger("precog.addons")
 
@@ -93,6 +94,8 @@ def register_addons(flask_app, repo_root, nids, packages=ROLE_PACKAGES):
     if default_pack.is_file() and hooks.has("graph") and hooks.has("replay") and hooks.has("precog"):
         manager = WorkspaceManager(ctx)
         flask_app.extensions["precog_workspaces"] = manager
+        pipeline = DatasetPipeline(ctx, manager)
+        flask_app.extensions["precog_pipeline"] = pipeline
     flask_app.register_blueprint(bp)
     register_webapp(flask_app, config)
 

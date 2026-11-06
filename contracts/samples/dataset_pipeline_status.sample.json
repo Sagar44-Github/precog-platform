@@ -1,0 +1,23 @@
+{
+  "workspace_id": "synth-enterprise-300",
+  "session_id": null,
+  "state": "idle",
+  "detector_mode": null,
+  "speed": 1.0,
+  "batch_size": 1000,
+  "processed_events": 0,
+  "total_events": 0,
+  "alerts": 0,
+  "forecasts": 0,
+  "incidents": 0,
+  "blocked_events": 0,
+  "suppressed_events": 0,
+  "decision_points": 0,
+  "decision_point_limit": 1,
+  "decision_point": null,
+  "recent_counterfactual": [],
+  "simulation_note": "Simulated what-if on recorded data. Recorded events are immutable.",
+  "detector_note": null,
+  "error": null,
+  "version": 0
+}

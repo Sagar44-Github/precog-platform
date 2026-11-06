@@ -55,6 +55,13 @@ def _workspaces():
     return service
 
 
+def _pipeline():
+    service = current_app.extensions.get("precog_pipeline")
+    if service is None:
+        raise ApiError("not_built", "The dataset streaming pipeline is unavailable.", 501)
+    return service
+
+
 def _audit_workspace(pack_id, summary):
     events = _ctx()["hooks"].get("events")
     recorder = getattr(events, "audit_record", None) if events is not None else None
@@ -211,6 +218,9 @@ def domain_feed():
         result["revision"] += governance.revision
     result["versions"]["workspace"] = _workspaces().feed_version()
     result["revision"] += result["versions"]["workspace"]
+    pipeline = current_app.extensions.get("precog_pipeline")
+    result["versions"]["pipeline"] = pipeline.revision if pipeline is not None else 0
+    result["revision"] += result["versions"]["pipeline"]
     result["changed"] = since is None or since != result["revision"]
     return jsonify(_out("feed_versions", result))
 
@@ -222,6 +232,42 @@ def workspaces_list():
     summaries = [_out("workspace", item) for item in service.list_workspaces()]
     payload = {"active_workspace": service.active.pack_id, "workspaces": summaries}
     return jsonify(_out("workspace_list", payload))
+
+
+@bp.get("/pipeline")
+@auth.json_login_required
+def dataset_pipeline_status():
+    return jsonify(_out("dataset_pipeline_status", _pipeline().status()))
+
+
+@bp.post("/pipeline/start")
+@auth.role_required("analyst")
+@auth.rate_limit(max_requests=3, window_seconds=60)
+def dataset_pipeline_start():
+    data = _body()
+    allowed = {"speed", "batch_size", "detector_mode", "start_t", "end_t", "decision_point_limit"}
+    if set(data) - allowed:
+        raise ApiError("bad_request", "Unsupported dataset pipeline option.", 400)
+    result = _pipeline().start(**data)
+    return jsonify(_out("dataset_pipeline_status", result)), 202
+
+
+@bp.post("/pipeline/pause")
+@auth.role_required("analyst")
+def dataset_pipeline_pause():
+    return jsonify(_out("dataset_pipeline_status", _pipeline().pause()))
+
+
+@bp.post("/pipeline/resume")
+@auth.role_required("analyst")
+def dataset_pipeline_resume():
+    return jsonify(_out("dataset_pipeline_status", _pipeline().resume()))
+
+
+@bp.post("/pipeline/stop")
+@auth.role_required("analyst")
+def dataset_pipeline_stop():
+    return jsonify(_out("dataset_pipeline_status", _pipeline().stop()))
 
 
 @bp.get("/workspaces/active")

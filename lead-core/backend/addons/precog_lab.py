@@ -47,6 +47,11 @@ class PrecogLab:
     def engine(self):
         return self.ctx.hooks.get("precog")
 
+    @property
+    def dataset_context(self):
+        manager = self.ctx.flask_app.extensions.get("precog_workspaces")
+        return manager.active if manager is not None else getattr(self.ctx, "dataset_context", None)
+
     def explain(self, forecast_id):
         forecast = next((item for item in self.ctx.world.forecasts() if item["forecast_id"] == forecast_id), None)
         if forecast is None:
@@ -170,6 +175,14 @@ class PrecogLab:
         removed = sum(before.get(host, 0) for host in contain if host in before)
         existing_forecasts = self.ctx.world.forecasts()
         current = existing_forecasts[-1] if existing_forecasts else None
+        dataset = self.dataset_context
+        if dataset is not None and dataset.pack_id != "demo-6":
+            route_source = dataset.manifest.get("capabilities", {}).get("lateral_movement_routes", "none")
+            basis = ("Model-based estimate over %d hosts in dataset workspace %s; route ground truth is %s. "
+                     "This is a simulated what-if on recorded data; it does not change the pack or live state." %
+                     (len(dataset.hosts), dataset.pack_id, route_source))
+        else:
+            basis = "Model-based estimate over the six-host scripted topology. This what-if does not change live state and is not a guarantee."
         return {
             "from_host": source,
             "before": {"candidates": before_candidates, "targets": _rank(before)},
@@ -177,12 +190,12 @@ class PrecogLab:
             "contain_hosts": contain,
             "removed_probability_share": round(removed, 6),
             "live_forecast": copy.deepcopy(current),
-            "basis": "Model-based estimate over the six-host scripted topology. This what-if does not change live state and is not a guarantee.",
+            "basis": basis,
         }
 
     def model_card(self):
         evaluation = self.shipped_evaluation()
-        dataset = getattr(self.ctx, "dataset_context", None)
+        dataset = self.dataset_context
         if dataset is not None and dataset.pack_id != "demo-6":
             limitations = list(dataset.evaluation.get("limitations", []))
             limitations.append("Results depend on this pack's stated ground-truth provenance; derived routes are estimates.")
@@ -198,14 +211,14 @@ class PrecogLab:
                                 "The offline CICIDS2017 report is a separate lab result, not live detector performance."]}
 
     def shipped_evaluation(self):
-        dataset = getattr(self.ctx, "dataset_context", None)
+        dataset = self.dataset_context
         if dataset is not None and isinstance(dataset.evaluation, dict) and "node_model" in dataset.evaluation:
             return dataset.evaluation
         return json.loads(self.evaluation_path.read_text(encoding="utf-8"))
 
     def model_overview(self):
         evaluation = self.shipped_evaluation()
-        dataset = getattr(self.ctx, "dataset_context", None)
+        dataset = self.dataset_context
         detection = json.loads(self.detection_path.read_text(encoding="utf-8")) if self.detection_path.is_file() and (dataset is None or dataset.detector_mode == "nids-live") else None
         return {"evaluation": evaluation, "model_card": self.model_card(), "technique_source": getattr(self.engine.layer, "default_source", "lookup") if self.engine else "lookup",
                 "detection_report": detection, "live_metrics": self.ctx.world.metrics()}
@@ -216,7 +229,7 @@ class PrecogLab:
             if key in self._cache:
                 self._cache.move_to_end(key)
                 return copy.deepcopy(dict(self._cache[key], cached=True))
-            dataset = getattr(self.ctx, "dataset_context", None)
+            dataset = self.dataset_context
             training = ([{"profile": route.get("profile", "unknown"), "path": route["path"]} for route in dataset.training_routes]
                         if dataset is not None else json.loads(self.training_path.read_text(encoding="utf-8"))["sequences"])
             topology = self.graph.topology

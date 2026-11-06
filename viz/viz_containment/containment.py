@@ -175,6 +175,8 @@ class ContainmentService:
                 for host_id in targets:
                     graph.set_host_state(host_id, "contained")
                 result = "Contained %d host%s (simulated). Nothing on a real network changed." % (len(targets), "" if len(targets) == 1 else "s")
+            if getattr(graph, "recorded_data", False):
+                result += " This is a simulated what-if on recorded data: later destination events are blocked, contained sources are suppressed, and the pack is unchanged."
             action.update(status="executed", confirmed_at=self._clock(), result=result)
             self._validate(action)
             self.world.upsert_action(action)

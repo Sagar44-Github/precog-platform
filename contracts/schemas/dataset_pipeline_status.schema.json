@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/dataset_pipeline_status.schema.json",
+  "title": "Dataset pipeline status",
+  "description": "Bounded progress and counterfactual summary for a read-only dataset-pack replay.",
+  "type": "object",
+  "properties": {
+    "workspace_id": {"type": "string", "minLength": 1, "maxLength": 64},
+    "session_id": {"type": ["string", "null"], "maxLength": 128},
+    "state": {"type": "string", "enum": ["idle", "running", "paused", "waiting_for_decision", "finished", "stopped", "error"]},
+    "detector_mode": {"type": ["string", "null"], "enum": ["labels", "graph-novelty", "model", "nids-live", null]},
+    "speed": {"type": "number", "minimum": 0.25, "maximum": 1000},
+    "batch_size": {"type": "integer", "minimum": 1, "maximum": 10000},
+    "processed_events": {"type": "integer", "minimum": 0},
+    "total_events": {"type": "integer", "minimum": 0},
+    "alerts": {"type": "integer", "minimum": 0},
+    "forecasts": {"type": "integer", "minimum": 0},
+    "incidents": {"type": "integer", "minimum": 0, "maximum": 50},
+    "blocked_events": {"type": "integer", "minimum": 0},
+    "suppressed_events": {"type": "integer", "minimum": 0},
+    "decision_points": {"type": "integer", "minimum": 0, "maximum": 50},
+    "decision_point_limit": {"type": "integer", "minimum": 0, "maximum": 50},
+    "decision_point": {
+      "anyOf": [
+        {"type": "null"},
+        {
+          "type": "object",
+          "properties": {
+            "event_id": {"type": ["integer", "string", "null"]},
+            "from_host": {"type": ["string", "null"]},
+            "to_host": {"type": ["string", "null"]},
+            "reason": {"type": "string", "minLength": 1, "maxLength": 300}
+          },
+          "required": ["event_id", "from_host", "to_host", "reason"],
+          "additionalProperties": false
+        }
+      ]
+    },
+    "recent_counterfactual": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {
+        "type": "object",
+        "properties": {
+          "event_id": {"type": ["integer", "string", "null"]},
+          "source_host": {"type": ["string", "null"]},
+          "target_host": {"type": ["string", "null"]},
+          "result": {"type": "string", "const": "blocked"},
+          "label": {"type": "string", "minLength": 1, "maxLength": 160}
+        },
+        "required": ["event_id", "source_host", "target_host", "result", "label"],
+        "additionalProperties": false
+      }
+    },
+    "simulation_note": {"type": "string", "minLength": 1, "maxLength": 200},
+    "detector_note": {"type": ["string", "null"], "maxLength": 300},
+    "error": {"type": ["string", "null"], "maxLength": 400},
+    "version": {"type": "integer", "minimum": 0}
+  },
+  "required": [
+    "workspace_id", "session_id", "state", "detector_mode", "speed", "batch_size",
+    "processed_events", "total_events", "alerts", "forecasts", "incidents", "blocked_events",
+    "suppressed_events", "decision_points", "decision_point_limit", "decision_point",
+    "recent_counterfactual", "simulation_note", "detector_note", "error", "version"
+  ],
+  "additionalProperties": false
+}
