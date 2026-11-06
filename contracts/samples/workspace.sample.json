@@ -1,0 +1,21 @@
+{
+  "id": "demo-6",
+  "name": "Precog six-host demo",
+  "version": "1.0.0",
+  "status": "active",
+  "counts": {
+    "hosts": 6,
+    "edges": 11,
+    "events": 20,
+    "labelled_events": 20,
+    "routes": 300,
+    "time_span_ms": 6500
+  },
+  "capabilities": {
+    "detection_labels": "native",
+    "host_compromise": "native",
+    "lateral_movement_routes": "native",
+    "topology": "native"
+  },
+  "redistribution": "project-owned"
+}

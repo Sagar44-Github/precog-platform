@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/evaluation_result.schema.json",
+  "title": "Workspace evaluation result",
+  "type": "object",
+  "properties": {
+    "workspace_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$"
+    },
+    "seed": {
+      "type": "integer"
+    },
+    "split": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "metrics": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100
+      },
+      "additionalProperties": {
+        "type": "number"
+      }
+    },
+    "baselines": {
+      "type": "object",
+      "propertyNames": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100
+      },
+      "additionalProperties": {
+        "type": "number"
+      }
+    },
+    "route_provenance": {
+      "type": "string",
+      "enum": [
+        "native",
+        "derived",
+        "simulated",
+        "none"
+      ]
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 1000
+      },
+      "maxItems": 100
+    }
+  },
+  "required": [
+    "workspace_id",
+    "seed",
+    "split",
+    "metrics",
+    "baselines",
+    "route_provenance",
+    "limitations"
+  ],
+  "additionalProperties": false
+}

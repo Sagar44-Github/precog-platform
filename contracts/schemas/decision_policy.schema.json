@@ -1,0 +1,43 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/decision_policy.schema.json",
+  "title": "Replay decision policy",
+  "type": "object",
+  "properties": {
+    "mode": {
+      "type": "string",
+      "enum": [
+        "scenario-pauses",
+        "threshold",
+        "never"
+      ]
+    },
+    "threshold": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "minimum_candidates": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "max_events_per_tick": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 10000
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500
+    }
+  },
+  "required": [
+    "mode",
+    "threshold",
+    "minimum_candidates",
+    "max_events_per_tick",
+    "description"
+  ],
+  "additionalProperties": false
+}

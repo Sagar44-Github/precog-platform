@@ -19,7 +19,7 @@ Each role builds and tests against these files, so nobody waits for anybody.
 
 `data/hosts.json` is the one list of demo hosts (id, name, zone, network address). Every role reads it. Only LEAD-CORE changes it.
 
-## The twelve contracts
+## The original twelve core contracts
 
 | Contract | What it describes | Who produces it | Who reads it |
 |---|---|---|---|
@@ -35,6 +35,19 @@ Each role builds and tests against these files, so nobody waits for anybody.
 | `session_record` | One whole session | LEAD-CORE | history screen |
 | `detection_report` | Offline CICIDS2017 results | DETECT | web apps |
 | `world_state` | What a polling client receives | LEAD-CORE | web apps |
+
+The contract directory also contains the Phase B/C contracts. The current checker validates each schema/sample pair automatically. Phase D1 adds these dataset-pack contracts:
+
+| Contract | What it describes |
+|---|---|
+| `pack_manifest` | Versioned pack metadata, provenance, capabilities, counts, input checksums and content hash |
+| `workspace`, `workspace_list` | Pack summary and list envelope for the future workspace API |
+| `pack_install_job`, `upload_job` | Bounded asynchronous install/upload job shapes; runtime routes arrive in later phases |
+| `dataset_card` | Dataset source, redistribution, capabilities and limitations |
+| `topology_summary` | Paged topology representation |
+| `route` | Ordered route with explicit provenance |
+| `decision_policy` | Replay decision point policy |
+| `evaluation_result` | Generalized evaluation metrics, baselines and limitations |
 
 ## Hook rules (how a role plugs its module into the backend)
 
@@ -52,3 +65,4 @@ Each role's Python package has a `register(ctx)` function. Inside it you hand ov
 `ctx` gives you `ctx.world` (the shared state), `ctx.hooks`, `ctx.config`, `ctx.contracts` and `ctx.nids`.
 Raise `addons.errors.HookError(code, message, status)` to send a clean error to the web app.
 Full details: `lead-core/backend/addons/hooks.py`.
+\n

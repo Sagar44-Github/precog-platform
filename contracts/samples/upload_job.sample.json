@@ -1,0 +1,8 @@
+{
+  "job_id": "upload-0001",
+  "filename": "sample.csv",
+  "state": "sniffing",
+  "bytes_received": 100,
+  "size_limit": 1048576,
+  "message": "Validating format."
+}

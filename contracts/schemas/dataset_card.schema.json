@@ -1,0 +1,130 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/dataset_card.schema.json",
+  "title": "Dataset card summary",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 2000
+    },
+    "source": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "citation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "licence": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "terms_summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "citation",
+        "licence",
+        "terms_summary"
+      ],
+      "additionalProperties": false
+    },
+    "redistribution": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "capabilities": {
+      "type": "object",
+      "properties": {
+        "detection_labels": {
+          "type": "string",
+          "enum": [
+            "native",
+            "derived",
+            "none"
+          ]
+        },
+        "host_compromise": {
+          "type": "string",
+          "enum": [
+            "native",
+            "derived",
+            "none"
+          ]
+        },
+        "lateral_movement_routes": {
+          "type": "string",
+          "enum": [
+            "native",
+            "derived",
+            "none"
+          ]
+        },
+        "topology": {
+          "type": "string",
+          "enum": [
+            "native",
+            "derived",
+            "none"
+          ]
+        }
+      },
+      "required": [
+        "detection_labels",
+        "host_compromise",
+        "lateral_movement_routes",
+        "topology"
+      ],
+      "additionalProperties": false
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 1000
+      },
+      "maxItems": 100
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "summary",
+    "source",
+    "redistribution",
+    "capabilities",
+    "limitations"
+  ],
+  "additionalProperties": false
+}

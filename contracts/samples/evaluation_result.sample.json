@@ -1,0 +1,15 @@
+{
+  "workspace_id": "demo-6",
+  "seed": 0,
+  "split": "held-out routes",
+  "metrics": {
+    "precision_at_1": 0.65
+  },
+  "baselines": {
+    "uniform": 0.55
+  },
+  "route_provenance": "simulated",
+  "limitations": [
+    "Simulation only."
+  ]
+}

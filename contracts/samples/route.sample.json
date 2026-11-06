@@ -1,0 +1,9 @@
+{
+  "route_id": "route-000001",
+  "label": "profile-a",
+  "path": [
+    "host-a",
+    "server-b"
+  ],
+  "provenance": "simulated"
+}

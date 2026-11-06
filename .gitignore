@@ -47,3 +47,6 @@ lead-core/integration/rehearsals.csv
 !docs/audit/**
 docs/audit/**/__pycache__/
 docs/audit/**/*.pyc
+
+# The versioned demo dataset pack is an intentional SQLite asset.
+!packs/demo-6/pack.sqlite

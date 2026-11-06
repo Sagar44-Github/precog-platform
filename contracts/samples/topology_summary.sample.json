@@ -1,0 +1,17 @@
+{
+  "workspace_id": "demo-6",
+  "version": 1,
+  "offset": 0,
+  "total_hosts": 1,
+  "has_more": false,
+  "hosts": [
+    {
+      "host_id": "host-a",
+      "name": "Workstation A",
+      "zone": "user",
+      "role": "workstation",
+      "criticality": 0.3
+    }
+  ],
+  "edges": []
+}

@@ -14,6 +14,8 @@ EXPECTED = {
     "audit_entry", "world_state", "session_record", "session_metrics", "replay_status", "detection_report",
     "forecast_explanation", "what_if_forecast", "forecast_analytics", "operator_profile", "containment_playbook_request",
     "time_travel_snapshot", "session_comparison",
+    "pack_manifest", "workspace", "workspace_list", "pack_install_job", "dataset_card",
+    "topology_summary", "route", "decision_policy", "evaluation_result", "upload_job",
 }
 
 

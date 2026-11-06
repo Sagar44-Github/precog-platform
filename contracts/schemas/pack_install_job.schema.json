@@ -1,0 +1,47 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/pack_install_job.schema.json",
+  "title": "Pack install job",
+  "type": "object",
+  "properties": {
+    "job_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "pack_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$"
+    },
+    "state": {
+      "type": "string",
+      "enum": [
+        "queued",
+        "running",
+        "completed",
+        "failed",
+        "cancelled"
+      ]
+    },
+    "progress": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "message": {
+      "type": "string",
+      "minLength": 0,
+      "maxLength": 1000
+    }
+  },
+  "required": [
+    "job_id",
+    "pack_id",
+    "state",
+    "progress",
+    "message"
+  ],
+  "additionalProperties": false
+}

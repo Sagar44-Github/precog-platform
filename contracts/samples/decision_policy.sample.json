@@ -1,0 +1,7 @@
+{
+  "mode": "scenario-pauses",
+  "threshold": 0.8,
+  "minimum_candidates": 2,
+  "max_events_per_tick": 1000,
+  "description": "Pause at scripted decision points."
+}

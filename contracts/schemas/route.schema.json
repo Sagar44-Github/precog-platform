@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/route.schema.json",
+  "title": "Dataset route",
+  "type": "object",
+  "properties": {
+    "route_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "label": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "path": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 64,
+        "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$"
+      },
+      "minItems": 1,
+      "maxItems": 1000
+    },
+    "provenance": {
+      "type": "string",
+      "enum": [
+        "native",
+        "derived",
+        "simulated"
+      ]
+    }
+  },
+  "required": [
+    "route_id",
+    "label",
+    "path",
+    "provenance"
+  ],
+  "additionalProperties": false
+}

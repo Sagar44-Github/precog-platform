@@ -1,0 +1,22 @@
+{
+  "id": "demo-6",
+  "name": "Precog six-host demo",
+  "summary": "Deterministic simulation.",
+  "source": {
+    "id": "project-demo-6",
+    "name": "Demo fixtures",
+    "citation": "Precog project",
+    "licence": "Project-owned simulation",
+    "terms_summary": "No external data."
+  },
+  "redistribution": "project-owned",
+  "capabilities": {
+    "detection_labels": "native",
+    "host_compromise": "native",
+    "lateral_movement_routes": "native",
+    "topology": "native"
+  },
+  "limitations": [
+    "Not real network traffic."
+  ]
+}

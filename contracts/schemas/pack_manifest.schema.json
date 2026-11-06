@@ -1,0 +1,354 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://precog.local/contracts/pack_manifest.schema.json",
+  "title": "Dataset pack manifest",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^[a-z0-9](?:[a-z0-9-]{0,62}[a-z0-9])?$"
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 200
+    },
+    "version": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 40,
+      "pattern": "^\\d+\\.\\d+\\.\\d+$"
+    },
+    "builder_version": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "seed": {
+      "type": "integer"
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "source": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "citation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        },
+        "licence": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        },
+        "terms_summary": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1000
+        }
+      },
+      "required": [
+        "id",
+        "name",
+        "citation",
+        "licence",
+        "terms_summary"
+      ],
+      "additionalProperties": false
+    },
+    "redistribution": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 100
+    },
+    "size_bytes": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 26214400
+    },
+    "counts": {
+      "type": "object",
+      "properties": {
+        "hosts": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "edges": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "events": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "labelled_events": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "routes": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "time_span_ms": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "hosts",
+        "edges",
+        "events",
+        "labelled_events",
+        "routes",
+        "time_span_ms"
+      ],
+      "additionalProperties": false
+    },
+    "capabilities": {
+      "type": "object",
+      "properties": {
+        "detection_labels": {
+          "type": "string",
+          "enum": [
+            "native",
+            "derived",
+            "none"
+          ]
+        },
+        "host_compromise": {
+          "type": "string",
+          "enum": [
+            "native",
+            "derived",
+            "none"
+          ]
+        },
+        "lateral_movement_routes": {
+          "type": "string",
+          "enum": [
+            "native",
+            "derived",
+            "none"
+          ]
+        },
+        "topology": {
+          "type": "string",
+          "enum": [
+            "native",
+            "derived",
+            "none"
+          ]
+        }
+      },
+      "required": [
+        "detection_labels",
+        "host_compromise",
+        "lateral_movement_routes",
+        "topology"
+      ],
+      "additionalProperties": false
+    },
+    "attack_classes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "compromise_semantics": {
+            "type": "string",
+            "enum": [
+              "access-attempt",
+              "impact-only",
+              "reconnaissance",
+              "command-and-control",
+              "lateral-movement"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "compromise_semantics"
+        ],
+        "additionalProperties": false
+      },
+      "maxItems": 100
+    },
+    "technique_mapping": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "attack_class": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "technique_ids": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 40
+            },
+            "maxItems": 100
+          },
+          "assumption": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000
+          }
+        },
+        "required": [
+          "attack_class",
+          "technique_ids",
+          "assumption"
+        ],
+        "additionalProperties": false
+      },
+      "maxItems": 1000
+    },
+    "detector_options": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "labels",
+          "model",
+          "nids-live",
+          "graph-novelty"
+        ]
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "default_decision_policy": {
+      "type": "object",
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "scenario-pauses",
+            "threshold",
+            "never"
+          ]
+        },
+        "threshold": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "minimum_candidates": {
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": [
+        "mode",
+        "threshold",
+        "minimum_candidates"
+      ],
+      "additionalProperties": false
+    },
+    "display_hints": {
+      "type": "object",
+      "properties": {
+        "zones": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 100
+          },
+          "maxItems": 100
+        },
+        "clusters": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "layout": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        }
+      },
+      "required": [
+        "zones",
+        "clusters",
+        "layout"
+      ],
+      "additionalProperties": false
+    },
+    "source_file_checksums": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "path": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500
+          },
+          "sha256": {
+            "type": "string",
+            "minLength": 64,
+            "maxLength": 64,
+            "pattern": "^[a-f0-9]{64}$"
+          }
+        },
+        "required": [
+          "path",
+          "sha256"
+        ],
+        "additionalProperties": false
+      },
+      "maxItems": 10000
+    },
+    "content_hash": {
+      "type": "string",
+      "minLength": 64,
+      "maxLength": 64,
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  },
+  "required": [
+    "id",
+    "name",
+    "version",
+    "builder_version",
+    "seed",
+    "created_at",
+    "source",
+    "redistribution",
+    "size_bytes",
+    "counts",
+    "capabilities",
+    "attack_classes",
+    "technique_mapping",
+    "detector_options",
+    "default_decision_policy",
+    "display_hints",
+    "source_file_checksums",
+    "content_hash"
+  ],
+  "additionalProperties": false
+}
