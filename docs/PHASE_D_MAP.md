@@ -1,6 +1,6 @@
 # Phase D map and D0 dataset gate
 
-Status: D3 synthetic packs and evaluation are implemented on `phase-d3-synthetic-packs`; final regression verification is in progress. The baseline below records the D0 audit and remains historical evidence.
+Status: D5 builders and fixture tests are implemented on `phase-d5-real-data-builders`; verification is green. No public source corpus is downloaded or installed. The baseline below records the D0 audit and remains historical evidence.
 
 ## Baseline
 
@@ -86,3 +86,7 @@ The D0 browser audit, original registry, and source gate records remain historic
 - `demo-6` remains the boot default. Its legacy evaluation output is preserved; extended MRR and candidate-set metrics are opt-in for generated packs.
 - The Zoo-derived synthetic proposal is deferred because the D3 pack must not include topology data whose per-source redistribution terms have not been verified. D3 instead uses the project-owned `synth-enterprise-300` pack.
 - Final D3 verification: root Python **522 passed, 1 skipped**; offline detector **50 passed, 1 skipped**; web **151 passed** plus one path-with-spaces check; contracts **70 OK**; Golden Path **1/1 PASS**; all five installed packs validate. Full command details and limitations are in `docs/PHASE_D3_REPORT.md`.
+
+## D5 delivery status
+
+Offline builders and small-fixture coverage now exist for all eight requested public sources plus a gated GraphML-to-simulation adapter. No raw public source was downloaded or bundled, so these entries remain uninstalled and there are no claimed full-corpus evaluations. LANL, CIC-IoT-2023, ToN_IoT, UNSW-NB15 and CIDDS-001 remain local-only pending access or redistribution review; attribution-enabled sources still need exact selected-file verification. CTU-13's binary Argus inputs must be exported to the documented CSV form before building. The Topology Zoo adapter requires a per-file terms/citation/hash record and produces generated attack activity, not source observations. Current test commands and results are recorded in `docs/PHASE_D5_REPORT.md`.

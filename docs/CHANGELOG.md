@@ -1,5 +1,12 @@
 # Changelog
 
+## Phase D5 — real-source builders (2026-11-06)
+
+- Added checksum-staged local builders for LANL Cyber1, CSE-CIC-IDS2018, CIC-IDS2017, CTU-13 text exports, CIC-IoT-2023, ToN_IoT network CSV, UNSW-NB15, and CIDDS-001.
+- Added a per-topology GraphML gate and simulation builder; source topology labels/addresses are discarded and generated attacks/routes are marked as derived simulation.
+- Added bounded parsing, deterministic pseudonymization, pack validation, source cards and fixture tests. No public raw corpus was obtained; the registry keeps the eight real sources uninstalled pending manual download and applicable terms review.
+- No contract, runtime endpoint, UI, or NIDS file changed.
+
 ## Phase D4 — Streaming dataset pipeline (2026-11-06)
 
 - Added bounded SQLite replay for installed dataset packs, with time compression, time windows, batch limits, pause/resume/stop, and manifested automatic decision points.
