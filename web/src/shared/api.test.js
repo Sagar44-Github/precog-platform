@@ -90,3 +90,22 @@ test('workspace UI helpers use the existing registry, card, and confirmed activa
   assert.equal(calls[2].url, '/api/x/workspaces/synth-enterprise-30/activate')
   assert.deepEqual(JSON.parse(calls[2].options.body), { confirm: true })
 })
+
+test('upload preview uses multipart form data and the same-origin request header', async (t) => {
+  const originalFetch = globalThis.fetch
+  let requested
+  globalThis.fetch = async (url, options) => {
+    requested = { url: String(url), options }
+    return { ok: true, status: 202, json: async () => ({ job_id: 'upload-preview' }) }
+  }
+  t.after(() => { globalThis.fetch = originalFetch })
+  const file = new Blob(['time,src,dst\\n0,a,b\\n'], { type: 'text/csv' })
+  await api.previewUpload(file)
+  assert.equal(requested.url, '/api/x/workspaces/upload/preview')
+  assert.equal(requested.options.headers['X-Precog-Request'], '1')
+  assert.equal(Object.hasOwn(requested.options.headers, 'Content-Type'), false)
+  const uploaded = requested.options.body.get('file')
+  assert.equal(uploaded.name, 'blob')
+  assert.equal(uploaded.type, 'text/csv')
+  assert.equal(await uploaded.text(), 'time,src,dst\\n0,a,b\\n')
+})

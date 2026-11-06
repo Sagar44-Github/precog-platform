@@ -15,6 +15,7 @@ from .webapp import register_webapp
 from .world_state import WorldState
 from .workspaces import WorkspaceManager
 from .dataset_pipeline import DatasetPipeline
+from .uploads import UploadManager, upload_limit
 
 log = logging.getLogger("precog.addons")
 
@@ -68,6 +69,9 @@ def _load_role_packages(ctx, packages):
 
 def register_addons(flask_app, repo_root, nids, packages=ROLE_PACKAGES):
     config = Config.from_env(repo_root)
+    max_upload_bytes = upload_limit()
+    flask_app.config["MAX_CONTENT_LENGTH"] = max_upload_bytes + 256 * 1024
+    flask_app.extensions["precog_upload_max_bytes"] = max_upload_bytes
     # Some isolated role tests deliberately boot add-ons without the NIDS database.
     # Create optional demo accounts only when the real user/password store is available.
     if nids is not None and all(hasattr(nids, name) for name in ("SessionLocal", "User", "bcrypt")):
@@ -96,6 +100,8 @@ def register_addons(flask_app, repo_root, nids, packages=ROLE_PACKAGES):
         flask_app.extensions["precog_workspaces"] = manager
         pipeline = DatasetPipeline(ctx, manager)
         flask_app.extensions["precog_pipeline"] = pipeline
+        flask_app.extensions["precog_uploads"] = UploadManager(config.data_dir, config.data_dir / "user_packs",
+                                                                 config.contracts_dir)
     flask_app.register_blueprint(bp)
     register_webapp(flask_app, config)
 

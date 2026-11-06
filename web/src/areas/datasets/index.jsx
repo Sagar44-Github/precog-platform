@@ -37,7 +37,7 @@ export default function DatasetsPage() {
   const items = data?.workspaces || []
   const active = data?.active_workspace || ''
   return <PageFrame className="datasets-page">
-    <PageHeader eyebrow="DATA / WORKSPACES" title="Dataset workspaces" description="Inspect installed packs and registered data sources. Availability and capability labels describe this local deployment; unavailable packs cannot be activated." actions={<Link className="ops-button ops-button-secondary" to={`/datasets/compare?left=${encodeURIComponent(active || 'demo-6')}`}>Compare datasets</Link>} />
+    <PageHeader eyebrow="DATA / WORKSPACES" title="Dataset workspaces" description="Inspect installed packs and registered data sources. Availability and capability labels describe this local deployment; unavailable packs cannot be activated." actions={<><Link className="ops-button ops-button-secondary" to="/datasets/upload">Upload dataset</Link><Link className="ops-button ops-button-secondary" to={`/datasets/compare?left=${encodeURIComponent(active || 'demo-6')}`}>Compare datasets</Link></>} />
     {loading && !data && <LoadingMessage label="Loading registered dataset packs…" />}
     {error && !data && <ErrorMessage message={error} onRetry={refresh} />}
     <section className="dataset-grid" aria-label="Registered datasets">{items.map((item) => <article className={`dataset-card${item.status === 'unavailable' ? ' is-unavailable' : ''}`} key={item.id}>

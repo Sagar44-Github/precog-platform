@@ -46,6 +46,24 @@ export const apiGet = (path) => request('GET', path)
 export const apiPost = (path, body = {}) => request('POST', path, body)
 export const apiDelete = (path) => request('DELETE', path)
 
+export async function apiUpload(path, file) {
+  const form = new FormData()
+  form.append('file', file)
+  let response
+  try {
+    response = await fetch(path, { method: 'POST', credentials: 'same-origin', headers: { 'X-Precog-Request': '1' }, body: form })
+  } catch {
+    throw new NetworkError('Cannot reach the server.')
+  }
+  let data = null
+  try { data = await response.json() } catch {}
+  if (!response.ok) {
+    const info = data?.error || {}
+    throw new ApiError(response.status, info.code || `http_${response.status}`, info.message || 'The server answered with an error.')
+  }
+  return data
+}
+
 // Named helpers, one per backend endpoint the screens need. Names match docs: TRD section 11.
 export const api = {
   health: () => apiGet('/api/x/health'),
@@ -140,4 +158,8 @@ export const api = {
   activeWorkspace: () => apiGet('/api/x/workspaces/active'),
   workspaceCard: (id) => apiGet(`/api/x/workspaces/${encodeURIComponent(id)}/card`),
   activateWorkspace: (id) => apiPost(`/api/x/workspaces/${encodeURIComponent(id)}/activate`, { confirm: true }),
+  previewUpload: (file) => apiUpload('/api/x/workspaces/upload/preview', file),
+  buildUpload: (jobId, options) => apiPost(`/api/x/workspaces/upload/jobs/${encodeURIComponent(jobId)}/build`, options),
+  uploadStatus: (jobId) => apiGet(`/api/x/workspaces/upload/jobs/${encodeURIComponent(jobId)}`),
+  cancelUpload: (jobId) => apiPost(`/api/x/workspaces/upload/jobs/${encodeURIComponent(jobId)}/cancel`, {}),
 }

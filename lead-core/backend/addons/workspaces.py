@@ -38,7 +38,8 @@ class WorkspaceManager:
         self.ctx = addon_context
         self.root = Path(addon_context.config.repo_root)
         self.data_root = Path(addon_context.config.data_dir) / "workspaces"
-        self.store = store or PackStore(self.root / "packs", addon_context.config.contracts_dir)
+        self.store = store or PackStore(self.root / "packs", addon_context.config.contracts_dir,
+                                        additional_roots=(Path(addon_context.config.data_dir) / "user_packs",))
         self._lock = threading.RLock()
         self.version = 1
         self._buckets = {}

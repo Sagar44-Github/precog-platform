@@ -287,7 +287,7 @@ export default function AppShell({ children }) {
       : location.pathname.startsWith('/lab') ? 'What-if lab'
         : location.pathname.startsWith('/analytics') ? 'Model analytics'
       : location.pathname.startsWith('/containment') ? 'Response governance'
-        : location.pathname.startsWith('/datasets') ? (location.pathname.endsWith('/compare') ? 'Dataset comparison' : location.pathname.split('/').length > 2 ? 'Dataset details' : 'Dataset workspaces')
+        : location.pathname.startsWith('/datasets') ? (location.pathname.endsWith('/compare') ? 'Dataset comparison' : location.pathname.endsWith('/upload') ? 'Dataset upload' : location.pathname.split('/').length > 2 ? 'Dataset details' : 'Dataset workspaces')
     : location.pathname.includes('/compare') ? 'Run comparison'
           : location.pathname.startsWith('/runs') ? 'Run history' : 'Live console'
   const activeWorkspaceInfo = workspaces.find((item) => item.id === activeWorkspace)

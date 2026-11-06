@@ -38,6 +38,31 @@
       "type": "string",
       "minLength": 0,
       "maxLength": 1000
+    },
+    "progress": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "pack_id": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64,
+      "pattern": "^user-[a-z0-9](?:[a-z0-9-]{0,57}[a-z0-9])?$"
+    },
+    "preview": {
+      "type": "object",
+      "properties": {
+        "format": { "type": "string", "enum": ["pack-zip", "csv", "tsv", "json-events"] },
+        "columns": { "type": "array", "items": { "type": "string", "maxLength": 200 }, "maxItems": 200 },
+        "sample_rows": { "type": "array", "items": { "type": "object", "maxProperties": 200 }, "maxItems": 5 },
+        "row_estimate": { "type": ["integer", "null"], "minimum": 0 },
+        "warnings": { "type": "array", "items": { "type": "string", "maxLength": 500 }, "maxItems": 20 },
+        "pack_name": { "type": "string", "maxLength": 200 },
+        "expanded_bytes": { "type": "integer", "minimum": 0, "maximum": 26214400 }
+      },
+      "required": ["format", "columns", "sample_rows", "row_estimate", "warnings"],
+      "additionalProperties": false
     }
   },
   "required": [
