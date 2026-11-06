@@ -249,33 +249,46 @@ class DatasetPack:
 
 
 class PackStore:
-    """Read-only pack registry bounded to a single trusted pack root."""
-    def __init__(self, root, contracts_dir=None):
+    """Read-only pack registry bounded to trusted shipped and runtime roots."""
+    def __init__(self, root, contracts_dir=None, additional_roots=()):
         self.root = Path(root).resolve()
+        self.additional_roots = tuple(Path(item).resolve() for item in additional_roots)
         self.contracts_dir = Path(contracts_dir).resolve() if contracts_dir else None
+
+    @property
+    def roots(self):
+        return tuple(dict.fromkeys((Path(self.root).resolve(), *self.additional_roots)))
 
     def open(self, pack_id: str) -> DatasetPack:
         if not isinstance(pack_id, str) or not PACK_ID.fullmatch(pack_id):
             raise PackError("Invalid pack id")
-        path = (self.root / pack_id).resolve()
-        if path.parent != self.root:
-            raise PackError("Pack path escapes the configured pack root")
-        manifest = validate_pack(path, self.contracts_dir)
-        if manifest["id"] != pack_id:
-            raise PackError("Pack id does not match the requested store id")
-        return DatasetPack(path, manifest)
+        for root in self.roots:
+            path = (root / pack_id).resolve()
+            if path.parent != root:
+                raise PackError("Pack path escapes the configured pack root")
+            if path.is_dir():
+                manifest = validate_pack(path, self.contracts_dir)
+                if manifest["id"] != pack_id:
+                    raise PackError("Pack id does not match the requested store id")
+                return DatasetPack(path, manifest)
+        raise PackError("Pack is not installed")
 
     def list_packs(self) -> list[dict]:
         """Return validated manifest summaries for packs directly under the store root."""
-        if not self.root.is_dir():
-            return []
         summaries = []
-        for path in sorted(self.root.iterdir()):
-            if path.is_dir() and PACK_ID.fullmatch(path.name):
-                if path.is_symlink() or path.resolve().parent != self.root:
-                    raise PackError("Pack store entries cannot be symlinks or escape the pack root")
-                manifest = validate_pack(path, self.contracts_dir)
-                summaries.append({"id": manifest["id"], "name": manifest["name"], "version": manifest["version"], "counts": manifest["counts"], "capabilities": manifest["capabilities"]})
+        seen = set()
+        for root in self.roots:
+            if not root.is_dir():
+                continue
+            for path in sorted(root.iterdir()):
+                if path.is_dir() and PACK_ID.fullmatch(path.name):
+                    if path.is_symlink() or path.resolve().parent != root:
+                        raise PackError("Pack store entries cannot be symlinks or escape the pack root")
+                    if path.name in seen:
+                        raise PackError("Duplicate pack id across configured pack roots")
+                    seen.add(path.name)
+                    manifest = validate_pack(path, self.contracts_dir)
+                    summaries.append({"id": manifest["id"], "name": manifest["name"], "version": manifest["version"], "counts": manifest["counts"], "capabilities": manifest["capabilities"]})
         return summaries
 
 

@@ -30,6 +30,7 @@ const TopologyExplorerPage = lazy(() => import('./areas/console/topology-explore
 const DatasetsPage = lazy(() => import('./areas/datasets/index.jsx'))
 const DatasetDetailPage = lazy(() => import('./areas/datasets/index.jsx').then((module) => ({ default: module.DatasetDetailPage })))
 const DatasetComparePage = lazy(() => import('./areas/datasets/index.jsx').then((module) => ({ default: module.DatasetComparePage })))
+const DatasetUploadPage = lazy(() => import('./areas/datasets/upload.jsx'))
 import { UiPreferencesProvider } from './shared/ui-preferences.jsx'
 
 function WorkspacePage({ children }) {
@@ -56,6 +57,7 @@ export default function App() {
         <Route path="/system" element={<WorkspacePage><SystemPage /></WorkspacePage>} />
         <Route path="/settings" element={<WorkspacePage><SettingsPage /></WorkspacePage>} />
         <Route path="/datasets" element={<WorkspacePage><DatasetsPage /></WorkspacePage>} />
+        <Route path="/datasets/upload" element={<WorkspacePage><DatasetUploadPage /></WorkspacePage>} />
         <Route path="/datasets/compare" element={<WorkspacePage><DatasetComparePage /></WorkspacePage>} />
         <Route path="/datasets/:id" element={<WorkspacePage><DatasetDetailPage /></WorkspacePage>} />
         <Route path="/incidents/*" element={<WorkspacePage><IncidentsApp /></WorkspacePage>} />

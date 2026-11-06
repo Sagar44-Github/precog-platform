@@ -4,5 +4,13 @@
   "state": "sniffing",
   "bytes_received": 100,
   "size_limit": 1048576,
-  "message": "Validating format."
+  "message": "Validating format.",
+  "progress": 0.1,
+  "preview": {
+    "format": "csv",
+    "columns": ["time", "src", "dst", "label"],
+    "sample_rows": [{"time": "0", "src": "endpoint-a", "dst": "endpoint-b", "label": "scan"}],
+    "row_estimate": null,
+    "warnings": ["Input will be pseudonymized by default."]
+  }
 }

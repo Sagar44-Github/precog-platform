@@ -51,3 +51,5 @@ docs/audit/**/*.pyc
 # The versioned demo dataset pack is an intentional SQLite asset.
 !packs/demo-6/pack.sqlite
 !packs/synth-*/pack.sqlite
+packs/user-*/
+packs/.upload-*/

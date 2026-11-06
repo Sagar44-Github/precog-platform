@@ -19,6 +19,7 @@ import re
 from . import auth
 from .contracts import ContractError
 from .dataset_packs import PackError
+from .uploads import UploadError
 from .errors import ApiError
 
 bp = Blueprint("precog_addons", __name__, url_prefix="/api/x")
@@ -95,9 +96,14 @@ def _protect_cookie_writes():
         return None
     if not current_user.is_authenticated:
         return None  # protected views return the existing JSON 401 response
-    if not request.is_json:
+    is_upload_preview = request.endpoint == "precog_addons.workspace_upload_preview"
+    if is_upload_preview and request.mimetype != "multipart/form-data":
+        raise ApiError("multipart_required", "Upload the file using multipart/form-data.", 415)
+    if not is_upload_preview and not request.is_json:
         raise ApiError("json_required", "Send writes as application/json.", 415)
-    if request.content_length is not None and request.content_length > MAX_WRITE_BYTES:
+    if is_upload_preview and request.content_length is not None and request.content_length > current_app.extensions.get("precog_upload_max_bytes", 0) + 256 * 1024:
+        raise ApiError("request_too_large", "Upload exceeds the configured file-size limit.", 413)
+    if not is_upload_preview and request.content_length is not None and request.content_length > MAX_WRITE_BYTES:
         raise ApiError("request_too_large", "The JSON request is larger than 32 KB.", 413)
     if request.headers.get("X-Precog-Request") != "1":
         raise ApiError("csrf_rejected", "This write did not include the required same-origin request header.", 403)
@@ -303,6 +309,62 @@ def workspace_install():
     _audit_workspace(_workspaces().active.pack_id, "validated local pack %s for workspace installation" % pack_id)
     return jsonify(_out("pack_install_job", {"job_id": "install-%s" % pack_id, "pack_id": pack_id,
         "state": "completed", "progress": 1.0, "message": "Validated local pack %s (%.2f MiB)." % (pack_id, manifest["size_bytes"] / 1048576)}))
+
+
+def _uploads():
+    service = current_app.extensions.get("precog_uploads")
+    if service is None:
+        raise ApiError("not_built", "Dataset uploads are unavailable.", 501)
+    return service
+
+
+@bp.post("/workspaces/upload/preview")
+@auth.demo_role_required("admin")
+@auth.rate_limit(max_requests=5, window_seconds=60)
+def workspace_upload_preview():
+    upload = request.files.get("file")
+    if upload is None or not upload.filename:
+        raise ApiError("bad_upload", "Choose a file before previewing.", 400)
+    try:
+        result = _uploads().preview(upload, upload.filename)
+    except UploadError as exc:
+        raise ApiError("invalid_upload", str(exc), 400)
+    _audit_workspace(_workspaces().active.pack_id, "received dataset upload %s (%d bytes) for preview" % (result["job_id"], result["bytes_received"]))
+    return jsonify(_out("upload_job", result)), 202
+
+
+@bp.get("/workspaces/upload/jobs/<job_id>")
+@auth.demo_role_required("admin")
+def workspace_upload_status(job_id):
+    try:
+        result = _uploads().status(job_id)
+    except UploadError as exc:
+        raise ApiError("upload_not_found", str(exc), 404)
+    return jsonify(_out("upload_job", result))
+
+
+@bp.post("/workspaces/upload/jobs/<job_id>/build")
+@auth.demo_role_required("admin")
+@auth.rate_limit(max_requests=3, window_seconds=60)
+def workspace_upload_build(job_id):
+    try:
+        result = _uploads().build(job_id, _body())
+    except UploadError as exc:
+        raise ApiError("invalid_upload", str(exc), 400)
+    _audit_workspace(_workspaces().active.pack_id, "started dataset upload build %s" % job_id)
+    return jsonify(_out("upload_job", result)), 202
+
+
+@bp.post("/workspaces/upload/jobs/<job_id>/cancel")
+@auth.demo_role_required("admin")
+def workspace_upload_cancel(job_id):
+    _body()
+    try:
+        result = _uploads().cancel(job_id)
+    except UploadError as exc:
+        raise ApiError("upload_not_cancellable", str(exc), 409)
+    _audit_workspace(_workspaces().active.pack_id, "cancelled dataset upload %s" % job_id)
+    return jsonify(_out("upload_job", result))
 
 
 @bp.post("/workspaces/<workspace_id>/activate")
