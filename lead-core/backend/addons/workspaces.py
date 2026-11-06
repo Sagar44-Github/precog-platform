@@ -276,5 +276,3 @@ class WorkspaceManager:
 
     def feed_version(self):
         return self.version
-
-\n
