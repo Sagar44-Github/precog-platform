@@ -48,6 +48,9 @@ The contract directory also contains the Phase B/C contracts. The current checke
 | `route` | Ordered route with explicit provenance |
 | `decision_policy` | Replay decision point policy |
 | `evaluation_result` | Generalized evaluation metrics, baselines and limitations |
+| `dataset_pipeline_status` | Bounded progress and counterfactual summary for SQLite pack streaming |
+
+Phase D4 extends `security_event.source` for direct dataset-label playback, graph-novelty estimates, and recorded-data counterfactual blocks. Workspace graph zones are now arbitrary bounded names, while the six-host demo continues to use `user`, `dmz`, and `internal`. `feed_versions.versions.pipeline` is an additive process-local version for stream progress.
 
 ## Hook rules (how a role plugs its module into the backend)
 

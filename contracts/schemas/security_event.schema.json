@@ -61,7 +61,10 @@
       "type": "string",
       "enum": [
         "nids_detector",
-        "scripted"
+        "scripted",
+        "dataset_labels",
+        "graph_novelty",
+        "recorded_counterfactual"
       ]
     }
   },

@@ -1,5 +1,14 @@
 # Changelog
 
+## Phase D4 — Streaming dataset pipeline (2026-11-06)
+
+- Added bounded SQLite replay for installed dataset packs, with time compression, time windows, batch limits, pause/resume/stop, and manifested automatic decision points.
+- Added declared synthetic-pack `labels` and `graph-novelty` modes. Label playback is explicitly trivial ground-truth replay; graph novelty is identified as a simple estimate. Unsupported traffic-model and non-demo NIDS modes return clear errors.
+- Routed dataset detections through the existing security-event, live graph, Precog, incident, and two-step containment hooks without inserting large streams into NIDS.
+- Recorded-data containment now counts and samples blocked destination rows, suppresses rows from contained sources, and keeps pack SQLite read-only. Status labels this as “Simulated what-if on recorded data.”
+- Added `/api/x/pipeline` controls, a feed version, and a status contract; generalized graph-zone contract values for larger workspace topologies.
+- Added end-to-end, determinism, role, counterfactual, and 100,000-event memory/payload tests. demo-6 replay behavior remains on the existing pipeline.
+
 ## Phase B1.5 — Interactive 3D landing experience (2026-11-05)
 
 - Replaced the app's public default redirect with a public Precog SOC landing route. Authenticated console and phone routes remain protected.

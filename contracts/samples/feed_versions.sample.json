@@ -6,6 +6,7 @@
     "runs": 1,
     "actions": 2,
     "notes": 1,
-    "workspace": 1
+    "workspace": 1,
+    "pipeline": 0
   }
 }

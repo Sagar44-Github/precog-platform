@@ -44,6 +44,22 @@ def main():
         if path.name[: -len(".sample.json")] not in schemas:
             print("SAMPLE WITHOUT SCHEMA", path.name)
             problems += 1
+
+    # Phase D4's runtime extension is intentionally additive: demo-6's existing
+    # contracts still validate, while dataset sources and workspace zones are accepted.
+    security = schemas.get("security_event", {}).get("properties", {}).get("source", {}).get("enum", [])
+    expected_sources = {"dataset_labels", "graph_novelty", "recorded_counterfactual"}
+    if not expected_sources <= set(security):
+        print("MISSING DATASET SOURCES", ", ".join(sorted(expected_sources - set(security))))
+        problems += 1
+    zone_schema = schemas.get("graph_snapshot", {}).get("properties", {}).get("hosts", {}).get("items", {}).get("properties", {}).get("zone", {})
+    if zone_schema.get("type") != "string" or "enum" in zone_schema:
+        print("GRAPH ZONES DO NOT ALLOW WORKSPACE-SPECIFIC VALUES")
+        problems += 1
+    feed_versions = schemas.get("feed_versions", {}).get("properties", {}).get("versions", {}).get("properties", {})
+    if "pipeline" not in feed_versions:
+        print("MISSING FEED DOMAIN", "pipeline")
+        problems += 1
     if problems:
         print("%d problem(s) found" % problems)
         return 1

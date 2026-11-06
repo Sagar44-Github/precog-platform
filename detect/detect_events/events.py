@@ -12,7 +12,7 @@ import threading
 from datetime import datetime, timezone
 
 from .audit import utc_now
-from .explain import explain_packet, explain_technique
+from .explain import explain_dataset_event, explain_packet, explain_technique
 
 ALERT_SEVERITIES = ("HIGH", "MEDIUM", "LOW")
 DEFAULT_RISK = {"HIGH": 90.0, "MEDIUM": 65.0, "LOW": 35.0}
@@ -133,6 +133,50 @@ class EventProcessor:
             "technique_id": technique["id"],
             "technique_name": technique["name"],
             "source": "scripted",
+        }
+        return self._finish(event)
+
+    def process_dataset_event(self, row, compromise=False):
+        """Publish one bounded dataset-pipeline alert using pack host names and provenance.
+
+        This path is separate from NIDS packet processing: large packs never enter NIDS's
+        retained packet table or its whole-table detector reads.
+        """
+        if not isinstance(row, dict):
+            raise ValueError("dataset event must be an object")
+        host = row.get("host")
+        if not self.hosts.is_known(host):
+            raise ValueError("Unknown dataset host '%s'" % host)
+        severity = row.get("severity", "HIGH")
+        if row.get("blocked"):
+            severity = "HIGH"
+        elif row.get("source") == "graph_novelty" and severity not in ALERT_SEVERITIES:
+            severity = "MEDIUM"
+        if severity not in ALERT_SEVERITIES:
+            return None
+        source = row.get("source")
+        if source not in ("dataset_labels", "graph_novelty", "recorded_counterfactual"):
+            raise ValueError("source must identify a supported dataset pipeline mode")
+        technique_id = row.get("technique_id")
+        technique = self.techniques.get(technique_id) if technique_id else None
+        if technique_id and technique is None:
+            raise ValueError("Unknown mapped technique '%s'" % technique_id)
+        event = {
+            "event_id": self._next_id(),
+            "ts": to_iso_utc(row.get("timestamp")),
+            "host": host,
+            "packet_id": row.get("packet_id") if isinstance(row.get("packet_id"), int) and not isinstance(row.get("packet_id"), bool) else None,
+            "anomaly": source != "dataset_labels" or bool(row.get("label")),
+            "risk_score": DEFAULT_RISK[severity],
+            "severity": severity,
+            "explanation": explain_dataset_event(
+                self.hosts.name_of(host), row.get("label"), row.get("attack_class"),
+                technique=technique, blocked=bool(row.get("blocked")),
+                detector_mode="graph-novelty" if source == "graph_novelty" else "labels",
+            ),
+            "technique_id": technique["id"] if technique else None,
+            "technique_name": technique["name"] if technique else None,
+            "source": source,
         }
         return self._finish(event)
 

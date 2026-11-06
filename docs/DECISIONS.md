@@ -14,3 +14,12 @@
 - Keep the Zoo-derived synthetic pack as a reserve, outside the runnable workspace registry, until individual topology files have verified redistribution terms and attribution. The [official dataset page](https://topology-zoo.org/dataset.html) requests citation; the [official source repository](https://github.com/sk2/topologyzoo) does not establish blanket terms for all contributed records. No Zoo topology is included in D3.
 - Label every generated event, route, weakness and capability as simulation. Per-pack held-out scores evaluate only generator-produced route patterns and are not real-world security-performance claims.
 - Preserve demo-6 evaluation output by keeping the extended metrics opt-in for generated packs; legacy `evaluate()` callers retain the prior schema and values.
+
+## Phase D4 streaming adapter — 2026-11-06
+
+- Use one bounded in-process worker for dataset-pack streaming. Keep demo-6 on the original NIDS replay path and reject `nids-live`/traffic `model` modes for synthetic packs until a separately evaluated detector exists.
+- Expose two synthetic pack modes: trivial ground-truth label playback and a simple graph-novelty estimate with a 20% ordered warm-up window. Do not present either as real-world protection.
+- Use one automatic analyst decision point by default so a large synthetic replay is demonstrable without stalling at every generated campaign. The request can set the limit from 0 to 50; the existing replay decision timeout still applies.
+- Keep dataset SQLite files immutable. Count every record addressed to a contained destination as blocked and every record from a contained source as suppressed; retain only 20 recent blocked examples. Containment remains in-memory and two-step.
+- Reduce only the large-workspace time-travel ring to 32 snapshots and keep the demo-6 ring unchanged. The full world-state field shape stays the same; static pack topology remains the source for complete feasible links.
+- Generalize `graph_snapshot.zone` to bounded workspace-specific text because a 300-host pack has six named zones; the original demo values stay valid.

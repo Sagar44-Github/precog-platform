@@ -2,10 +2,11 @@
 
 Phase D3 bundled synthetic workspace. This content is a deterministic **SIMULATION**, generated entirely by the Precog project. It is not captured network traffic and contains no real attacker activity or vulnerabilities.
 
-- **Generator:** `precog-synthetic-generator/1.1.0` (`lead-core/backend/addons/synthetic_packs.py`), seed `3001`.
+- **Generator:** `precog-synthetic-generator/1.2.0` (`lead-core/backend/addons/synthetic_packs.py`), seed `3001`.
 - **Profile:** `synth-enterprise-30`; 30 hosts across 4 zones; 180 feasible links; 1 simulated decoy assets.
 - **Generated records:** 711 events (711 labeled by construction), 180 ordered training routes, 22760 ms simulated time span.
-- **Bundle:** `packs/synth-enterprise-30`, 374973 bytes; payload SHA-256 `045c2a310578535a6e7a9783814105450c1187dffe67e6baa6522bdf508ce681`.
+- **Bundle:** `packs/synth-enterprise-30`, 373250 bytes; payload SHA-256 `9dc522cb082d4816752f862d3d6f855ebf035ccb58a5586ea5d7e3dad64d3eb6`.
+- **Detector modes:** `labels` replays non-benign labels directly (trivial ground-truth playback); `graph-novelty` alerts on first-seen edges after a 20% warm-up (a simple estimate).
 - **Capabilities:** detection labels, compromise labels, lateral-movement routes and topology are native only to this synthetic generator; none are empirical.
 - **Citation:** Project-owned generated simulation. Cite Precog SOC and generator version above; no external dataset is used.
 

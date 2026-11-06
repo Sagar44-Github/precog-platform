@@ -251,7 +251,7 @@
       "source_file_checksums": [
         {
           "path": "lead-core/backend/addons/synthetic_packs.py",
-          "sha256": "6f490be09852c241a5f7ac5dc35eb252235265b556507dff5c8f3b4cb67b3f82"
+          "sha256": "ebd62c9a42c10bf3c15515cd4446be00b90e6edeeb7051fb5bd6b514a5c414a7"
         }
       ],
       "checksums_status": "generator source checksum verified; no external/raw source files",
@@ -263,11 +263,11 @@
         "topology": "native"
       },
       "dataset_card": "docs/datasets/synth-enterprise-30.md",
-      "citation": "Precog SOC synthetic generator precog-synthetic-generator/1.1.0; seed 3001.",
+      "citation": "Precog SOC synthetic generator precog-synthetic-generator/1.2.0; seed 3001.",
       "pack_path": "packs/synth-enterprise-30",
-      "pack_content_hash": "045c2a310578535a6e7a9783814105450c1187dffe67e6baa6522bdf508ce681",
-      "pack_size_bytes": 374973,
-      "builder_version": "precog-synthetic-generator/1.1.0",
+      "pack_content_hash": "9dc522cb082d4816752f862d3d6f855ebf035ccb58a5586ea5d7e3dad64d3eb6",
+      "pack_size_bytes": 373250,
+      "builder_version": "precog-synthetic-generator/1.2.0",
       "seed": 3001,
       "counts": {
         "edges": 180,
@@ -430,7 +430,7 @@
       "source_file_checksums": [
         {
           "path": "lead-core/backend/addons/synthetic_packs.py",
-          "sha256": "6f490be09852c241a5f7ac5dc35eb252235265b556507dff5c8f3b4cb67b3f82"
+          "sha256": "ebd62c9a42c10bf3c15515cd4446be00b90e6edeeb7051fb5bd6b514a5c414a7"
         }
       ],
       "checksums_status": "generator source checksum verified; no external/raw source files",
@@ -442,11 +442,11 @@
         "topology": "native"
       },
       "dataset_card": "docs/datasets/synth-enterprise-120.md",
-      "citation": "Precog SOC synthetic generator precog-synthetic-generator/1.1.0; seed 12001.",
+      "citation": "Precog SOC synthetic generator precog-synthetic-generator/1.2.0; seed 12001.",
       "pack_path": "packs/synth-enterprise-120",
-      "pack_content_hash": "3decea5ef1373ce266241b9f7bc75b8024cb420dc909cecc7e2ce74efe44980a",
-      "pack_size_bytes": 781577,
-      "builder_version": "precog-synthetic-generator/1.1.0",
+      "pack_content_hash": "627097ffc6c992a3db2140bd7ac50aaaaea96b31258c99e89af371d85ab70cbc",
+      "pack_size_bytes": 779819,
+      "builder_version": "precog-synthetic-generator/1.2.0",
       "seed": 12001,
       "counts": {
         "edges": 960,
@@ -605,7 +605,7 @@
       "source_file_checksums": [
         {
           "path": "lead-core/backend/addons/synthetic_packs.py",
-          "sha256": "6f490be09852c241a5f7ac5dc35eb252235265b556507dff5c8f3b4cb67b3f82"
+          "sha256": "ebd62c9a42c10bf3c15515cd4446be00b90e6edeeb7051fb5bd6b514a5c414a7"
         }
       ],
       "checksums_status": "generator source checksum verified; no external/raw source files",
@@ -617,11 +617,11 @@
         "topology": "native"
       },
       "dataset_card": "docs/datasets/synth-enterprise-300.md",
-      "citation": "Precog SOC synthetic generator precog-synthetic-generator/1.1.0; seed 33001.",
+      "citation": "Precog SOC synthetic generator precog-synthetic-generator/1.2.0; seed 33001.",
       "pack_path": "packs/synth-enterprise-300",
-      "pack_content_hash": "13a401d46b08d0151aebe58793041b852e5718ab254496520cb170d77c4a42f1",
-      "pack_size_bytes": 1370120,
-      "builder_version": "precog-synthetic-generator/1.1.0",
+      "pack_content_hash": "dff9fbc3ab7f328ea510762bc8e5ebb064efcb44b2fa690697fa8173c4284a82",
+      "pack_size_bytes": 1368360,
+      "builder_version": "precog-synthetic-generator/1.2.0",
       "seed": 33001,
       "counts": {
         "edges": 2400,
@@ -780,7 +780,7 @@
       "source_file_checksums": [
         {
           "path": "lead-core/backend/addons/synthetic_packs.py",
-          "sha256": "6f490be09852c241a5f7ac5dc35eb252235265b556507dff5c8f3b4cb67b3f82"
+          "sha256": "ebd62c9a42c10bf3c15515cd4446be00b90e6edeeb7051fb5bd6b514a5c414a7"
         }
       ],
       "checksums_status": "generator source checksum verified; no external/raw source files",
@@ -792,11 +792,11 @@
         "topology": "native"
       },
       "dataset_card": "docs/datasets/synth-datacenter-300.md",
-      "citation": "Precog SOC synthetic generator precog-synthetic-generator/1.1.0; seed 30001.",
+      "citation": "Precog SOC synthetic generator precog-synthetic-generator/1.2.0; seed 30001.",
       "pack_path": "packs/synth-datacenter-300",
-      "pack_content_hash": "d2324cb07b8eea8c6bd68f636c2ca5b0d27b3e28f0b0740cea08fa255d448fc9",
-      "pack_size_bytes": 1367217,
-      "builder_version": "precog-synthetic-generator/1.1.0",
+      "pack_content_hash": "b67a1aefec939c2c22e73bab8a24a6b27eafe4be72014e1f4d9492452312f118",
+      "pack_size_bytes": 1365457,
+      "builder_version": "precog-synthetic-generator/1.2.0",
       "seed": 30001,
       "counts": {
         "edges": 2400,

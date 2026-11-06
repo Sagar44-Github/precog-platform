@@ -102,6 +102,12 @@ class IncidentAwareEvents:
         self._service.ingest_alert(event, compromised=bool(compromise))
         return event
 
+    def process_dataset_event(self, row, compromised=False):
+        event = self._delegate.process_dataset_event(row, compromise=compromised)
+        if event is not None:
+            self._service.ingest_alert(event, compromised=bool(compromised))
+        return event
+
     def reset(self, *args, **kwargs):
         result = self._delegate.reset(*args, **kwargs)
         self._service.reset()

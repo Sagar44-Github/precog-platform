@@ -24,6 +24,14 @@ Workspace-owned records are placed beneath `lead-core/backend/data/workspaces/<p
 
 The app still starts with the demo context. A hosted ephemeral disk starts with no user packs or saved workspace state unless those packs are in the deployed `packs/` directory. In-memory WorldState remains authoritative for the currently active workspace.
 
+## D4: recorded-pack stream
+
+Large installed packs use the add-on-only SQLite adapter at `POST /api/x/pipeline/start`; `GET /api/x/pipeline` returns bounded counters and the current decision point. Analyst/admin can also `POST /api/x/pipeline/pause`, `/resume`, and `/stop`. A start request supports `detector_mode`, `speed` (0.25–1000), `batch_size` (1–10,000), optional event-time bounds, and `decision_point_limit` (0–50). Streaming reads immutable ordered event batches, drives the current event, graph, Precog, incident and containment hooks, and leaves the original NIDS-backed demo path unchanged. Workspace activation first stops an active dataset stream.
+
+Available synthetic-pack detectors are `labels` (direct, trivial ground-truth replay) and `graph-novelty` (first-seen source/destination pairs after a 20% warm-up; a simple estimate). `model` is rejected until a separate traffic detector is trained and evaluated for that pack; `nids-live` remains demo-6 only. A manifested automatic decision policy can pause before a recorded lateral movement, with one decision by default and the existing replay confirmation timeout. Confirmed containment is two-step. Later records whose destination is contained are counted and summarized as blocked; records whose source is contained are counted and suppressed. The exact note is **“Simulated what-if on recorded data”** and pack bytes are not modified.
+
+The pipeline status is polled through the existing domain feed. It retains at most 20 counterfactual examples; the large-workspace time-travel ring is bounded to 32 snapshots. A full workspace produces a graph-and-alert `/api/x/state` payload capped at 200 KiB in the D4 scale test. This check measures the JSON response and Python-tracked allocations in a local fixture; it is not a Render RSS or hardware benchmark.
+
 ## Current limitation
 
 D2 establishes safe context switching and hook rebinding for validated scenario packs such as `demo-6`. It does not yet stream `pack.sqlite` events through the large-pack pipeline, implement detector modes for real datasets, or guarantee multi-process coordination. Keep one backend worker. D3/D4 generalize evaluation and add bounded event processing before activating large real packs in a hosted demo.

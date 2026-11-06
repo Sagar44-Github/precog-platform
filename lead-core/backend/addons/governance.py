@@ -73,6 +73,11 @@ class GovernanceService:
             "simulation_only": True,
         } for playbook_id, data in PLAYBOOK_POLICY.items()]
 
+    def _dataset_context(self):
+        flask_app = getattr(self.ctx, "flask_app", None)
+        manager = flask_app.extensions.get("precog_workspaces") if flask_app is not None else None
+        return manager.active if manager is not None else getattr(self.ctx, "dataset_context", None)
+
     def preview(self, playbook_id, actor_role, host_id=None, zone=None, forecast_id=None):
         policy = self._policy(playbook_id, actor_role)
         graph = self._graph()
@@ -164,6 +169,11 @@ class GovernanceService:
             "expected_reevaluation": "After confirmation, the simulation re-evaluates the next scripted response against the forecast and updates its outcome.",
             "simulation_only": True,
         }
+        dataset = self._dataset_context()
+        if dataset is not None and dataset.pack_id != "demo-6":
+            preview["side_effects"].append(
+                "This is a simulated what-if on recorded data: later destination events are blocked, contained sources are suppressed, and the pack is unchanged."
+            )
         self._validate("playbook_preview", preview)
         return preview
 

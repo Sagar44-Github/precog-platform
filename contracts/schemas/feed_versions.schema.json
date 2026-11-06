@@ -33,6 +33,10 @@
         "workspace": {
           "type": "integer",
           "minimum": 1
+        },
+        "pipeline": {
+          "type": "integer",
+          "minimum": 0
         }
       },
       "required": [
@@ -40,7 +44,8 @@
         "incidents",
         "notes",
         "runs",
-        "workspace"
+        "workspace",
+        "pipeline"
       ],
       "additionalProperties": false
     }
