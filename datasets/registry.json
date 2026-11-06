@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "generated_for": "Phase D0 source and licence gate; no pack binaries are included",
+  "generated_for": "Phase D3: four deterministic project-generated synthetic packs; real-data sources remain gated proposals.",
   "default_workspace": "demo-6",
   "workspaces": [
     {
@@ -59,8 +59,8 @@
       "dataset_card": "docs/datasets/demo-6.md",
       "citation": "Project-owned simulation; cite builder version.",
       "pack_path": "packs/demo-6",
-      "pack_content_hash": "2d361b1270d3d8aa2fe9e6790cabcc66209328e47bacbb27d40613717e875b2d",
-      "pack_size_bytes": 186096,
+      "pack_content_hash": "5e62f34de02bdd9063d2e9cd543fd8acf8071d85c0272d6e9ba5410379c34a5f",
+      "pack_size_bytes": 189351,
       "counts": {
         "edges": 11,
         "events": 16,
@@ -243,14 +243,19 @@
     },
     {
       "id": "synth-enterprise-30",
-      "name": "Synthetic enterprise 30-host workload",
+      "name": "Synthetic enterprise 30-host workspace",
       "kind": "synthetic",
-      "status": "proposed-not-built",
-      "access_method": "generated locally by proposed deterministic builder; not implemented in D0",
+      "status": "bundled-simulation",
+      "access_method": "Bundled deterministic project generator; rebuild with tools/datasets/build_pack.py.",
       "redistribution_status": "project-owned",
-      "source_file_checksums": [],
-      "checksums_status": "not-downloaded-in-D0; no checksum claimed",
-      "licence_summary": "Original generated records; publish with project license and label simulation provenance.",
+      "source_file_checksums": [
+        {
+          "path": "lead-core/backend/addons/synthetic_packs.py",
+          "sha256": "6f490be09852c241a5f7ac5dc35eb252235265b556507dff5c8f3b4cb67b3f82"
+        }
+      ],
+      "checksums_status": "generator source checksum verified; no external/raw source files",
+      "licence_summary": "Project-generated simulation; no external dataset is redistributed. Events, labels, routes, weaknesses, decoys and topology are synthetic.",
       "capabilities": {
         "detection_labels": "native",
         "host_compromise": "native",
@@ -258,18 +263,178 @@
         "topology": "native"
       },
       "dataset_card": "docs/datasets/synth-enterprise-30.md",
-      "citation": "Project-owned simulation; cite builder version."
+      "citation": "Precog SOC synthetic generator precog-synthetic-generator/1.1.0; seed 3001.",
+      "pack_path": "packs/synth-enterprise-30",
+      "pack_content_hash": "045c2a310578535a6e7a9783814105450c1187dffe67e6baa6522bdf508ce681",
+      "pack_size_bytes": 374973,
+      "builder_version": "precog-synthetic-generator/1.1.0",
+      "seed": 3001,
+      "counts": {
+        "edges": 180,
+        "events": 711,
+        "hosts": 30,
+        "labelled_events": 711,
+        "routes": 180,
+        "time_span_ms": 22760
+      },
+      "evaluation_summary": {
+        "alpha": {
+          "chosen": 1.0,
+          "validation_surprise": {
+            "0.01": 3.1536,
+            "0.05": 2.6263,
+            "0.1": 2.4129,
+            "0.2": 2.2176,
+            "0.5": 2.0056,
+            "1.0": 1.8929
+          }
+        },
+        "baselines": {
+          "rule_based": {
+            "expected_calibration_error": 0.026,
+            "forecasts": 74,
+            "max_candidates": 6,
+            "mean_reciprocal_rank": 0.4259,
+            "precision_at_1": 0.1892,
+            "precision_at_1_std_error": 0.0455,
+            "precision_at_3": 0.5,
+            "share_with_more_than_3_candidates": 1.0
+          },
+          "uniform": {
+            "expected_calibration_error": 0.0346,
+            "forecasts": 74,
+            "max_candidates": 6,
+            "mean_reciprocal_rank": 0.4502,
+            "precision_at_1": 0.2162,
+            "precision_at_1_std_error": 0.0479,
+            "precision_at_3": 0.5811,
+            "share_with_more_than_3_candidates": 1.0
+          }
+        },
+        "calibration_bins": [
+          {
+            "bin_high": 0.2,
+            "bin_low": 0.1,
+            "count": 75,
+            "mean_confidence": 0.1593,
+            "observed_rate": 0.16
+          },
+          {
+            "bin_high": 0.3,
+            "bin_low": 0.2,
+            "count": 109,
+            "mean_confidence": 0.2341,
+            "observed_rate": 0.1376
+          },
+          {
+            "bin_high": 0.4,
+            "bin_low": 0.3,
+            "count": 34,
+            "mean_confidence": 0.3158,
+            "observed_rate": 0.2353
+          },
+          {
+            "bin_high": 0.5,
+            "bin_low": 0.4,
+            "count": 3,
+            "mean_confidence": 0.4667,
+            "observed_rate": 0.3333
+          },
+          {
+            "bin_high": 0.6,
+            "bin_low": 0.5,
+            "count": 1,
+            "mean_confidence": 0.5385,
+            "observed_rate": 1.0
+          }
+        ],
+        "candidate_set_distribution": {
+          "5": 7,
+          "6": 67
+        },
+        "limitations": [
+          "Every event, label, compromise route, and topology is generated by this project's simulation; none is observed attacker activity.",
+          "Held-out metrics measure recovery of this generator's route patterns and do not estimate real-world security performance.",
+          "Containment and what-if results remain simulated consequences on the generated graph."
+        ],
+        "metrics": {
+          "expected_calibration_error": 0.0638,
+          "forecasts": 74,
+          "max_candidates": 6,
+          "mean_reciprocal_rank": 0.4502,
+          "precision_at_1": 0.2297,
+          "precision_at_1_std_error": 0.0489,
+          "precision_at_3": 0.5,
+          "share_with_more_than_3_candidates": 1.0
+        },
+        "profile_metrics": {
+          "admin-abuse": {
+            "expected_calibration_error": 0.1371,
+            "forecasts": 8,
+            "max_candidates": 6,
+            "mean_reciprocal_rank": 0.5563,
+            "precision_at_1": 0.375,
+            "precision_at_1_std_error": 0.1712,
+            "precision_at_3": 0.625,
+            "share_with_more_than_3_candidates": 1.0
+          },
+          "credential-spray": {
+            "expected_calibration_error": 0.1759,
+            "forecasts": 21,
+            "max_candidates": 6,
+            "mean_reciprocal_rank": 0.3611,
+            "precision_at_1": 0.0952,
+            "precision_at_1_std_error": 0.0641,
+            "precision_at_3": 0.5238,
+            "share_with_more_than_3_candidates": 1.0
+          },
+          "ransomware": {
+            "expected_calibration_error": 0.069,
+            "forecasts": 28,
+            "max_candidates": 6,
+            "mean_reciprocal_rank": 0.4887,
+            "precision_at_1": 0.2857,
+            "precision_at_1_std_error": 0.0854,
+            "precision_at_3": 0.5,
+            "share_with_more_than_3_candidates": 1.0
+          },
+          "service-exploit": {
+            "expected_calibration_error": 0.1087,
+            "forecasts": 17,
+            "max_candidates": 6,
+            "mean_reciprocal_rank": 0.4471,
+            "precision_at_1": 0.2353,
+            "precision_at_1_std_error": 0.1029,
+            "precision_at_3": 0.4118,
+            "share_with_more_than_3_candidates": 1.0
+          }
+        },
+        "route_provenance": "simulated",
+        "seed": 3001,
+        "split": {
+          "method": "seeded-random-route",
+          "test_forecasts": 74,
+          "test_routes": 36,
+          "training_routes": 144
+        },
+        "workspace_id": "synth-enterprise-30"
+      }
     },
     {
       "id": "synth-enterprise-120",
-      "name": "Synthetic enterprise 120-host workload",
+      "name": "Synthetic enterprise 120-host workspace",
       "kind": "synthetic",
-      "status": "proposed-not-built",
-      "access_method": "generated locally by proposed deterministic builder; not implemented in D0",
+      "status": "bundled-simulation",
+      "access_method": "Bundled deterministic project generator; rebuild with tools/datasets/build_pack.py.",
       "redistribution_status": "project-owned",
-      "source_file_checksums": [],
-      "checksums_status": "not-downloaded-in-D0; no checksum claimed",
-      "licence_summary": "Original generated records; publish with project license and label simulation provenance.",
+      "source_file_checksums": [
+        {
+          "path": "lead-core/backend/addons/synthetic_packs.py",
+          "sha256": "6f490be09852c241a5f7ac5dc35eb252235265b556507dff5c8f3b4cb67b3f82"
+        }
+      ],
+      "checksums_status": "generator source checksum verified; no external/raw source files",
+      "licence_summary": "Project-generated simulation; no external dataset is redistributed. Events, labels, routes, weaknesses, decoys and topology are synthetic.",
       "capabilities": {
         "detection_labels": "native",
         "host_compromise": "native",
@@ -277,18 +442,174 @@
         "topology": "native"
       },
       "dataset_card": "docs/datasets/synth-enterprise-120.md",
-      "citation": "Project-owned simulation; cite builder version."
+      "citation": "Precog SOC synthetic generator precog-synthetic-generator/1.1.0; seed 12001.",
+      "pack_path": "packs/synth-enterprise-120",
+      "pack_content_hash": "3decea5ef1373ce266241b9f7bc75b8024cb420dc909cecc7e2ce74efe44980a",
+      "pack_size_bytes": 781577,
+      "builder_version": "precog-synthetic-generator/1.1.0",
+      "seed": 12001,
+      "counts": {
+        "edges": 960,
+        "events": 1355,
+        "hosts": 120,
+        "labelled_events": 1355,
+        "routes": 240,
+        "time_span_ms": 32960
+      },
+      "evaluation_summary": {
+        "alpha": {
+          "chosen": 1.0,
+          "validation_surprise": {
+            "0.01": 4.0564,
+            "0.05": 3.1342,
+            "0.1": 2.7979,
+            "0.2": 2.5238,
+            "0.5": 2.2765,
+            "1.0": 2.1718
+          }
+        },
+        "baselines": {
+          "rule_based": {
+            "expected_calibration_error": 0.0626,
+            "forecasts": 98,
+            "max_candidates": 8,
+            "mean_reciprocal_rank": 0.2821,
+            "precision_at_1": 0.0612,
+            "precision_at_1_std_error": 0.0242,
+            "precision_at_3": 0.2653,
+            "share_with_more_than_3_candidates": 1.0
+          },
+          "uniform": {
+            "expected_calibration_error": 0.0036,
+            "forecasts": 98,
+            "max_candidates": 8,
+            "mean_reciprocal_rank": 0.3315,
+            "precision_at_1": 0.102,
+            "precision_at_1_std_error": 0.0306,
+            "precision_at_3": 0.3878,
+            "share_with_more_than_3_candidates": 1.0
+          }
+        },
+        "calibration_bins": [
+          {
+            "bin_high": 0.1,
+            "bin_low": 0.0,
+            "count": 7,
+            "mean_confidence": 0.0909,
+            "observed_rate": 0.1429
+          },
+          {
+            "bin_high": 0.2,
+            "bin_low": 0.1,
+            "count": 173,
+            "mean_confidence": 0.151,
+            "observed_rate": 0.1098
+          },
+          {
+            "bin_high": 0.3,
+            "bin_low": 0.2,
+            "count": 114,
+            "mean_confidence": 0.2283,
+            "observed_rate": 0.1228
+          }
+        ],
+        "candidate_set_distribution": {
+          "7": 4,
+          "8": 94
+        },
+        "limitations": [
+          "Every event, label, compromise route, and topology is generated by this project's simulation; none is observed attacker activity.",
+          "Held-out metrics measure recovery of this generator's route patterns and do not estimate real-world security performance.",
+          "Containment and what-if results remain simulated consequences on the generated graph."
+        ],
+        "metrics": {
+          "expected_calibration_error": 0.0664,
+          "forecasts": 98,
+          "max_candidates": 8,
+          "mean_reciprocal_rank": 0.3396,
+          "precision_at_1": 0.1327,
+          "precision_at_1_std_error": 0.0343,
+          "precision_at_3": 0.3469,
+          "share_with_more_than_3_candidates": 1.0
+        },
+        "profile_metrics": {
+          "admin-abuse": {
+            "expected_calibration_error": 0.1105,
+            "forecasts": 20,
+            "max_candidates": 8,
+            "mean_reciprocal_rank": 0.3115,
+            "precision_at_1": 0.15,
+            "precision_at_1_std_error": 0.0798,
+            "precision_at_3": 0.2,
+            "share_with_more_than_3_candidates": 1.0
+          },
+          "credential-spray": {
+            "expected_calibration_error": 0.0385,
+            "forecasts": 23,
+            "max_candidates": 8,
+            "mean_reciprocal_rank": 0.3555,
+            "precision_at_1": 0.1304,
+            "precision_at_1_std_error": 0.0702,
+            "precision_at_3": 0.4348,
+            "share_with_more_than_3_candidates": 1.0
+          },
+          "developer-token": {
+            "expected_calibration_error": 0.1198,
+            "forecasts": 18,
+            "max_candidates": 8,
+            "mean_reciprocal_rank": 0.2356,
+            "precision_at_1": 0.0,
+            "precision_at_1_std_error": 0.0,
+            "precision_at_3": 0.1667,
+            "share_with_more_than_3_candidates": 1.0
+          },
+          "ransomware": {
+            "expected_calibration_error": 0.0375,
+            "forecasts": 12,
+            "max_candidates": 8,
+            "mean_reciprocal_rank": 0.4445,
+            "precision_at_1": 0.25,
+            "precision_at_1_std_error": 0.125,
+            "precision_at_3": 0.5833,
+            "share_with_more_than_3_candidates": 1.0
+          },
+          "service-exploit": {
+            "expected_calibration_error": 0.0469,
+            "forecasts": 25,
+            "max_candidates": 8,
+            "mean_reciprocal_rank": 0.3718,
+            "precision_at_1": 0.16,
+            "precision_at_1_std_error": 0.0733,
+            "precision_at_3": 0.4,
+            "share_with_more_than_3_candidates": 1.0
+          }
+        },
+        "route_provenance": "simulated",
+        "seed": 12001,
+        "split": {
+          "method": "seeded-random-route",
+          "test_forecasts": 98,
+          "test_routes": 48,
+          "training_routes": 192
+        },
+        "workspace_id": "synth-enterprise-120"
+      }
     },
     {
       "id": "synth-enterprise-300",
-      "name": "Synthetic enterprise 300-host workload",
+      "name": "Synthetic enterprise 300-host workspace",
       "kind": "synthetic",
-      "status": "proposed-not-built",
-      "access_method": "proposed new deterministic workload; generator not implemented in D0",
+      "status": "bundled-simulation",
+      "access_method": "Bundled deterministic project generator; rebuild with tools/datasets/build_pack.py.",
       "redistribution_status": "project-owned",
-      "source_file_checksums": [],
-      "checksums_status": "not-downloaded-in-D0; no checksum claimed",
-      "licence_summary": "Original generated records; publish with project license and label simulation provenance.",
+      "source_file_checksums": [
+        {
+          "path": "lead-core/backend/addons/synthetic_packs.py",
+          "sha256": "6f490be09852c241a5f7ac5dc35eb252235265b556507dff5c8f3b4cb67b3f82"
+        }
+      ],
+      "checksums_status": "generator source checksum verified; no external/raw source files",
+      "licence_summary": "Project-generated simulation; no external dataset is redistributed. Events, labels, routes, weaknesses, decoys and topology are synthetic.",
       "capabilities": {
         "detection_labels": "native",
         "host_compromise": "native",
@@ -296,18 +617,174 @@
         "topology": "native"
       },
       "dataset_card": "docs/datasets/synth-enterprise-300.md",
-      "citation": "Project-owned simulation; cite builder version."
+      "citation": "Precog SOC synthetic generator precog-synthetic-generator/1.1.0; seed 33001.",
+      "pack_path": "packs/synth-enterprise-300",
+      "pack_content_hash": "13a401d46b08d0151aebe58793041b852e5718ab254496520cb170d77c4a42f1",
+      "pack_size_bytes": 1370120,
+      "builder_version": "precog-synthetic-generator/1.1.0",
+      "seed": 33001,
+      "counts": {
+        "edges": 2400,
+        "events": 1989,
+        "hosts": 300,
+        "labelled_events": 1989,
+        "routes": 360,
+        "time_span_ms": 43160
+      },
+      "evaluation_summary": {
+        "alpha": {
+          "chosen": 1.0,
+          "validation_surprise": {
+            "0.01": 3.8485,
+            "0.05": 2.9739,
+            "0.1": 2.6658,
+            "0.2": 2.424,
+            "0.5": 2.2182,
+            "1.0": 2.1375
+          }
+        },
+        "baselines": {
+          "rule_based": {
+            "expected_calibration_error": 0.0297,
+            "forecasts": 153,
+            "max_candidates": 8,
+            "mean_reciprocal_rank": 0.3503,
+            "precision_at_1": 0.1503,
+            "precision_at_1_std_error": 0.0289,
+            "precision_at_3": 0.3595,
+            "share_with_more_than_3_candidates": 1.0
+          },
+          "uniform": {
+            "expected_calibration_error": 0.0074,
+            "forecasts": 153,
+            "max_candidates": 8,
+            "mean_reciprocal_rank": 0.3286,
+            "precision_at_1": 0.1046,
+            "precision_at_1_std_error": 0.0247,
+            "precision_at_3": 0.3987,
+            "share_with_more_than_3_candidates": 1.0
+          }
+        },
+        "calibration_bins": [
+          {
+            "bin_high": 0.1,
+            "bin_low": 0.0,
+            "count": 5,
+            "mean_confidence": 0.0909,
+            "observed_rate": 0.4
+          },
+          {
+            "bin_high": 0.2,
+            "bin_low": 0.1,
+            "count": 302,
+            "mean_confidence": 0.1366,
+            "observed_rate": 0.1457
+          },
+          {
+            "bin_high": 0.3,
+            "bin_low": 0.2,
+            "count": 152,
+            "mean_confidence": 0.2227,
+            "observed_rate": 0.1447
+          }
+        ],
+        "candidate_set_distribution": {
+          "7": 4,
+          "8": 149
+        },
+        "limitations": [
+          "Every event, label, compromise route, and topology is generated by this project's simulation; none is observed attacker activity.",
+          "Held-out metrics measure recovery of this generator's route patterns and do not estimate real-world security performance.",
+          "Containment and what-if results remain simulated consequences on the generated graph."
+        ],
+        "metrics": {
+          "expected_calibration_error": 0.0352,
+          "forecasts": 153,
+          "max_candidates": 8,
+          "mean_reciprocal_rank": 0.36,
+          "precision_at_1": 0.1503,
+          "precision_at_1_std_error": 0.0289,
+          "precision_at_3": 0.4444,
+          "share_with_more_than_3_candidates": 1.0
+        },
+        "profile_metrics": {
+          "admin-abuse": {
+            "expected_calibration_error": 0.0884,
+            "forecasts": 33,
+            "max_candidates": 8,
+            "mean_reciprocal_rank": 0.3167,
+            "precision_at_1": 0.1515,
+            "precision_at_1_std_error": 0.0624,
+            "precision_at_3": 0.303,
+            "share_with_more_than_3_candidates": 1.0
+          },
+          "credential-spray": {
+            "expected_calibration_error": 0.0519,
+            "forecasts": 25,
+            "max_candidates": 8,
+            "mean_reciprocal_rank": 0.3335,
+            "precision_at_1": 0.16,
+            "precision_at_1_std_error": 0.0733,
+            "precision_at_3": 0.32,
+            "share_with_more_than_3_candidates": 1.0
+          },
+          "developer-token": {
+            "expected_calibration_error": 0.046,
+            "forecasts": 45,
+            "max_candidates": 8,
+            "mean_reciprocal_rank": 0.391,
+            "precision_at_1": 0.1556,
+            "precision_at_1_std_error": 0.054,
+            "precision_at_3": 0.5333,
+            "share_with_more_than_3_candidates": 1.0
+          },
+          "ransomware": {
+            "expected_calibration_error": 0.0263,
+            "forecasts": 29,
+            "max_candidates": 8,
+            "mean_reciprocal_rank": 0.357,
+            "precision_at_1": 0.1379,
+            "precision_at_1_std_error": 0.064,
+            "precision_at_3": 0.4828,
+            "share_with_more_than_3_candidates": 1.0
+          },
+          "service-exploit": {
+            "expected_calibration_error": 0.0792,
+            "forecasts": 21,
+            "max_candidates": 8,
+            "mean_reciprocal_rank": 0.397,
+            "precision_at_1": 0.1429,
+            "precision_at_1_std_error": 0.0764,
+            "precision_at_3": 0.5714,
+            "share_with_more_than_3_candidates": 1.0
+          }
+        },
+        "route_provenance": "simulated",
+        "seed": 33001,
+        "split": {
+          "method": "seeded-random-route",
+          "test_forecasts": 153,
+          "test_routes": 72,
+          "training_routes": 288
+        },
+        "workspace_id": "synth-enterprise-300"
+      }
     },
     {
       "id": "synth-datacenter-300",
-      "name": "Synthetic datacenter 300-host workload",
+      "name": "Synthetic datacenter 300-host workspace",
       "kind": "synthetic",
-      "status": "proposed-not-built",
-      "access_method": "generated locally by proposed deterministic builder; not implemented in D0",
+      "status": "bundled-simulation",
+      "access_method": "Bundled deterministic project generator; rebuild with tools/datasets/build_pack.py.",
       "redistribution_status": "project-owned",
-      "source_file_checksums": [],
-      "checksums_status": "not-downloaded-in-D0; no checksum claimed",
-      "licence_summary": "Original generated records; publish with project license and label simulation provenance.",
+      "source_file_checksums": [
+        {
+          "path": "lead-core/backend/addons/synthetic_packs.py",
+          "sha256": "6f490be09852c241a5f7ac5dc35eb252235265b556507dff5c8f3b4cb67b3f82"
+        }
+      ],
+      "checksums_status": "generator source checksum verified; no external/raw source files",
+      "licence_summary": "Project-generated simulation; no external dataset is redistributed. Events, labels, routes, weaknesses, decoys and topology are synthetic.",
       "capabilities": {
         "detection_labels": "native",
         "host_compromise": "native",
@@ -315,14 +792,174 @@
         "topology": "native"
       },
       "dataset_card": "docs/datasets/synth-datacenter-300.md",
-      "citation": "Project-owned simulation; cite builder version."
-    },
+      "citation": "Precog SOC synthetic generator precog-synthetic-generator/1.1.0; seed 30001.",
+      "pack_path": "packs/synth-datacenter-300",
+      "pack_content_hash": "d2324cb07b8eea8c6bd68f636c2ca5b0d27b3e28f0b0740cea08fa255d448fc9",
+      "pack_size_bytes": 1367217,
+      "builder_version": "precog-synthetic-generator/1.1.0",
+      "seed": 30001,
+      "counts": {
+        "edges": 2400,
+        "events": 1998,
+        "hosts": 300,
+        "labelled_events": 1998,
+        "routes": 360,
+        "time_span_ms": 43160
+      },
+      "evaluation_summary": {
+        "alpha": {
+          "chosen": 1.0,
+          "validation_surprise": {
+            "0.01": 3.6938,
+            "0.05": 2.8603,
+            "0.1": 2.5698,
+            "0.2": 2.3459,
+            "0.5": 2.1641,
+            "1.0": 2.1005
+          }
+        },
+        "baselines": {
+          "rule_based": {
+            "expected_calibration_error": 0.0195,
+            "forecasts": 157,
+            "max_candidates": 8,
+            "mean_reciprocal_rank": 0.3402,
+            "precision_at_1": 0.121,
+            "precision_at_1_std_error": 0.026,
+            "precision_at_3": 0.3822,
+            "share_with_more_than_3_candidates": 1.0
+          },
+          "uniform": {
+            "expected_calibration_error": 0.0024,
+            "forecasts": 157,
+            "max_candidates": 8,
+            "mean_reciprocal_rank": 0.346,
+            "precision_at_1": 0.1401,
+            "precision_at_1_std_error": 0.0277,
+            "precision_at_3": 0.3694,
+            "share_with_more_than_3_candidates": 1.0
+          }
+        },
+        "calibration_bins": [
+          {
+            "bin_high": 0.1,
+            "bin_low": 0.0,
+            "count": 15,
+            "mean_confidence": 0.0909,
+            "observed_rate": 0.2
+          },
+          {
+            "bin_high": 0.2,
+            "bin_low": 0.1,
+            "count": 302,
+            "mean_confidence": 0.1424,
+            "observed_rate": 0.1093
+          },
+          {
+            "bin_high": 0.3,
+            "bin_low": 0.2,
+            "count": 149,
+            "mean_confidence": 0.224,
+            "observed_rate": 0.1678
+          },
+          {
+            "bin_high": 0.4,
+            "bin_low": 0.3,
+            "count": 5,
+            "mean_confidence": 0.3339,
+            "observed_rate": 0.2
+          }
+        ],
+        "candidate_set_distribution": {
+          "7": 4,
+          "8": 153
+        },
+        "limitations": [
+          "Every event, label, compromise route, and topology is generated by this project's simulation; none is observed attacker activity.",
+          "Held-out metrics measure recovery of this generator's route patterns and do not estimate real-world security performance.",
+          "Containment and what-if results remain simulated consequences on the generated graph."
+        ],
+        "metrics": {
+          "expected_calibration_error": 0.0439,
+          "forecasts": 157,
+          "max_candidates": 8,
+          "mean_reciprocal_rank": 0.3625,
+          "precision_at_1": 0.1592,
+          "precision_at_1_std_error": 0.0292,
+          "precision_at_3": 0.3949,
+          "share_with_more_than_3_candidates": 1.0
+        },
+        "profile_metrics": {
+          "admin-abuse": {
+            "expected_calibration_error": 0.045,
+            "forecasts": 41,
+            "max_candidates": 8,
+            "mean_reciprocal_rank": 0.3672,
+            "precision_at_1": 0.1463,
+            "precision_at_1_std_error": 0.0552,
+            "precision_at_3": 0.4146,
+            "share_with_more_than_3_candidates": 1.0
+          },
+          "data-theft": {
+            "expected_calibration_error": 0.0573,
+            "forecasts": 43,
+            "max_candidates": 8,
+            "mean_reciprocal_rank": 0.3334,
+            "precision_at_1": 0.093,
+            "precision_at_1_std_error": 0.0443,
+            "precision_at_3": 0.4186,
+            "share_with_more_than_3_candidates": 1.0
+          },
+          "ransomware": {
+            "expected_calibration_error": 0.0383,
+            "forecasts": 22,
+            "max_candidates": 8,
+            "mean_reciprocal_rank": 0.3782,
+            "precision_at_1": 0.1818,
+            "precision_at_1_std_error": 0.0822,
+            "precision_at_3": 0.4545,
+            "share_with_more_than_3_candidates": 1.0
+          },
+          "service-account": {
+            "expected_calibration_error": 0.0646,
+            "forecasts": 32,
+            "max_candidates": 8,
+            "mean_reciprocal_rank": 0.3568,
+            "precision_at_1": 0.1875,
+            "precision_at_1_std_error": 0.069,
+            "precision_at_3": 0.3125,
+            "share_with_more_than_3_candidates": 1.0
+          },
+          "web-shell": {
+            "expected_calibration_error": 0.1318,
+            "forecasts": 19,
+            "max_candidates": 8,
+            "mean_reciprocal_rank": 0.4099,
+            "precision_at_1": 0.2632,
+            "precision_at_1_std_error": 0.101,
+            "precision_at_3": 0.3684,
+            "share_with_more_than_3_candidates": 1.0
+          }
+        },
+        "route_provenance": "simulated",
+        "seed": 30001,
+        "split": {
+          "method": "seeded-random-route",
+          "test_forecasts": 157,
+          "test_routes": 72,
+          "training_routes": 288
+        },
+        "workspace_id": "synth-datacenter-300"
+      }
+    }
+  ],
+  "reserves": [
     {
       "id": "synth-topology-zoo",
       "name": "Synthetic replay over a Zoo-derived topology",
-      "kind": "synthetic",
-      "status": "proposed-not-built",
-      "access_method": "requires selecting individually licensed topology inputs; generator not implemented",
+      "kind": "reserve",
+      "status": "deferred-license-gate",
+      "access_method": "Deferred; requires individually selected topology files with verified redistribution terms.",
       "redistribution_status": "project-owned",
       "source_file_checksums": [],
       "checksums_status": "not-downloaded-in-D0; no checksum claimed",

@@ -1,6 +1,6 @@
 # Phase D map and D0 dataset gate
 
-Status: D0 in progress. This map records the current code assumptions found before pack/runtime work. No dataset packs or runtime changes have been made in D0.
+Status: D3 synthetic packs and evaluation are implemented on `phase-d3-synthetic-packs`; final regression verification is in progress. The baseline below records the D0 audit and remains historical evidence.
 
 ## Baseline
 
@@ -29,7 +29,7 @@ The current default remains `demo-6`. The dataset gate and registry are in `docs
 
 ### Proposed final workspace shortlist
 
-This is a staged proposal, not a claim that packs already exist. It has 15 records and the required range from six hosts to 300+ host workloads. The only currently runnable workspace is `demo-6`; synthetic pack entries are proposals for D3, and real-data entries require D5 builders/evaluation and the per-card rights/data checks. Candidate order prioritizes the required paper/demo cut line.
+This was the D0 staged proposal, not a claim that packs already existed. D3 has since built the four synthetic packs below. Real-data entries still require D5 builders/evaluation and the per-card rights/data checks. Candidate order prioritizes the required paper/demo cut line.
 
 | Priority | Workspace | Character / scale | Gate status |
 | --- | --- | --- | --- |
@@ -47,9 +47,9 @@ This is a staged proposal, not a claim that packs already exist. It has 15 recor
 | 12 | `unsw-nb15` | Large labeled flow benchmark | Builder-only pending derived redistribution permission |
 | 13 | `cidds-001` | Flow benchmark with anonymized public addresses | Builder-only pending derived-data terms |
 | 14 | `topology-zoo` | Heterogeneous source topologies; no attack labels | Builder-only, per-source license allowlist |
-| 15 | `synth-topology-zoo` | Synthetic replay on individually cleared Zoo topologies | Reserve; not a substitute for native attack truth |
+| — | `synth-topology-zoo` | Synthetic replay on individually cleared Zoo topologies | Deferred reserve, outside the workspace registry until each topology is cleared |
 
-`datasets/registry.json` lists all 15 entries, access and redistribution status, capability provenance, source card, and explicitly empty `source_file_checksums` with a `not-downloaded-in-D0` status. The additional `synth-topology-zoo` and `synth-datacenter-300` cards remain separate options because topology variety is useful but does not provide detection truth. Actual synthetic pack count/size and all converted-data hashes are D3/D5 deliverables.
+`datasets/registry.json` now lists 14 workspaces (demo-6, four built synthetic packs and nine real/topology proposals) plus the Zoo-based synthetic reserve. Generated packs carry their builder checksum, content hash, counts, evaluation summary and actual bundle size. Real-source checksums remain explicitly empty because no raw data has been downloaded. The Zoo-derived reserve is excluded from the workspace registry until per-topology terms are reviewed.
 
 ### Source gate notes
 
@@ -77,4 +77,12 @@ These are sourced gate decisions and proposed capability interpretations. Source
 - D8: secured upload wizard only after earlier phases are green.
 - D9-D10: hosting/size and final verification.
 
-No D1-D10 implementation is included in D0. The browser audit, registry and 15 per-source gate records are captured. File-level checksums and exact raw-file schemas remain intentionally unresolved because D0 did not download any raw datasets; they are explicit D5 gates in the registry/cards, not fabricated claims.
+The D0 browser audit, original registry, and source gate records remain historical evidence. D1-D3 implementation has since added the pack format, workspace runtime and four synthetic packs. File-level checksums and exact raw-file schemas for real datasets remain intentionally unresolved because no raw datasets were downloaded; these are explicit D5 gates in the registry/cards, not fabricated claims.
+
+## D3 delivery status
+
+- Four synthetic packs are bundled and reproducible; build commands and evaluation limits are in `docs/SYNTHETIC_PACKS.md`.
+- The generalized evaluation result contract is in `contracts/schemas/evaluation_result.schema.json`; its sample, checker coverage and per-pack output are updated together.
+- `demo-6` remains the boot default. Its legacy evaluation output is preserved; extended MRR and candidate-set metrics are opt-in for generated packs.
+- The Zoo-derived synthetic proposal is deferred because the D3 pack must not include topology data whose per-source redistribution terms have not been verified. D3 instead uses the project-owned `synth-enterprise-300` pack.
+- Final D3 verification: root Python **522 passed, 1 skipped**; offline detector **50 passed, 1 skipped**; web **151 passed** plus one path-with-spaces check; contracts **70 OK**; Golden Path **1/1 PASS**; all five installed packs validate. Full command details and limitations are in `docs/PHASE_D3_REPORT.md`.

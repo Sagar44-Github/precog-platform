@@ -141,6 +141,13 @@ def validate_pack(pack_dir, contracts_dir=None, require_matching_dir=True) -> di
     evaluation = _read_json(pack_dir / "evaluation.json")
     if not isinstance(evaluation, dict) or not isinstance(evaluation.get("limitations"), list):
         raise PackError("evaluation.json must include a limitations list")
+    if "evaluation_result" in evaluation:
+        result_schema_path = Path(contracts_dir) / "schemas" / "evaluation_result.schema.json"
+        result_schema = _read_json(result_schema_path)
+        result_errors = sorted(Draft202012Validator(result_schema).iter_errors(evaluation["evaluation_result"]), key=lambda err: list(err.path))
+        if result_errors:
+            path = "/".join(map(str, result_errors[0].absolute_path)) or "(root)"
+            raise PackError("evaluation_result violates its contract at %s: %s" % (path, result_errors[0].message))
     routes = []
     try:
         with (pack_dir / "routes.jsonl").open(encoding="utf-8") as fh:
