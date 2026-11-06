@@ -21,6 +21,8 @@ test('the desktop shell provides workspace navigation and a permanent simulation
   assert.match(html, /Monitoring &amp; Operations/)
   assert.match(html, /aria-haspopup="menu"/)
   assert.match(html, /Hosts &amp; assets/)
+  assert.match(html, /Datasets/)
+  assert.match(html, /Active dataset workspace/)
   assert.doesNotMatch(html, /href="\/alerts"/)
   assert.match(html, /Settings/)
   assert.match(html, /Primary mobile navigation/)
@@ -37,7 +39,7 @@ test('the desktop shell provides workspace navigation and a permanent simulation
 
 test('the command palette exposes replay, navigation, and theme actions', () => {
   const html = render(<CommandPalette open onClose={() => {}} permissions={{ can_run_replay: true }} />)
-  for (const label of ['Open live console', 'Open alert explorer', 'Open session reports', 'Start Golden Path replay', 'Switch to light theme']) {
+  for (const label of ['Open live console', 'Open alert explorer', 'Open session reports', 'Open dataset workspaces', 'Compare datasets', 'Start Golden Path replay', 'Switch to light theme']) {
     assert.match(html, new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')))
   }
   assert.doesNotMatch(html, /mobile SOC|phone PWA/i)

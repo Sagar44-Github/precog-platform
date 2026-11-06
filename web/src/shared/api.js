@@ -136,4 +136,8 @@ export const api = {
   host: (id) => apiGet(`/api/x/hosts/${encodeURIComponent(id)}`),
   hostHistory: (id, limit = 200) => apiGet(`/api/x/hosts/${encodeURIComponent(id)}/history?limit=${limit}`),
   registerPush: (token) => apiPost('/api/x/push/register', { token }),
+  workspaces: () => apiGet('/api/x/workspaces'),
+  activeWorkspace: () => apiGet('/api/x/workspaces/active'),
+  workspaceCard: (id) => apiGet(`/api/x/workspaces/${encodeURIComponent(id)}/card`),
+  activateWorkspace: (id) => apiPost(`/api/x/workspaces/${encodeURIComponent(id)}/activate`, { confirm: true }),
 }

@@ -6,7 +6,7 @@ import { SimulationBadge } from './components.jsx'
 import { Icon } from './icons.jsx'
 import { ThemeToggle, useTheme } from './theme-context.jsx'
 import ThemeLogo from './ThemeLogo.jsx'
-import { apiGet } from './api.js'
+import { api, apiGet } from './api.js'
 import GuidedTour from './GuidedTour.jsx'
 import './app-shell.css'
 
@@ -34,6 +34,8 @@ export function CommandPalette({ open, onClose }) {
     { label: 'Open replay studio', detail: 'Step through a scripted replay and compare runs', icon: 'play', keywords: 'replay studio runs timeline', run: () => navigate('/replay') },
     { label: 'Open scenario library', detail: 'Choose or build a scripted scenario', icon: 'layers', keywords: 'scenario builder library', run: () => navigate('/scenarios') },
     { label: 'Open run history', detail: 'Review completed runs and compare outcomes', icon: 'clock', keywords: 'runs history compare', run: () => navigate('/runs') },
+    { label: 'Open dataset workspaces', detail: 'Review available packs, sources, and capabilities', icon: 'layers', keywords: 'datasets workspaces packs data', run: () => navigate('/datasets') },
+    { label: 'Compare datasets', detail: 'Compare scope, provenance, and supported workflows', icon: 'sliders', keywords: 'datasets compare capability', run: () => navigate('/datasets/compare') },
     { label: 'Open alert explorer', detail: 'Search and review detection events', icon: 'activity', keywords: 'alerts events', run: () => navigate('/alerts') },
     { label: 'Open session reports', detail: 'Review replay reports and timelines', icon: 'sliders', keywords: 'reports metrics', run: () => navigate('/reports') },
     ...(role === 'viewer' ? [] : [{ label: 'Start Golden Path replay', detail: 'Start the deterministic simulation', icon: 'play', keywords: 'demo replay simulation', run: () => commandEvent({ type: 'start-demo' }) }]),
@@ -264,6 +266,10 @@ export default function AppShell({ children }) {
   const [pendingResponses, setPendingResponses] = useState(0)
   const [mobileNavOpen, setMobileNavOpen] = useState(false)
   const [mobileOpsOpen, setMobileOpsOpen] = useState(false)
+  const [workspaces, setWorkspaces] = useState([])
+  const [activeWorkspace, setActiveWorkspace] = useState('')
+  const [workspaceMessage, setWorkspaceMessage] = useState('')
+  const [switchingWorkspace, setSwitchingWorkspace] = useState(false)
   const pageTitle = location.pathname.startsWith('/alerts') ? 'Alert explorer'
     : location.pathname.startsWith('/reports') ? 'Session reports'
       : location.pathname.startsWith('/incidents') ? 'Incident investigations'
@@ -281,14 +287,57 @@ export default function AppShell({ children }) {
       : location.pathname.startsWith('/lab') ? 'What-if lab'
         : location.pathname.startsWith('/analytics') ? 'Model analytics'
       : location.pathname.startsWith('/containment') ? 'Response governance'
+        : location.pathname.startsWith('/datasets') ? (location.pathname.endsWith('/compare') ? 'Dataset comparison' : location.pathname.split('/').length > 2 ? 'Dataset details' : 'Dataset workspaces')
     : location.pathname.includes('/compare') ? 'Run comparison'
           : location.pathname.startsWith('/runs') ? 'Run history' : 'Live console'
+  const activeWorkspaceInfo = workspaces.find((item) => item.id === activeWorkspace)
   const closePalette = () => setPaletteOpen(false)
 
   useEffect(() => { setMobileNavOpen(false); setMobileOpsOpen(false) }, [location.pathname])
 
+  useEffect(() => {
+    let alive = true
+    api.workspaces().then((reply) => {
+      if (!alive) return
+      setWorkspaces(reply.workspaces || [])
+      setActiveWorkspace(reply.active_workspace || '')
+    }).catch(() => { if (alive) setWorkspaceMessage('Workspace list unavailable') })
+    return () => { alive = false }
+  }, [])
+
+  async function changeWorkspace(event) {
+    const nextId = event.target.value
+    if (!nextId || nextId === activeWorkspace) return
+    const next = workspaces.find((item) => item.id === nextId)
+    if (role === 'viewer') {
+      setWorkspaceMessage('Viewer role can inspect workspace details but cannot switch datasets.')
+      event.target.value = activeWorkspace
+      return
+    }
+    if (!next || next.status === 'unavailable') {
+      setWorkspaceMessage('This dataset is not installed in this environment.')
+      event.target.value = activeWorkspace
+      return
+    }
+    if (!window.confirm(`Switch to ${next.name}? The current replay state will reset; saved workspace history stays isolated.`)) {
+      event.target.value = activeWorkspace
+      return
+    }
+    setSwitchingWorkspace(true)
+    setWorkspaceMessage('Switching dataset…')
+    try {
+      await api.activateWorkspace(nextId)
+      setActiveWorkspace(nextId)
+      window.location.reload()
+    } catch (error) {
+      setWorkspaceMessage(error.message || 'Dataset switch failed.')
+      event.target.value = activeWorkspace
+    } finally { setSwitchingWorkspace(false) }
+  }
+
   const mobileLinks = [
     ['/console', 'Live console', 'activity'], ['/incidents', 'Incidents', 'shield'],
+    ['/datasets', 'Datasets', 'layers'],
     ['/twin', 'Network twin', 'network'], ['/hosts', 'Hosts & assets', 'server'],
     ['/replay', 'Replay studio', 'play'], ['/scenarios', 'Scenarios', 'layers'],
     ['/runs', 'Run history', 'clock'], ['/forecasts', 'Forecasts', 'activity'],
@@ -366,6 +415,7 @@ export default function AppShell({ children }) {
           <NavLink to="/hosts" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
             <Icon name="server" /><span>Hosts & assets</span>
           </NavLink>
+          <NavLink to="/datasets" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}><Icon name="layers" /><span>Datasets</span></NavLink>
           <NavLink to="/replay" className={({ isActive }) => `app-nav-link${isActive ? ' is-active' : ''}`}>
             <Icon name="play" /><span>Replay studio</span>
           </NavLink>
@@ -404,6 +454,9 @@ export default function AppShell({ children }) {
           <Link to="/" className="mobile-brand" aria-label="Precog SOC home"><ThemeLogo className="brand-mark" /></Link>
           <div className="app-breadcrumb"><span>Workspace</span><Icon name="chevron" size={15} /><h1>{pageTitle}</h1></div>
           <div className="app-top-actions">
+            <label className="workspace-switcher"><span>DATASET</span><select aria-label="Active dataset workspace" value={activeWorkspace} disabled={switchingWorkspace || !workspaces.length || role === 'viewer'} onChange={changeWorkspace} title={role === 'viewer' ? 'Viewer role is read only' : 'Switching resets the current replay state'}>
+              {workspaces.map((item) => <option key={item.id} value={item.id} disabled={item.status === 'unavailable'}>{item.id}{item.status === 'unavailable' ? ' · unavailable' : ''}</option>)}
+            </select></label>
             {incidentNotice && <Link className="incident-notice" to="/incidents" onClick={() => setIncidentNotice(false)}>New incident <span aria-hidden="true">↗</span></Link>}
             <button type="button" className="command-trigger" onClick={() => setPaletteOpen(true)} aria-haspopup="dialog" aria-expanded={paletteOpen}>
               <Icon name="search" size={17} /><span>Search commands</span><kbd><Icon name="command" size={12} /> K</kbd>
@@ -412,6 +465,8 @@ export default function AppShell({ children }) {
             <SimulationBadge />
           </div>
         </header>
+        {activeWorkspaceInfo && <div className="workspace-context"><span>DATA SCOPE</span><b>{activeWorkspaceInfo.name}</b><small>{activeWorkspaceInfo.status === 'active' ? 'Active pack · simulation scope and capability limits apply' : 'Active workspace metadata'}</small><Link to={`/datasets/${encodeURIComponent(activeWorkspaceInfo.id)}`}>Source &amp; capabilities</Link></div>}
+        {workspaceMessage && <p className="workspace-switch-message" role="status">{workspaceMessage}</p>}
         <div className="app-shell-content">{children}</div>
         <GuidedTour />
       </div>
@@ -425,7 +480,8 @@ export default function AppShell({ children }) {
         <section className="mobile-nav-drawer" role="dialog" aria-modal="true" aria-label="Workspace navigation">
           <header><Link to="/" className="mobile-drawer-brand"><ThemeLogo className="brand-mark" /><b>Precog <strong>SOC</strong></b></Link><button type="button" className="icon-button" aria-label="Close navigation" onClick={() => setMobileNavOpen(false)}><Icon name="close" /></button></header>
           <div className="mobile-drawer-scroll">
-            {mobileLinks.slice(0, 11).map(([to, label, icon]) => <NavLink key={to} to={to} className={({ isActive }) => `mobile-drawer-link${isActive ? ' is-active' : ''}`}><Icon name={icon} size={19} /><span>{label}</span>{to === '/incidents' && openIncidents > 0 && <b className="app-nav-count">{openIncidents}</b>}{to === '/containment' && pendingResponses > 0 && <b className="app-nav-count">{pendingResponses}</b>}</NavLink>)}
+            <label className="mobile-workspace-switcher"><span>ACTIVE DATASET</span><select aria-label="Active dataset workspace" value={activeWorkspace} disabled={switchingWorkspace || !workspaces.length || role === 'viewer'} onChange={changeWorkspace}>{workspaces.map((item) => <option key={item.id} value={item.id} disabled={item.status === 'unavailable'}>{item.id}{item.status === 'unavailable' ? ' · unavailable' : ''}</option>)}</select>{role === 'viewer' && <small>Viewer role is read only.</small>}</label>
+            {mobileLinks.slice(0, 12).map(([to, label, icon]) => <NavLink key={to} to={to} className={({ isActive }) => `mobile-drawer-link${isActive ? ' is-active' : ''}`}><Icon name={icon} size={19} /><span>{label}</span>{to === '/incidents' && openIncidents > 0 && <b className="app-nav-count">{openIncidents}</b>}{to === '/containment' && pendingResponses > 0 && <b className="app-nav-count">{pendingResponses}</b>}</NavLink>)}
             <button type="button" className="mobile-drawer-link mobile-ops-toggle" aria-expanded={mobileOpsOpen} onClick={() => setMobileOpsOpen((open) => !open)}><Icon name="system" size={19} /><span>Monitoring &amp; Operations</span><Icon className="mobile-ops-chevron" name="chevron" size={16} /></button>
             {mobileOpsOpen && <div className="mobile-ops-links">{MONITORING_LINKS.map(({ to, label, icon }) => <NavLink key={to} to={to} className={({ isActive }) => `mobile-drawer-link${isActive ? ' is-active' : ''}`}><Icon name={icon} size={18} /><span>{label}</span></NavLink>)}</div>}
             <NavLink to="/settings" className={({ isActive }) => `mobile-drawer-link mobile-settings-link${isActive ? ' is-active' : ''}`}><Icon name="settings" size={19} /><span>Settings</span></NavLink>

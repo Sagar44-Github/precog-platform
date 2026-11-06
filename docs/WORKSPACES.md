@@ -16,6 +16,10 @@ D2 adapts the existing add-on hooks to the active context without changing `/api
 - `DELETE /api/x/workspaces/{id}` (admin): deletes only a validated inactive pack and its workspace-owned saved state. `demo-6` cannot be deleted.
 - `GET /api/x/feed?since=N`: includes the workspace version with incident/run/action/note versions; old `world_state` remains unchanged.
 
+## Dataset interface
+
+The authenticated UI exposes `/datasets`, `/datasets/{id}`, and `/datasets/compare`. It shows registry availability, pack counts, provenance, declared capabilities, and limitations; unavailable registered sources remain inspectable but cannot be activated. The active workspace selector is present in desktop navigation and the phone drawer. Analysts and admins confirm before switching; viewers can inspect cards but cannot activate packs. Each authenticated page shows the active data scope and links to its source/capability card. The guided tour includes this workspace-selection step.
+
 All writes retain the JSON content-type and same-origin `X-Precog-Request: 1` protection, plus server-side role checks. Viewer requests cannot install, activate, or delete. Activation requires an explicit confirmation to communicate that active replay state is reset. Pack validation/installation, successful switches, and deletion write scrubbed `workspace` records to the active workspace's audit log; a switch is recorded in both the source and destination workspace.
 
 ## Persistence and isolation

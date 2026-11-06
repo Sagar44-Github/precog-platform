@@ -104,3 +104,9 @@
 - Added active-workspace host search and server-paged topology summaries with zone state counts and aggregated connectivity; fixed asset inventory and replay-history API wiring used by the topology screens.
 - Added deterministic 3D zone clusters, bounded link bundles, compact rendering, a dense-network Lite layout, and a virtualized/paged asset directory for the 300-host workspace.
 - Added 300-host browser evidence under `docs/audit/screenshots/phase-d6/`, including SwiftShader frame/memory probes, three viewport widths, and a forced no-WebGL run.
+
+## Phase D7 — Dataset workspace interface (2026-11-06)
+
+- Added dataset directory, source/capability detail, and side-by-side comparison routes using the existing workspace APIs.
+- Added a role-aware dataset switcher for desktop and phone navigation, active-scope context across authenticated pages, command-palette entries, and a guided-tour step. Switching still requires explicit confirmation and the server's existing analyst/admin authorization.
+- Unavailable dataset sources remain visible with their local-installation and redistribution limits; derived capabilities are labelled as simulation estimates.

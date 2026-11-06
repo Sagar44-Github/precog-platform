@@ -184,6 +184,6 @@ test('guided tour deep links render a keyboard-operated dialog at the requested 
   const html = render('/console/topology?tour=golden-path&step=0')
   assert.match(html, /role="dialog" aria-modal="true"/)
   assert.match(html, /Start with the network/)
-  assert.match(html, /STEP 1 OF 6/)
+  assert.match(html, /STEP 1 OF 7/)
   assert.match(html, /Close tour/)
 })

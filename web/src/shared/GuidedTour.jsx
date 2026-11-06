@@ -11,6 +11,7 @@ const STEPS = [
   { path: '/containment', title: 'Propose, then confirm', copy: 'Containment changes only simulated in-memory host state. Review the target list and confirm explicitly; the tour never confirms an action for you.', action: 'Open containment' },
   { path: '/replay', title: 'Step through the replay', copy: 'Pause, advance one event, scrub read-only snapshots, or compare two finished sessions. Session scores are not overall model accuracy.', action: 'Open Replay Studio' },
   { path: '/reports', title: 'Close with a report', copy: 'Review and export the completed session. Keep the distinction between held-out evaluation and this replay’s counters clear.', action: 'Open reports' },
+  { path: '/datasets', title: 'Choose a dataset workspace', copy: 'Inspect each pack’s source, scope, installed status, and declared capabilities. Switching requires analyst or admin access and resets transient replay state.', action: 'Open datasets' },
 ]
 
 function stepUrl(step) { return `${step.path}?tour=golden-path&step=${STEPS.indexOf(step)}` }
