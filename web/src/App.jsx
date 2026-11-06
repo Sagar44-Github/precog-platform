@@ -27,6 +27,9 @@ const AuditPage = lazy(() => import('./areas/ops/audit.jsx'))
 const SystemPage = lazy(() => import('./areas/ops/system.jsx'))
 const SettingsPage = lazy(() => import('./areas/ops/settings.jsx'))
 const TopologyExplorerPage = lazy(() => import('./areas/console/topology-explorer.jsx'))
+const DatasetsPage = lazy(() => import('./areas/datasets/index.jsx'))
+const DatasetDetailPage = lazy(() => import('./areas/datasets/index.jsx').then((module) => ({ default: module.DatasetDetailPage })))
+const DatasetComparePage = lazy(() => import('./areas/datasets/index.jsx').then((module) => ({ default: module.DatasetComparePage })))
 import { UiPreferencesProvider } from './shared/ui-preferences.jsx'
 
 function WorkspacePage({ children }) {
@@ -52,6 +55,9 @@ export default function App() {
         <Route path="/audit" element={<WorkspacePage><AuditPage /></WorkspacePage>} />
         <Route path="/system" element={<WorkspacePage><SystemPage /></WorkspacePage>} />
         <Route path="/settings" element={<WorkspacePage><SettingsPage /></WorkspacePage>} />
+        <Route path="/datasets" element={<WorkspacePage><DatasetsPage /></WorkspacePage>} />
+        <Route path="/datasets/compare" element={<WorkspacePage><DatasetComparePage /></WorkspacePage>} />
+        <Route path="/datasets/:id" element={<WorkspacePage><DatasetDetailPage /></WorkspacePage>} />
         <Route path="/incidents/*" element={<WorkspacePage><IncidentsApp /></WorkspacePage>} />
         <Route path="/replay/*" element={<WorkspacePage><ReplayStudioApp /></WorkspacePage>} />
         <Route path="/scenarios/*" element={<WorkspacePage><ReplayStudioApp /></WorkspacePage>} />

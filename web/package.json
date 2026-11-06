@@ -13,6 +13,7 @@
     "pretest": "npm run build-landing-data",
     "test": "node --test scripts/run-tests-paths.test.mjs && node scripts/run-tests.mjs",
     "audit:browser": "node scripts/browser-audit.mjs",
+    "audit:datasets": "node scripts/d7-datasets-browser-audit.mjs",
     "audit:scale": "node scripts/d6-scale-audit.mjs",
     "audit:landing": "node scripts/landing-browser-audit.mjs"
   },

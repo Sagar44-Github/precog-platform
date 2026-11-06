@@ -73,3 +73,20 @@ test('topology and inventory helpers expose the active workspace endpoints', asy
   assert.equal(calls[1], '/api/x/topology/summary?offset=40&limit=20&q=node-0042&zone=application')
   assert.equal(calls[2], '/api/x/time-travel?limit=200&session_id=session+01')
 })
+
+test('workspace UI helpers use the existing registry, card, and confirmed activation routes', async (t) => {
+  const calls = []
+  const originalFetch = globalThis.fetch
+  globalThis.fetch = async (url, options = {}) => {
+    calls.push({ url: String(url), options })
+    return { ok: true, status: 200, json: async () => ({ workspaces: [], id: 'synth-enterprise-30' }) }
+  }
+  t.after(() => { globalThis.fetch = originalFetch })
+  await api.workspaces()
+  await api.workspaceCard('bad/id')
+  await api.activateWorkspace('synth-enterprise-30')
+  assert.equal(calls[0].url, '/api/x/workspaces')
+  assert.equal(calls[1].url, '/api/x/workspaces/bad%2Fid/card')
+  assert.equal(calls[2].url, '/api/x/workspaces/synth-enterprise-30/activate')
+  assert.deepEqual(JSON.parse(calls[2].options.body), { confirm: true })
+})
