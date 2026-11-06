@@ -276,7 +276,7 @@
   .workspace-context > b { max-width: 36vw; }
   .workspace-context > small { flex: 1; font-size: 10px; }
   .workspace-context > a { font-size: 10px; }
-  .app-top-actions .sim-badge, .incident-notice { display: none; }
+  .incident-notice { display: none; }
   .command-trigger { width: 44px; min-height: 44px; padding: 0; }
   .command-trigger > span, .command-trigger kbd { display: none; }
   .top-theme-toggle { width: 44px; min-width: 44px; min-height: 44px; }

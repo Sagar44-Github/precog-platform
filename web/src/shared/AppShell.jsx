@@ -458,8 +458,8 @@ export default function AppShell({ children }) {
               {workspaces.map((item) => <option key={item.id} value={item.id} disabled={item.status === 'unavailable'}>{item.id}{item.status === 'unavailable' ? ' · unavailable' : ''}</option>)}
             </select></label>
             {incidentNotice && <Link className="incident-notice" to="/incidents" onClick={() => setIncidentNotice(false)}>New incident <span aria-hidden="true">↗</span></Link>}
-            <button type="button" className="command-trigger" onClick={() => setPaletteOpen(true)} aria-haspopup="dialog" aria-expanded={paletteOpen}>
-              <Icon name="search" size={17} /><span>Search commands</span><kbd><Icon name="command" size={12} /> K</kbd>
+            <button type="button" className="command-trigger" onClick={() => setPaletteOpen(true)} aria-label="Search commands ⌘ K" aria-haspopup="dialog" aria-expanded={paletteOpen}>
+              <Icon name="search" size={17} /><span>Search commands</span><kbd aria-hidden="true"><Icon name="command" size={12} /> K</kbd>
             </button>
             <ThemeToggle className="top-theme-toggle" />
             <SimulationBadge />

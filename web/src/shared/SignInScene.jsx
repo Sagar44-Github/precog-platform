@@ -124,7 +124,7 @@ export default function SignInScene() {
     }
   }, [theme])
 
-  return <div className={`signin-scene${failed ? ' is-fallback' : ''}`} ref={hostRef} aria-label="Three dimensional simulation of network detection, observed attack path, predicted targets, and containment boundary">
+  return <div className={`signin-scene${failed ? ' is-fallback' : ''}`} ref={hostRef} role="img" aria-label="Three dimensional simulation of network detection, observed attack path, predicted targets, and containment boundary">
     {failed && <div className="signin-scene-fallback" aria-hidden="true"><span>Endpoint A</span><span>Detection</span><span>Web Server B</span><span>Forecast targets</span><span>Contained zone</span></div>}
   </div>
 }
