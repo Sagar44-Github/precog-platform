@@ -179,8 +179,18 @@ try {
     await page.goto(`${base}/app/twin`, { waitUntil: 'domcontentloaded' })
     await page.locator('.twin-page-head h1').waitFor({ timeout: 15000 })
     if (size.width >= 760) await page.getByRole('button', { name: 'Lite view' }).click()
-    await page.locator('.twin-lite-map:visible, .twin-lite-compact:visible').first().waitFor({ timeout: 15000 })
-    report.viewportChecks.push({ page: 'twin-lite', viewport: size.name, ...(await assertNoHorizontalOverflow(page, `twin ${size.name}`)) })
+    const liteSelector = size.width < 760 ? '.twin-lite-compact' : '.twin-lite-map'
+    await page.locator(liteSelector).waitFor({ state: 'visible', timeout: 15000 })
+    const viewport = { page: 'twin-lite', viewport: size.name, ...(await assertNoHorizontalOverflow(page, `twin ${size.name}`)) }
+    if (size.width < 760) {
+      viewport.captionOverlapsHostList = await page.evaluate(() => {
+        const list = document.querySelector('.twin-lite-compact')
+        const note = document.querySelector('.twin-lite-note')
+        return Boolean(list && note && note.getBoundingClientRect().top < list.getBoundingClientRect().bottom - 1)
+      })
+      if (viewport.captionOverlapsHostList) throw new Error(`Twin Lite caption overlaps the host list at ${size.name}.`)
+    }
+    report.viewportChecks.push(viewport)
     await page.screenshot({ path: join(screenshotDir, `twin-lite-${size.name}.png`), fullPage: true, animations: 'disabled' })
     report.screenshots.push(`twin-lite-${size.name}.png`)
   }
@@ -212,6 +222,29 @@ try {
   report.pagedHostList.serverSearch = 'found node-0025 by server-side search'
   await page.screenshot({ path: join(screenshotDir, 'host-directory-300-1440x900.png'), fullPage: true, animations: 'disabled' })
   report.screenshots.push('host-directory-300-1440x900.png')
+
+  // Exercise the UI activation path that must stay under BrowserRouter's /app base.
+  await page.setViewportSize({ width: 1440, height: 900 })
+  await page.goto(`${base}/app/datasets`, { waitUntil: 'domcontentloaded' })
+  await page.locator('.datasets-page h2').filter({ hasText: 'Dataset workspaces' }).waitFor({ timeout: 15000 })
+  const targetPack = page.locator('.dataset-card').filter({ hasText: 'synth-enterprise-30' })
+  await page.once('dialog', (dialog) => dialog.accept())
+  await targetPack.getByRole('button', { name: 'Switch workspace' }).click()
+  await page.waitForURL('**/app/datasets/synth-enterprise-30', { timeout: 10000 })
+  await page.locator('.datasets-page h2').filter({ hasText: 'Synthetic enterprise 30-host workspace' }).waitFor({ timeout: 10000 })
+  report.workspaceSwitch = { id: 'synth-enterprise-30', route: new URL(page.url()).pathname, no404: true }
+  await page.screenshot({ path: join(screenshotDir, 'workspace-switch-30-detail-1440x900.png'), fullPage: true, animations: 'disabled' })
+  report.screenshots.push('workspace-switch-30-detail-1440x900.png')
+
+  await page.goto(`${base}/app/twin`, { waitUntil: 'domcontentloaded' })
+  await page.locator('.twin-page-head h1').waitFor({ timeout: 15000 })
+  await page.getByRole('button', { name: 'Trace routes' }).click()
+  await page.locator('.twin-tools-grid > section').first().locator('.twin-results').waitFor({ timeout: 10000 })
+  await page.getByRole('button', { name: 'Preview' }).click()
+  await page.locator('.twin-tools-grid > section').nth(1).locator('.twin-results').waitFor({ timeout: 10000 })
+  report.workspaceTwin = { id: 'synth-enterprise-30', routeTrace: 'passed', segmentationPreview: 'passed' }
+  await page.screenshot({ path: join(screenshotDir, 'workspace-twin-30-1440x900.png'), fullPage: true, animations: 'disabled' })
+  report.screenshots.push('workspace-twin-30-1440x900.png')
 
   report.errors = [...new Set(report.errors)]
   if (report.errors.length) throw new Error(`Browser errors were detected:\n${report.errors.join('\n')}`)

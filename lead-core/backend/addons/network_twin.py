@@ -31,13 +31,13 @@ class NetworkTwin:
         state = self.graph.host_state(host_id)
         weaknesses = [{
             "weakness_id": item["id"], "service": item["service"], "cvss": float(item["cvss"]),
-            "description": item.get("description", "Simulated demo weakness"), "simulated": True,
+            "description": item.get("description", "Simulated weakness"), "simulated": True,
         } for item in assets.get("vulns", [])]
         connections = self.topology.connections(host_id)
         incoming = self.topology.incoming_count(host_id)
         return {
             "host_id": host_id, "name": host["name"], "zone": host["zone"],
-            "address": host.get("address", ""), "role": host.get("role", "Demo asset"),
+            "address": host.get("address", ""), "role": host.get("role", "Asset"),
             "state": state, "services": list(assets.get("services", [])),
             "weaknesses": weaknesses, "criticality": float(assets.get("criticality", 0.5)),
             "risk": round(self.topology.risk(host_id), 2), "exposure": len(connections) + incoming,
@@ -175,7 +175,7 @@ class NetworkTwin:
         return {
             "host": self._host(host_id), "alerts": alerts, "forecasts": forecasts,
             "actions": actions, "incidents": incidents,
-            "basis": "Host state is live in-memory simulation state; weakness and risk values are demo estimates.",
+            "basis": "Host state is live in-memory simulation state; weakness and risk values are simulation estimates.",
         }
 
     def _history_event(self, events, seen, host_id, kind, timestamp, summary, reference_id=None, run_id=None, state=None):
@@ -252,7 +252,7 @@ class NetworkTwin:
             "removed_edge": {"from_host": remove_from, "to_host": remove_to},
             "reachable_before": before, "reachable_after": after,
             "newly_unreachable": sorted(set(before) - set(after)),
-            "basis": "Read-only reachability projection over feasible demo edges. No live topology or host state was changed.",
+            "basis": "Read-only reachability projection over the active workspace edges. No live topology or host state was changed.",
         }
 
 

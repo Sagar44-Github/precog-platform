@@ -37,19 +37,85 @@ Official source records were checked against the dataset owners' pages:
 The source pages provide bibliographic citations; keep each card's dataset and
 paper citation with any permitted derived material.
 
-## Build and verify local data
+## Why the source datasets are not present
 
-The project never downloads source data implicitly. Follow the source page's
-access procedure, put selected files in a local folder, compute trusted SHA-256
-values, then stage only those files under the ignored backend data directory:
+This project does not download external datasets during install, startup, or
+deployment. The pack registry is metadata; `tools/datasets/fetch.py` only checks
+and stages files that an operator has already downloaded. In this checkout, the
+installed workspaces are `demo-6` and four project-generated synthetic packs
+(`synth-enterprise-30`, `synth-enterprise-120`, `synth-enterprise-300`, and
+`synth-datacenter-300`). These are runnable and bundled; they are not raw
+research datasets. The eight real-source registry entries have no source files
+or hashes here. Topology Zoo also has no source graph installed.
+
+That is intentional, not a missing Python package or a storage/configuration
+failure. Some sources require an access request or web form, some are multi-GB,
+and source terms differ on whether converted data may be redistributed. The
+project will not guess a download URL, select a subset, accept terms, or place
+unreviewed research data in a hosted deployment. No background download was
+started, so there is no partial-download directory to recover.
+
+### Download and build a local source pack
+
+1. Choose one source in the matrix above and use its official source link. Follow
+   its access form or download instructions; select only the flow/event files
+   accepted by that builder (not PCAPs, executables, or unrelated host logs).
+   LANL Cyber1 requires its own access procedure. CIC-IDS2017's five daily files
+   are large (the source page lists roughly 8–13 GB per day); CTU-13's full
+   archive is listed as 1.9 GB. A partial, selected CSV subset is usually faster
+   to process. Do not redistribute the resulting pack unless the source's terms
+   permit it.
+2. Put the selected files in one flat local folder. In PowerShell, set the
+   source ID and calculate a checksum for each selected file. Prefer a checksum
+   published by the data owner; a locally calculated checksum records what you
+   used but does not independently prove where it came from.
+3. Run the verifier, builder, and pack checks below from the repository root.
+   Replace the source ID and raw files for the dataset you chose.
 
 ~~~powershell
-Get-FileHash .\raw\auth.txt.gz -Algorithm SHA256
-python tools/datasets/fetch.py --source lanl-cyber1 --raw-dir .\raw --sha256 auth.txt.gz=<trusted-sha256> --sha256 redteam.txt.gz=<trusted-sha256>
-python tools/datasets/build_real_pack.py --source lanl-cyber1 --raw .\lead-core\backend\data\raw\lanl-cyber1
-python tools/datasets/validate_pack.py .\lead-core\backend\data\real-packs\lanl-cyber1
-python tools/datasets/inspect_pack.py .\lead-core\backend\data\real-packs\lanl-cyber1
+$SourceId = 'lanl-cyber1'
+$RawDir = 'D:\Datasets\precog\lanl-cyber1'
+$HashArgs = foreach ($File in Get-ChildItem -LiteralPath $RawDir -File) {
+  $Hash = (Get-FileHash -LiteralPath $File.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+  '--sha256'
+  "$($File.Name)=$Hash"
+}
+python tools/datasets/fetch.py --source $SourceId --raw-dir $RawDir @HashArgs
+$Staged = ".\lead-core\backend\data\raw\$SourceId"
+$Pack = ".\lead-core\backend\data\real-packs\$SourceId"
+python tools/datasets/build_real_pack.py --source $SourceId --raw $Staged
+python tools/datasets/validate_pack.py $Pack
+python tools/datasets/inspect_pack.py $Pack
 ~~~
+
+`fetch.py` needs at least one `--sha256 FILE=HASH` for every selected file. It
+stages verified inputs under ignored `lead-core/backend/data/raw/`; the builder
+creates a local-only pack under ignored `lead-core/backend/data/real-packs/`.
+These tools do not modify Git-tracked data, activate a workspace, or claim that
+source labels prove a successful compromise.
+
+### Make a locally built pack selectable
+
+For local development, copy the validated pack to the configured local pack
+root. For a hosted instance, create a ZIP whose root contains `manifest.json`,
+then use **Datasets → Upload dataset** as an administrator, inspect it, and
+confirm the build. The hosted upload limit is 50 MiB; the pack payload limit is
+25 MiB. Render's filesystem is ephemeral, so an uploaded pack can disappear on
+restart or redeploy. For durable hosted availability, a pack must be included
+in the deployment only after its redistribution terms are cleared.
+
+~~~powershell
+$Pack = ".\lead-core\backend\data\real-packs\$SourceId"
+$LocalPackRoot = '.\lead-core\backend\data\user_packs'
+New-Item -ItemType Directory -Force -Path $LocalPackRoot | Out-Null
+Copy-Item -LiteralPath $Pack -Destination (Join-Path $LocalPackRoot $SourceId) -Recurse
+~~~
+
+The workspace list discovers valid packs in this local root. Activate one from
+the workspace selector or dataset page; the Twin and route explorer then read
+that active pack's topology. Dataset-specific capability labels remain
+authoritative: for example, UNSW-NB15 does not provide ordered compromise
+routes, so Precog route forecasts are unsupported for that source.
 
 Use the equivalent source ID for each of the eight builders. fetch.py requires
 the expected digest for every supplied file, verifies it before staging, and

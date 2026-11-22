@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { CONFIRM_SECONDS, containReducer, formatTime, initialContain, replayButtons, replayWord, sceneSummary, threatLevel, timelineMarks } from './logic.js'
+import { chooseReplayScenario, CONFIRM_SECONDS, containReducer, formatTime, initialContain, replayButtons, replayWord, sceneSummary, threatLevel, timelineMarks } from './logic.js'
 
 const host = (id, name, state = 'normal') => ({ host_id: id, name, zone: 'user', state })
 const world = (states, over = {}) => ({ graph: { hosts: states.map((s, i) => host('h' + i, 'Host ' + i, s)) }, alerts: over.alerts || [], forecast: over.forecast || null })
@@ -21,6 +21,15 @@ test('replay words and which buttons work in each state', () => {
   assert.deepEqual(replayButtons({ state: 'paused' }), { start: false, pause: false, resume: true, restart: true })
   assert.deepEqual(replayButtons({ state: 'waiting_for_decision' }), { start: false, pause: false, resume: true, restart: true })
   assert.deepEqual(replayButtons({ state: 'finished' }), { start: true, pause: false, resume: false, restart: true })
+})
+
+test('scenario selection follows the active workspace library without assuming Golden Path exists', () => {
+  const scenarios = [{ scenario_id: 'campaign-preview' }, { scenario_id: 'quiet-scan' }]
+  assert.equal(chooseReplayScenario(scenarios), 'campaign-preview')
+  assert.equal(chooseReplayScenario(scenarios, 'missing-scenario'), 'campaign-preview')
+  assert.equal(chooseReplayScenario(scenarios, 'quiet-scan'), 'quiet-scan')
+  assert.equal(chooseReplayScenario(scenarios, 'quiet-scan', 'campaign-preview'), 'campaign-preview')
+  assert.equal(chooseReplayScenario([]), '')
 })
 
 test('the scene summary lists compromised, contained and the forecast', () => {

@@ -79,7 +79,7 @@
 .report-document-footer { margin-top: 18px; padding-top: 12px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 10px; }
 .report-print-button { min-height: 40px; padding: 0 12px; border: 1px solid var(--accent); border-radius: 6px; background: var(--accent); color: var(--accent-ink); font: 600 13px var(--font-ui); cursor: pointer; }
 .report-print-button:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
-.report-print-button:disabled { opacity: .5; cursor: not-allowed; }
+.report-print-button:disabled { border-color: var(--border); background: var(--surface-raised); color: var(--text-muted); opacity: 1; cursor: not-allowed; }
 .report-detail-page .ops-header-actions { flex-wrap: wrap; }
 
 @media (max-width: 980px) {

@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { buildScene, buildTwinScene, CLUSTER_THRESHOLD, coneOpacity, coneWidth, exposureScale, forecastScale, layoutFor, pulseScale, riskScale } from './sceneModel.js'
+import { buildScene, buildTwinScene, CLUSTER_THRESHOLD, coneOpacity, coneWidth, exposureScale, forecastScale, layoutFor, pulseScale, riskScale, shouldPulseHost } from './sceneModel.js'
 
 const host = (id, zone, state = 'normal') => ({ host_id: id, name: id.toUpperCase(), zone, state })
 const world = (over = {}) => ({
@@ -100,6 +100,15 @@ test('the pulse grows to 1.6 and back within 600 ms and is 1 outside it', () => 
   assert.ok(pulseScale(150) > 1 && pulseScale(150) < 1.6)
   assert.equal(pulseScale(600), 1)
   assert.equal(pulseScale(5000), 1)
+})
+
+test('a host only pulses on a real compromise transition and respects reduced motion', () => {
+  assert.equal(shouldPulseHost(undefined, 'compromised'), false)
+  assert.equal(shouldPulseHost('normal', 'compromised'), true)
+  assert.equal(shouldPulseHost('contained', 'compromised'), true)
+  assert.equal(shouldPulseHost('compromised', 'compromised'), false)
+  assert.equal(shouldPulseHost('normal', 'normal'), false)
+  assert.equal(shouldPulseHost('normal', 'compromised', true), false)
 })
 
 const twinTopology = {

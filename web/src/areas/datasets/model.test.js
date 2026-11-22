@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { capabilityLabel, comparisonRows, isSwitchable } from './model.js'
+import { capabilityLabel, comparisonRows, isSwitchable, workspaceDetailPath } from './model.js'
 
 test('dataset capability labels distinguish source data from generated estimates', () => {
   assert.equal(capabilityLabel('native'), 'Included in source pack')
@@ -19,4 +19,9 @@ test('only installed registry entries are switchable', () => {
   assert.equal(isSwitchable({ status: 'available' }), true)
   assert.equal(isSwitchable({ status: 'unavailable' }), false)
   assert.equal(isSwitchable(undefined), false)
+})
+
+test('workspace deep links stay inside the router basename instead of escaping to a Flask 404', () => {
+  assert.equal(workspaceDetailPath('synth-enterprise-30'), '/datasets/synth-enterprise-30')
+  assert.equal(workspaceDetailPath('user pack'), '/datasets/user%20pack')
 })

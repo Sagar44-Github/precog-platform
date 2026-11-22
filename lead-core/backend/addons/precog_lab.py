@@ -13,7 +13,7 @@ from precog_engine.model import ALPHA_GRID, NodeModel
 
 
 MAX_EXPERIMENTS = 50
-MAX_ALPHA_GRID = 6
+MAX_ALPHA_GRID = len(ALPHA_GRID)
 
 
 def _utc_now():
@@ -60,6 +60,8 @@ class PrecogLab:
         context = engine.explanation_context(forecast_id) if engine is not None and hasattr(engine, "explanation_context") else None
         topology = graph.topology
         model = engine.model if engine is not None else None
+        live_path = graph.snapshot().get("compromised_path", [])
+        fallback_stage = live_path.index(forecast["from_host"]) if forecast["from_host"] in live_path else None
         context_source = "captured"
         if context is None:
             # Sample mode ships a forecast without a live-engine sidecar. Rebuild
@@ -73,7 +75,7 @@ class PrecogLab:
             model_row = model.counts.get(forecast["from_host"], {}) if model is not None else {}
             context = {"candidate_ids": candidates, "host_states": states,
                        "transition_counts": {candidate: int(model_row.get(candidate, 0)) for candidate in candidates},
-                       "alpha": model.alpha if model is not None else None}
+                       "alpha": model.alpha if model is not None else None, "stage": fallback_stage}
         candidates = list(context.get("candidate_ids") or [target["host_id"] for target in forecast["targets"]])
         states = context.get("host_states", {})
         excluded = []
@@ -83,12 +85,14 @@ class PrecogLab:
                 excluded.append({"host_id": host_id, "state": state,
                                  "reason": "already compromised" if state == "compromised" else "simulated containment" if state == "contained" else "not in the captured feasible candidate set"})
         alpha = context.get("alpha", model.alpha if model else None)
+        stage = context.get("stage", fallback_stage)
         model_row = model.counts.get(forecast["from_host"], {}) if model is not None else {}
         counts = {host: int(context.get("transition_counts", {}).get(host, model_row.get(host, 0))) for host in candidates}
         total = sum(int(counts.get(host, 0)) for host in candidates)
         denominator = total + (float(alpha) * len(candidates) if alpha is not None else 0)
         if model is not None:
-            probabilities = model.probabilities(forecast["from_host"], candidates)
+            components = model.probability_components(forecast["from_host"], candidates, stage=stage)
+            probabilities = model.probabilities(forecast["from_host"], candidates, stage=stage)
         else:
             weights = {host: max(float(topology.edge_probability(forecast["from_host"], host)), 0.01) for host in candidates}
             mass = sum(weights.values()) or 1
@@ -98,8 +102,24 @@ class PrecogLab:
             host = item["host_id"]
             count = int(counts.get(host, 0))
             model_probability = probabilities.get(host, 0.0)
-            formula = ("(%d + %s) / (%d + %s × %d) = %.4f" %
-                       (count, _num(alpha), total, _num(alpha), len(candidates), model_probability)) if alpha is not None else "Rule-based fallback using simulated edge likelihoods."
+            if model is not None and components.get("context"):
+                weight = components["context_weight"]
+                source_weight = components["source_zone_weight"]
+                context_probability = components["context"].get(host, 0.0)
+                if components.get("source_zone") and components.get("stage_zone"):
+                    context_formula = "%.2f × source-zone %.4f + %.2f × stage-zone %.4f" % (
+                        source_weight, components["source_zone"].get(host, 0.0),
+                        1 - source_weight, components["stage_zone"].get(host, 0.0))
+                elif components.get("source_zone"):
+                    context_formula = "source-zone %.4f" % components["source_zone"].get(host, 0.0)
+                else:
+                    context_formula = "stage-zone %.4f" % context_probability
+                formula = ("%.2f × exact-node %.4f + %.2f × (%s) = %.4f" %
+                           (weight, components["node"].get(host, 0.0), 1 - weight,
+                            context_formula, model_probability))
+            else:
+                formula = ("(%d + %s) / (%d + %s × %d) = %.4f" %
+                           (count, _num(alpha), total, _num(alpha), len(candidates), model_probability)) if alpha is not None else "Rule-based fallback using simulated edge likelihoods."
             rows.append({"host_id": host, "transition_count": count, "confidence": item["confidence"],
                          "model_probability": round(model_probability, 4), "formula": formula})
         uniform = {host: 1 / len(candidates) for host in candidates} if candidates else {}
@@ -121,7 +141,9 @@ class PrecogLab:
             "from_host": forecast["from_host"],
             "transition_counts": [{"host_id": host, "count": int(counts.get(host, 0))} for host in candidates],
             "alpha": alpha,
-            "formula": "P(target | source) = (transition count + alpha) / (counts across feasible candidates + alpha × candidate count)",
+            "formula": ("P = exact-node weight × exact-host probability + remaining weight × a validation-selected blend of source-zone transition and route-stage target-zone probabilities; each distribution is normalized over the feasible candidate set with alpha smoothing."
+                        if model is not None and model.stage_zone_counts else
+                        "P(target | source) = (transition count + alpha) / (counts across feasible candidates + alpha × candidate count)"),
             "formula_denominator": round(denominator, 6),
             "target_arithmetic": rows,
             "baseline_rule_based": _rank(rule),
@@ -139,12 +161,12 @@ class PrecogLab:
         known = set(topology.host_ids())
         source = data["from_host"]
         if source not in known:
-            raise ValueError("Unknown demo host '%s'." % source)
+            raise ValueError("Unknown host '%s'." % source)
         states = dict(graph.states())
         overrides = data.get("host_states", {})
         for host, state in overrides.items():
             if host not in known:
-                raise ValueError("Unknown demo host '%s' in host_states." % host)
+                raise ValueError("Unknown host '%s' in host_states." % host)
             if state not in ("normal", "compromised", "contained"):
                 raise ValueError("Host state for '%s' must be normal, compromised or contained." % host)
             states[host] = state
@@ -155,7 +177,7 @@ class PrecogLab:
             raise ValueError("contain_hosts cannot contain duplicates.")
         for host in contain:
             if host not in known:
-                raise ValueError("Unknown demo host '%s' in contain_hosts." % host)
+                raise ValueError("Unknown host '%s' in contain_hosts." % host)
             if host == source:
                 raise ValueError("The hypothetical source host cannot also be contained.")
         before_candidates = topology.candidates(source, exclude=[host for host, state in states.items() if state != "normal"])
@@ -164,9 +186,12 @@ class PrecogLab:
             after_states[host] = "contained"
         after_candidates = topology.candidates(source, exclude=[host for host, state in after_states.items() if state != "normal"])
 
+        current_path = graph.snapshot().get("compromised_path", [])
+        stage = current_path.index(source) if source in current_path else None
+
         def probabilities(candidates):
             if engine is not None and engine.model is not None:
-                return engine.model.probabilities(source, candidates)
+                return engine.model.probabilities(source, candidates, stage=stage)
             weights = {host: max(float(topology.edge_probability(source, host)), 0.01) for host in candidates}
             total = sum(weights.values()) or 1
             return {host: weight / total for host, weight in weights.items()}
@@ -176,13 +201,13 @@ class PrecogLab:
         existing_forecasts = self.ctx.world.forecasts()
         current = existing_forecasts[-1] if existing_forecasts else None
         dataset = self.dataset_context
-        if dataset is not None and dataset.pack_id != "demo-6":
-            route_source = dataset.manifest.get("capabilities", {}).get("lateral_movement_routes", "none")
-            basis = ("Model-based estimate over %d hosts in dataset workspace %s; route ground truth is %s. "
-                     "This is a simulated what-if on recorded data; it does not change the pack or live state." %
-                     (len(dataset.hosts), dataset.pack_id, route_source))
-        else:
-            basis = "Model-based estimate over the six-host scripted topology. This what-if does not change live state and is not a guarantee."
+        route_source = (dataset.manifest.get("capabilities", {}).get("lateral_movement_routes", "none")
+                        if dataset is not None else "unknown")
+        host_count = len(dataset.hosts) if dataset is not None else len(topology.host_ids())
+        workspace = dataset.pack_id if dataset is not None else "current workspace"
+        basis = ("Model-based estimate over %d hosts in workspace %s; route ground truth is %s. "
+                 "This is a simulated what-if on recorded data; it does not change the pack or live state." %
+                 (host_count, workspace, route_source))
         return {
             "from_host": source,
             "before": {"candidates": before_candidates, "targets": _rank(before)},
@@ -196,25 +221,37 @@ class PrecogLab:
     def model_card(self):
         evaluation = self.shipped_evaluation()
         dataset = self.dataset_context
-        if dataset is not None and dataset.pack_id != "demo-6":
-            limitations = list(dataset.evaluation.get("limitations", []))
-            limitations.append("Results depend on this pack's stated ground-truth provenance; derived routes are estimates.")
-            return {"data_source": dataset.manifest["source"]["name"], "training_sequences": len(dataset.training_routes),
-                    "network_hosts": len(dataset.hosts), "held_out_forecasts": evaluation["node_model"]["forecasts"],
-                    "precision_at_1_standard_error": evaluation["node_model"]["precision_at_1_std_error"],
-                    "limitations": limitations[:20]}
-        return {"data_source": "graph_replay scripted generator", "training_sequences": 300,
-                "network_hosts": len(self.graph.topology.host_ids()), "held_out_forecasts": evaluation["node_model"]["forecasts"],
+        source = dataset.manifest.get("source", {}).get("name", "configured route source") if dataset else "configured route source"
+        sequences = len(dataset.training_routes) if dataset else 0
+        hosts = len(dataset.hosts) if dataset else len(self.graph.topology.host_ids())
+        limitations = list(dataset.evaluation.get("limitations", [])) if dataset else []
+        if not limitations:
+            limitations = ["Forecast metrics describe the configured route source only; they do not establish real-world attacker behavior."]
+        if evaluation["node_model"].get("share_with_more_than_3_candidates", 0) == 0:
+            limitations.append("Precision@3 is trivial on this topology because every held-out candidate set has at most three hosts.")
+        limitations.append("The offline detector report is a separate lab result, not live detector performance.")
+        return {"data_source": source, "training_sequences": sequences, "network_hosts": hosts,
+                "held_out_forecasts": evaluation["node_model"]["forecasts"],
                 "precision_at_1_standard_error": evaluation["node_model"]["precision_at_1_std_error"],
-                "limitations": ["Scripted paths and six demo hosts do not represent real attackers.",
-                                "Precision@3 is trivial here: every held-out step has at most three candidates.",
-                                "The offline CICIDS2017 report is a separate lab result, not live detector performance."]}
+                "limitations": limitations[:20]}
 
     def shipped_evaluation(self):
         dataset = self.dataset_context
         if dataset is not None and isinstance(dataset.evaluation, dict) and "node_model" in dataset.evaluation:
             return dataset.evaluation
         return json.loads(self.evaluation_path.read_text(encoding="utf-8"))
+
+    def default_alpha_grid(self):
+        """Reuse the active workspace's shipped validation grid when available."""
+        try:
+            validation = self.shipped_evaluation().get("alpha", {}).get("validation_surprise", {})
+            values = sorted(float(value) for value in validation)
+            if (1 <= len(values) <= MAX_ALPHA_GRID and len(set(values)) == len(values)
+                    and all(0.001 <= value <= 20 for value in values)):
+                return values
+        except (AttributeError, TypeError, ValueError):
+            pass
+        return list(ALPHA_GRID)
 
     def model_overview(self):
         evaluation = self.shipped_evaluation()
@@ -234,9 +271,12 @@ class PrecogLab:
                         if dataset is not None else json.loads(self.training_path.read_text(encoding="utf-8"))["sequences"])
             topology = self.graph.topology
             candidates = lambda here, path: topology.candidates(here, exclude=path)
+            model = self.engine.model if self.engine is not None else None
+            host_zones = model.host_zones if model is not None and model.stage_zone_counts else None
             started = time.monotonic()
             _model, result = evaluate(training, candidates, topology.edge_probability, seed=seed,
-                                      test_fraction=test_fraction, grid=grid)
+                                      test_fraction=test_fraction, grid=grid, extended_metrics=True,
+                                      host_zones=host_zones)
             runtime_ms = int((time.monotonic() - started) * 1000)
             if runtime_ms > 5000:
                 raise TimeoutError("Evaluation exceeded the 5 second safety limit.")

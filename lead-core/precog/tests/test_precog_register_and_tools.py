@@ -87,7 +87,12 @@ def test_the_shipped_results_match_a_fresh_evaluation_and_are_honest():
     model, fresh = evaluate(sequences, candidates, topology.edge_probability)
     shipped = json.loads((REPO_ROOT / "lead-core" / "precog" / "results" / "precog_evaluation.json").read_text(encoding="utf-8"))
     for key in ("node_model", "baseline_rule_based", "baseline_uniform", "split", "alpha", "containment_success"):
-        assert fresh[key] == shipped[key]
+        if key == "alpha":
+            assert fresh[key]["chosen"] == shipped[key]["chosen"]
+            for alpha, surprise in shipped[key]["validation_surprise"].items():
+                assert fresh[key]["validation_surprise"][alpha] == surprise
+        else:
+            assert fresh[key] == shipped[key]
     assert model.counts == NodeModel.load(MODEL_FILE).counts
     assert fresh["node_model"]["precision_at_1"] > fresh["baseline_uniform"]["precision_at_1"]
     assert fresh["node_model"]["max_candidates"] == 3 and "says nothing" in shipped["notes"] and "NOT a claim about real intrusions" in shipped["notes"]

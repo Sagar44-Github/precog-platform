@@ -71,12 +71,21 @@ def test_evaluation_seed_zero_reproduces_shipped_results_and_caches(logged_in, c
     model_path = ctx["config"].repo_root / "lead-core" / "precog" / "precog_engine" / "data" / "node_model.json"
     shipped = json.loads(target.read_text(encoding="utf-8"))
     shipped_model = model_path.read_bytes()
-    first = logged_in.post("/api/x/analytics/evaluate", json={"seed": 0, "test_fraction": 0.2, "alpha_grid": [0.01, 0.05, 0.1, 0.2, 0.5, 1.0]})
+    first = logged_in.post("/api/x/analytics/evaluate", json={"seed": 0, "test_fraction": 0.2})
     assert first.status_code == 200, first.get_data(as_text=True)
     body = first.get_json()
+    expected_grid = [float(value) for value in shipped["alpha"]["validation_surprise"]]
+    assert body["parameters"]["alpha_grid"] == expected_grid
     for key in ("node_model", "baseline_rule_based", "baseline_uniform", "split", "alpha", "containment_success"):
-        assert body["result"][key] == shipped[key]
-    again = logged_in.post("/api/x/analytics/evaluate", json={"seed": 0, "test_fraction": 0.2, "alpha_grid": [0.01, 0.05, 0.1, 0.2, 0.5, 1.0]})
+        if isinstance(shipped[key], dict):
+            for metric, value in shipped[key].items():
+                assert body["result"][key][metric] == value
+        else:
+            assert body["result"][key] == shipped[key]
+    assert body["result"]["node_model"]["log_loss"] >= 0
+    assert body["result"]["node_model"]["mean_reciprocal_rank"] >= body["result"]["node_model"]["precision_at_1"]
+    assert body["result"]["classification"]["confusion_matrix"]["matrix"]
+    again = logged_in.post("/api/x/analytics/evaluate", json={"seed": 0, "test_fraction": 0.2})
     assert again.status_code == 200 and again.get_json()["cached"] is True
     other_seed = logged_in.post("/api/x/analytics/evaluate", json={"seed": 9, "test_fraction": 0.2, "alpha_grid": [0.01, 0.05, 0.1, 0.2, 0.5, 1.0]})
     assert other_seed.status_code == 200

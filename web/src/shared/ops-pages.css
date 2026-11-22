@@ -29,7 +29,7 @@
 }
 .ops-button:hover { filter: brightness(1.06); }
 .ops-button:focus-visible, .ops-field input:focus-visible, .ops-field select:focus-visible, .ops-search-field input:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
-.ops-button:disabled { opacity: 0.48; cursor: not-allowed; }
+.ops-button:disabled { border-color: var(--border); background: var(--surface-raised); color: var(--text-muted); opacity: 1; filter: none; cursor: not-allowed; }
 .ops-button-secondary { border-color: var(--border); background: var(--surface-raised); color: var(--text); font-weight: 500; }
 .ops-button-quiet { border-color: transparent; background: transparent; color: var(--text-muted); }
 .ops-button-quiet:hover { border-color: var(--border); background: var(--surface-raised); color: var(--text); }

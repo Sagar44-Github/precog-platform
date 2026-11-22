@@ -5,6 +5,7 @@
   font-weight: 100 900;
   font-display: swap;
 }
+
 @font-face {
   font-family: 'Geist Mono';
   src: url('/app/fonts/GeistMono.woff2') format('woff2');
@@ -38,8 +39,8 @@
 
   --font-ui: 'Geist Sans', system-ui, sans-serif;
   --font-mono: 'Geist Mono', ui-monospace, monospace;
-  --text-xs: 11px;
-  --text-sm: 12px;
+  --text-xs: 12px;
+  --text-sm: 13px;
   --text-md: 14px;
   --text-lg: 16px;
   --text-xl: 20px;
@@ -97,6 +98,8 @@
   --space-6: 32px;
   --duration-fast: 120ms;
   --duration-normal: 180ms;
+  --duration-slow: 280ms;
+  --motion-ease: cubic-bezier(0.2, 0.75, 0.25, 1);
   --z-sidebar: 10;
   --z-header: 12;
   --z-toast: 30;
@@ -155,8 +158,50 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 .sim-badge { display: inline-block; padding: 2px 8px; border: 1px solid var(--border-strong); border-radius: 999px; color: var(--text-muted); font-family: var(--font-mono); font-size: 12px; letter-spacing: 0.04em; }
 .empty-state { text-align: center; color: var(--text-muted); padding: var(--space-5); }
 .skeleton { height: 14px; margin: var(--space-2) 0; border-radius: var(--radius-s); background: var(--surface-raised); }
-.toast { position: fixed; left: var(--space-4); right: var(--space-4); bottom: 84px; padding: var(--space-3) var(--space-4); border: 1px solid var(--border-strong); border-radius: var(--radius-m); background: var(--surface-raised); color: var(--text); z-index: 20; }
-@media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+.toast { position: fixed; z-index: var(--z-toast); right: 22px; bottom: 22px; display: grid; grid-template-columns: 28px minmax(0, 1fr) 44px; align-items: start; gap: 10px; width: min(420px, calc(100vw - 32px)); padding: 13px 12px; border: 1px solid var(--border-strong); border-radius: var(--radius-l); background: var(--surface-raised); color: var(--text); box-shadow: 0 14px 42px var(--shadow-dialog); animation: precog-toast-enter var(--duration-normal) var(--motion-ease) both; }
+.toast-mark { display: grid; width: 26px; height: 26px; place-items: center; border: 1px solid var(--info); border-radius: 50%; color: var(--info); font-size: 14px; font-weight: 700; }
+.toast-success .toast-mark { border-color: var(--success); color: var(--success); }
+.toast-error .toast-mark { border-color: var(--error); color: var(--error); }
+.toast-copy { display: grid; gap: 3px; min-width: 0; }
+.toast-status { color: var(--text-muted); font-size: 10px; font-weight: 600; letter-spacing: .1em; }
+.toast-copy strong { font-size: 14px; line-height: 1.35; }
+.toast-copy p { margin: 0; color: var(--text-muted); font-size: 13px; line-height: 1.4; overflow-wrap: anywhere; }
+.toast-dismiss { width: 44px; height: 44px; border: 0; border-radius: var(--radius-s); background: transparent; color: var(--text-muted); font-size: 20px; line-height: 1; cursor: pointer; }
+.toast-dismiss:hover { background: var(--interactive-hover); color: var(--text); }
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; scroll-behavior: auto !important; }
+  .app-shell button:active, .app-shell [role="button"]:active, .toast-dismiss:active, .login-shell button:active { transform: none !important; }
+}
+
+/* Shared, short interaction feedback. Motion uses transforms and opacity only. */
+@keyframes precog-toast-enter {
+  from { opacity: 0; transform: translateY(8px) scale(0.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes precog-dialog-enter {
+  from { opacity: 0; transform: translateY(8px) scale(0.99); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes precog-scrim-enter { from { opacity: 0; } to { opacity: 1; } }
+
+.app-shell button:not(:disabled),
+.app-shell [role="button"],
+.toast-dismiss,
+.login-shell button:not(:disabled) {
+  transition: transform var(--duration-fast) var(--motion-ease), background-color var(--duration-fast) ease,
+    border-color var(--duration-fast) ease, color var(--duration-fast) ease, opacity var(--duration-fast) ease;
+}
+.app-shell button:not(:disabled):active,
+.app-shell [role="button"]:active,
+.toast-dismiss:active,
+.login-shell button:not(:disabled):active { transform: scale(0.985, 0.975); }
+.toast-dismiss { min-width: 44px; min-height: 44px; }
+.app-shell-content :where(button, a, input, select, textarea):focus-visible,
+.app-topbar :where(button, a, input, select, textarea):focus-visible,
+.toast :where(button, a):focus-visible {
+  outline: var(--focus-ring);
+  outline-offset: 2px;
+}
 
 /* Focused operator sign-in with a lightweight, CSS-only orbital backdrop. */
 .login-shell { position: relative; min-height: 100dvh; overflow: hidden; display: grid; place-items: center; padding: 28px; background: radial-gradient(ellipse at 16% 10%, var(--glow-violet), transparent 32%), radial-gradient(ellipse at 86% 90%, var(--glow-cyan), transparent 34%), var(--bg); }
@@ -220,7 +265,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .demo-launch-flow > i { display: none; }
 }
 
-/* Geist-inspired neutral hierarchy. Dark mode keeps a true black page canvas. */
+/* Shared neutral workspace tokens. Dark mode keeps a true black page canvas. */
 :root {
   color-scheme: dark;
   --bg: #000000;
@@ -422,6 +467,22 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .signin-auth-foot { margin-top: 18px; font-size: 8px; }
 }
 
+/* Shared reading scale. Component styles retain their own heading sizes and hierarchy. */
+.app-shell-content { font-size: var(--text-md); }
+.app-shell-content :where(p, li, dt, dd, blockquote, figcaption, th, td, output) {
+  font-size: max(var(--text-sm), 1em) !important;
+  line-height: 1.55;
+}
+.app-shell-content :where(label, summary, button, input, select, textarea) {
+  font-size: max(var(--text-sm), 1em) !important;
+}
+.app-shell-content :where(small, [class*="meta"], [class*="hint"], [class*="caption"]) {
+  font-size: max(var(--text-xs), .875em) !important;
+  line-height: 1.45;
+}
+.app-shell-content :where(h1, h2, h3, h4) { line-height: 1.25; }
+.app-shell-content :where(.ops-description, .c-panel-heading p, .c-panel-body .c-alert p) { font-size: var(--text-sm); }
+
 @media (max-width: 370px) {
   .signin-auth-wrap { padding-inline: 16px; }
   .signin-visual { padding-inline: 10px; }
@@ -433,8 +494,8 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
 @media (max-width: 767px) {
   .ops-page { padding: 18px var(--mobile-page-gutter, 16px) 26px !important; }
   .ops-page-header { flex-direction: column; gap: 14px; margin-bottom: 18px; }
-  .ops-page-header h2 { font-size: 26px !important; }
-  .ops-description { font-size: 13px; }
+  .ops-page-header h2 { font-size: 24px; }
+  .ops-description { font-size: 14px; }
   .ops-header-actions { width: 100%; flex-wrap: wrap; }
   .ops-header-actions > * { min-height: 42px; }
   .ops-card-header { min-height: 50px; padding-inline: 12px; }
@@ -450,6 +511,7 @@ button:focus-visible, a:focus-visible, input:focus-visible, select:focus-visible
   .ops-card, .ops-card-body, .ops-page, .ops-page * { min-width: 0; }
   .ops-card p, .ops-detail-list dd, .ops-table-wrap td, .ops-table-wrap th { overflow-wrap: anywhere; }
   .ops-button, .button, .icon-button { min-height: 44px; }
+  .icon-button { width: 44px; min-width: 44px; }
   .ops-field input, .ops-field select, .ops-search-field input, .field, select, textarea { min-height: 44px; font-size: 16px; }
   .command-backdrop, [role="dialog"] { max-height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); }
   .c-app { grid-template-columns: minmax(0, 1fr) !important; }

@@ -186,6 +186,26 @@ def test_the_session_is_saved_to_a_json_file_when_a_forecast_is_resolved(rig, tm
     assert saved["session"]["scenario_id"] == "golden-path" and saved["metrics"]["hits"] == 1 and saved["forecasts"][0]["status"] == "hit"
 
 
+def test_interim_session_writes_are_throttled_and_flush_keeps_the_latest_snapshot(rig, tmp_path, monkeypatch):
+    import precog_engine.engine as engine_module
+
+    monkeypatch.setattr(engine_module, "SESSION_WRITE_INTERVAL_SECONDS", 60.0)
+    rig.world.set_session({"session_id": "ses-000008", "scenario_id": "large-workspace", "started_at": "2026-10-03T10:00:00Z", "ended_at": None, "forecasts": [], "actions": []})
+    compromise(rig)
+    rig.engine.on_attempt("host-a", "server-b", False)
+    target = tmp_path / "sessions" / "ses-000008.json"
+    first_snapshot = target.read_bytes()
+
+    compromise(rig)
+    rig.engine.on_attempt("host-a", "server-b", False)
+    assert target.read_bytes() == first_snapshot
+
+    assert rig.engine.flush_session()
+    saved = json.loads(target.read_text(encoding="utf-8"))
+    assert len(saved["forecasts"]) == 2
+    assert saved["metrics"]["forecasts_resolved"] == 2
+
+
 def test_a_problem_saving_the_session_never_disturbs_the_run(contracts, tmp_path):
     blocker = tmp_path / "blocked"
     blocker.write_text("a file where a folder should be", encoding="utf-8")

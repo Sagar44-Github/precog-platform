@@ -248,6 +248,7 @@ class ReplayStudio:
         if topology is None:
             raise RuntimeError("The topology hook is not available for dry-run.")
         states = {host_id: "normal" for host_id in topology.host_ids()}
+        compromised_path = []
         forecasts = []
         pending = None
         model = getattr(precog, "model", None)
@@ -257,7 +258,8 @@ class ReplayStudio:
                 host = event["host"]
                 if states[host] == "normal":
                     states[host] = "compromised"
-                    pending = self._dry_forecast(host, states, topology, model)
+                    compromised_path.append(host)
+                    pending = self._dry_forecast(host, states, topology, model, len(compromised_path) - 1)
                     if pending:
                         forecasts.append(pending)
             elif kind == "attempt":
@@ -269,24 +271,25 @@ class ReplayStudio:
                     pending = None
                 if not blocked and states[target] == "normal":
                     states[target] = "compromised"
-                    pending = self._dry_forecast(target, states, topology, model)
+                    compromised_path.append(target)
+                    pending = self._dry_forecast(target, states, topology, model, len(compromised_path) - 1)
                     if pending:
                         forecasts.append(pending)
         return self._out("scenario_dry_run", {
             "scenario_id": scenario["scenario_id"], "event_count": len(scenario["events"]),
             "duration_ms": scenario["events"][-1]["offset_ms"], "host_states": states,
             "forecasts": forecasts,
-            "basis": "Model-based estimate over the scripted six-host demo topology; this dry-run does not change live state.",
+            "basis": "Model-based estimate over the active %s-host workspace; this dry-run does not change live state." % len(topology.host_ids()),
         })
 
     @staticmethod
-    def _dry_forecast(host, states, topology, model):
+    def _dry_forecast(host, states, topology, model, stage=None):
         excluded = [name for name, state in states.items() if state != "normal"]
         candidates = topology.candidates(host, exclude=excluded)
         if not candidates:
             return None
         if model is not None:
-            ranked = model.top(host, candidates, min(3, len(candidates)))
+            ranked = model.top(host, candidates, min(3, len(candidates)), stage=stage)
         else:
             weights = {candidate: max(topology.edge_probability(host, candidate), 0.01) for candidate in candidates}
             total = sum(weights.values())

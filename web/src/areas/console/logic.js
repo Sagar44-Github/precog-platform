@@ -50,6 +50,14 @@ export function replayButtons(replay) {
   }
 }
 
+/** Keep the selected scenario inside the active workspace's actual scenario library. */
+export function chooseReplayScenario(scenarios, selected = '', activeScenario = '') {
+  const available = Array.isArray(scenarios) ? scenarios.map((item) => item?.scenario_id).filter(Boolean) : []
+  if (available.includes(activeScenario)) return activeScenario
+  if (available.includes(selected)) return selected
+  return available[0] || ''
+}
+
 export const SPEEDS = [1, 2, 4]
 
 /** The text summary shown beside the 3D canvas, for screen readers and as a plain-list fallback (UI/UX brief 12). */

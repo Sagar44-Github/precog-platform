@@ -36,7 +36,8 @@ test('replay controls say "Waiting for your decision" and enable only the useful
 test('an idle replay can only be started', () => {
   const out = html(<ReplayControls replay={{ state: 'idle', scenario_id: null, speed: 1, position: 0 }} />)
   assert.match(out, /Idle/)
-  assert.doesNotMatch(out, /<button[^>]*disabled[^>]*>Start/)
+  assert.match(out, /Loading scenarios/)
+  assert.match(out, /<button[^>]*disabled[^>]*>Start/)
   assert.match(out, /aria-label="Restart replay"[^>]*disabled/)
 })
 
@@ -62,12 +63,28 @@ test('the contain button names the top predicted host, and is absent without a f
   assert.equal(html(<ConsoleContain state={state} allowed={false} />), '')
 })
 
+test('a contained forecast target is reported and cannot be proposed a second time', () => {
+  const containedState = { ...state, graph: { ...state.graph, hosts: state.graph.hosts.map((host) => host.host_id === 'server-b' ? { ...host, state: 'contained' } : host) } }
+  const out = html(<ConsoleContain state={containedState} />)
+  assert.match(out, /Already contained/)
+  assert.match(out, /No additional action is available/)
+  assert.doesNotMatch(out, /<button[^>]*>Contain Web Server B/)
+})
+
 test('the forecast panel shows the forecast bars, the contain button and a collapsible attack path', () => {
   const out = html(<ForecastPanel state={state} resolved={null} />)
   assert.match(out, /74%/)
   assert.match(out, /Contain Web Server B/)
   assert.match(out, /Observed attack path/)
   assert.match(out, /<details class="disclosure c-module" open=/)
+})
+
+test('an idle workspace shows a compact path to available replays without a Golden Path launch card', () => {
+  const idle = { ...state, replay: { state: 'idle', scenario_id: null, speed: 1, position: 0 }, forecast: null }
+  const out = html(<ForecastPanel state={idle} resolved={null} />)
+  assert.match(out, /Workspace ready/)
+  assert.match(out, /Open Replay Studio/)
+  assert.doesNotMatch(out, /Start Golden Path/)
 })
 
 test('the node panel shows the host, its state, its recent alerts and Contain when it is predicted', () => {
@@ -96,7 +113,9 @@ test('the timeline strip has a mark per alert and a forecast marker', () => {
 })
 
 test('the scene summary is text for screen readers', () => {
-  assert.match(html(<SceneSummary state={state} />), /2 hosts\. 1 compromised: Workstation A\. 1 forecast: Web Server B 74 %\./)
+  const output = html(<SceneSummary state={state} />)
+  assert.match(output, /2 hosts\. 1 compromised: Workstation A\. 1 forecast: Web Server B 74 %\./)
+  assert.match(output, /Browse hosts as a list/)
 })
 
 test('charts show an empty state instead of an empty frame', () => {

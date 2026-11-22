@@ -18,3 +18,8 @@ export function comparisonRows(left = {}, right = {}) {
 export function isSwitchable(workspace) {
   return Boolean(workspace && workspace.status !== 'unavailable')
 }
+
+/** Router paths are relative to BrowserRouter's /app basename. */
+export function workspaceDetailPath(workspaceId) {
+  return `/datasets/${encodeURIComponent(workspaceId)}`
+}

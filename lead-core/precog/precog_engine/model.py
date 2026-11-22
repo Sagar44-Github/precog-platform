@@ -1,11 +1,11 @@
-"""The node-level Precog model: a smoothed first-order Markov model over hosts (TRD Section 9.2).
+"""Precog's smoothed host-transition model with an optional route-stage/zone backoff.
 
-State: the host the attacker is on. Candidates: the hosts it could go to next. The probability of moving from i to j is
-
-    P(j | i) = ( count(i -> j) + alpha ) / ( sum over candidates k of count(i -> k) + alpha * number_of_candidates )
-
-alpha is a small smoothing number, so a move never seen in training still has a small chance. The top three
-probabilities are the forecast. The counts come from the training sequences made by GRAPH's generator.
+The exact component is a first-order Markov model over host IDs. When a pack
+ships host-zone metadata, a second component pools target counts for the same
+route stage and target zone. A validation-selected mixture provides reusable
+evidence when large workspaces have sparse per-host counts. Both components
+use the same feasible candidate set and alpha smoothing; neither uses held-out
+outcomes or scripted scenario results.
 """
 import hashlib
 import json
@@ -15,7 +15,17 @@ from collections import defaultdict
 from pathlib import Path
 
 DEFAULT_ALPHA = 0.1
-ALPHA_GRID = (0.01, 0.05, 0.1, 0.2, 0.5, 1.0)
+ALPHA_GRID = (0.01, 0.05, 0.1, 0.2, 0.5, 1.0, 2.0, 5.0, 10.0, 20.0)
+CONTEXT_WEIGHT_GRID = (0.0, 0.25, 0.5, 0.75, 1.0)
+SOURCE_ZONE_WEIGHT_GRID = (0.0, 0.5, 1.0)
+MAX_ROUTE_STAGE = 2
+
+
+def route_stage_bucket(stage):
+    """Pool late route hops; sparse route packs cannot support one model row per hop."""
+    if isinstance(stage, bool) or not isinstance(stage, int) or stage < 0:
+        return None
+    return min(stage, MAX_ROUTE_STAGE)
 
 
 def split_sequences(sequences, seed=0, test_fraction=0.2):
@@ -40,24 +50,106 @@ class NodeModel:
         if alpha < 0:
             raise ValueError("alpha cannot be negative")
         self.counts, self.alpha, self.meta = counts, float(alpha), dict(meta or {})
+        context = self.meta.get("prediction_context")
+        context = context if isinstance(context, dict) else {}
+        self.stage_zone_counts = context.get("stage_zone_counts", {})
+        self.stage_source_zone_counts = context.get("stage_source_zone_counts", {})
+        self.host_zones = context.get("host_zones", {})
+        weight = context.get("context_weight", 1.0)
+        if isinstance(weight, bool) or not isinstance(weight, (int, float)) or not 0 <= weight <= 1:
+            raise ValueError("prediction context weight must be between 0 and 1")
+        self.context_weight = float(weight)
+        source_weight = context.get("source_zone_weight", 0.5)
+        if isinstance(source_weight, bool) or not isinstance(source_weight, (int, float)) or not 0 <= source_weight <= 1:
+            raise ValueError("source-zone context weight must be between 0 and 1")
+        self.source_zone_weight = float(source_weight)
 
     @classmethod
-    def train(cls, sequences, alpha=DEFAULT_ALPHA, meta=None):
-        return cls(count_moves(sequences), alpha, meta)
+    def train(cls, sequences, alpha=DEFAULT_ALPHA, meta=None, host_zones=None, context_weight=1.0,
+              source_zone_weight=0.5):
+        metadata = dict(meta or {})
+        if host_zones:
+            stage_zone_counts = defaultdict(lambda: defaultdict(int))
+            stage_source_zone_counts = defaultdict(lambda: defaultdict(lambda: defaultdict(int)))
+            for sequence in sequences:
+                path = sequence["path"] if isinstance(sequence, dict) else sequence
+                for stage, (source, target) in enumerate(zip(path, path[1:])):
+                    source_zone = host_zones.get(source)
+                    zone = host_zones.get(target)
+                    if zone:
+                        stage_zone_counts[str(route_stage_bucket(stage))][zone] += 1
+                    if source_zone and zone:
+                        stage_source_zone_counts[str(route_stage_bucket(stage))][source_zone][zone] += 1
+            metadata["prediction_context"] = {
+                "kind": "route-stage-source-zone-v2",
+                "context_weight": float(context_weight),
+                "source_zone_weight": float(source_zone_weight),
+                "stage_zone_counts": {stage: dict(counts) for stage, counts in stage_zone_counts.items()},
+                "stage_source_zone_counts": {
+                    stage: {source_zone: dict(counts) for source_zone, counts in sources.items()}
+                    for stage, sources in stage_source_zone_counts.items()
+                },
+                "host_zones": dict(host_zones),
+            }
+        return cls(count_moves(sequences), alpha, metadata)
 
-    def probabilities(self, from_host, candidates):
-        """{candidate: probability}, summing to 1. With no data at all every candidate gets the same share."""
+    def probability_components(self, from_host, candidates, stage=None):
+        """Return exact-host and pooled stage/zone distributions for one candidate set."""
         if not candidates:
-            return {}
+            return {"node": {}, "context": {}, "context_weight": self.context_weight}
         row = self.counts.get(from_host, {})
         denominator = sum(row.get(c, 0) for c in candidates) + self.alpha * len(candidates)
-        if denominator == 0:
-            return {c: 1.0 / len(candidates) for c in candidates}
-        return {c: (row.get(c, 0) + self.alpha) / denominator for c in candidates}
+        exact = ({c: 1.0 / len(candidates) for c in candidates} if denominator == 0 else
+                 {c: (row.get(c, 0) + self.alpha) / denominator for c in candidates})
+        bucket = route_stage_bucket(stage)
+        stage_counts = self.stage_zone_counts.get(str(bucket), {}) if bucket is not None else {}
+        zone_sizes = defaultdict(int)
+        for candidate in candidates:
+            zone = self.host_zones.get(candidate)
+            if not zone:
+                return {"node": exact, "context": {}, "context_weight": 1.0,
+                        "source_zone": {}, "stage_zone": {}, "source_zone_weight": self.source_zone_weight}
+            zone_sizes[zone] += 1
+        def normalize(zone_counts):
+            denominator = sum(zone_counts.get(zone, 0) for zone in zone_sizes) + self.alpha * len(candidates)
+            if not zone_counts or denominator <= 0 or not any(zone_counts.get(zone, 0) for zone in zone_sizes):
+                return {}
+            return {
+                candidate: (zone_counts.get(self.host_zones[candidate], 0) + self.alpha * zone_sizes[self.host_zones[candidate]])
+                           / denominator / zone_sizes[self.host_zones[candidate]]
+                for candidate in candidates
+            }
 
-    def top(self, from_host, candidates, k=3):
+        stage_source_counts = self.stage_source_zone_counts.get(str(bucket), {}) if bucket is not None else {}
+        source_zone = self.host_zones.get(from_host)
+        source_distribution = normalize(stage_source_counts.get(source_zone, {})) if source_zone else {}
+        stage_distribution = normalize(stage_counts)
+        if source_distribution and stage_distribution:
+            source_weight = self.source_zone_weight
+            context = {candidate: source_weight * source_distribution[candidate] +
+                       (1.0 - source_weight) * stage_distribution[candidate] for candidate in candidates}
+        elif source_distribution:
+            source_weight, context = 1.0, source_distribution
+        elif stage_distribution:
+            source_weight, context = 0.0, stage_distribution
+        else:
+            source_weight, context = self.source_zone_weight, {}
+        return {"node": exact, "context": context, "context_weight": self.context_weight,
+                "source_zone": source_distribution, "stage_zone": stage_distribution,
+                "source_zone_weight": source_weight}
+
+    def probabilities(self, from_host, candidates, stage=None):
+        """Candidate probabilities summing to one; optional route-stage pooling backs off sparse host rows."""
+        parts = self.probability_components(from_host, candidates, stage)
+        if not parts["context"]:
+            return parts["node"]
+        weight = parts["context_weight"]
+        return {candidate: weight * parts["node"][candidate] + (1.0 - weight) * parts["context"][candidate]
+                for candidate in candidates}
+
+    def top(self, from_host, candidates, k=3, stage=None):
         """The k likeliest hosts as [(host, probability)], best first (ties go to the host id so the result is repeatable)."""
-        probabilities = self.probabilities(from_host, candidates)
+        probabilities = self.probabilities(from_host, candidates, stage=stage)
         return sorted(probabilities.items(), key=lambda item: (-item[1], item[0]))[:k]
 
     def to_dict(self):

@@ -157,7 +157,7 @@
   .twin-page { padding: 16px 12px 28px; }
   .twin-page-head { align-items: flex-start; flex-direction: column; }
   .twin-page-head h1 { font-size: 28px; }
-  .twin-overview { gap: 10px 15px; font-size: 8px; }
+  .twin-overview { gap: 10px 15px; font-size: 12px; }
   .twin-overview .twin-estimate { width: 100%; margin-left: 0; }
   .twin-workbench, .twin-tools-grid, .twin-host-detail .twin-tools-grid { grid-template-columns: minmax(0, 1fr); }
   .twin-map-toolbar { align-items: stretch; }
@@ -165,7 +165,7 @@
   .twin-select-label select { width: 100%; }
   .twin-map-viewport { height: 390px; min-height: 330px; }
   .twin-map-legend { top: 8px; left: 8px; gap: 6px; }
-  .twin-map-legend span { font-size: 7px; }
+  .twin-map-legend span { font-size: 10px; }
   .twin-inspector { max-height: none; }
   .twin-timebar { grid-template-columns: 1fr auto; gap: 9px; padding: 10px; }
   .twin-timebar select { grid-column: 1 / -1; width: 100%; }
@@ -173,7 +173,7 @@
   .twin-time-value { grid-column: 2; }
   .twin-host-list { grid-template-columns: minmax(0, 1fr); }
   .twin-scale-message { align-items: flex-start; flex-direction: column; }
-  .twin-page-controls { font-size: 8px; }
+  .twin-page-controls { font-size: 12px; }
   .twin-host-row { flex-wrap: wrap; }
   .twin-host-row > span:first-child { flex-basis: calc(100% - 10px); }
   .twin-risk { margin-left: auto; }
@@ -185,16 +185,17 @@
   .twin-map-viewport:has(.twin-lite-map) { height: auto; min-height: 0; overflow: visible; }
   .twin-lite-map { display: none; }
   .twin-lite-compact { display: grid; gap: 10px; padding: 58px 11px 13px; }
+  .twin-lite-note { position: static; padding: 0 12px 12px; font-size: 12px; }
   .twin-lite-compact section { display: grid; gap: 5px; }
   .twin-lite-compact h3 { margin: 0; color: var(--text-muted); font: 8px var(--font-mono); letter-spacing: .12em; }
   .twin-lite-compact button { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 8px 9px; border: 1px solid var(--border); border-radius: 8px; background: var(--surface-inset); color: var(--text); text-align: left; }
   .twin-lite-compact button > span { display: grid; flex: 1; min-width: 0; gap: 3px; }
-  .twin-lite-compact button b { font-size: 10px; }
-  .twin-lite-compact button small { color: var(--text-muted); font-size: 8px; }
+  .twin-lite-compact button b { font-size: 14px; }
+  .twin-lite-compact button small { color: var(--text-muted); font-size: 12px; }
   .twin-lite-compact button i { width: 9px; height: 9px; border-radius: 50%; background: var(--state-normal); }
   .twin-lite-compact button i.state-compromised { background: var(--state-compromised); }
   .twin-lite-compact button i.state-contained { background: var(--state-contained); }
-  .twin-lite-compact button em { color: var(--text-muted); font: 8px var(--font-mono); font-style: normal; }
+  .twin-lite-compact button em { color: var(--text-muted); font: 12px var(--font-mono); font-style: normal; }
   .twin-full-history li { grid-template-columns: 1fr auto; gap: 5px 10px; }
   .twin-full-history li span { grid-column: 1 / -1; }
   .twin-detail-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }

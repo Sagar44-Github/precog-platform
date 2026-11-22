@@ -69,13 +69,31 @@ def ctx(flask_app):
 
 
 @pytest.fixture()
-def world(ctx):
-    """The world state, reset to the sample data before every test."""
+def world(flask_app):
+    """Reset shared runtime hooks as well as the sample state between tests."""
+    ctx = flask_app.extensions["precog"]
+    pipeline = flask_app.extensions.get("precog_pipeline")
+    if pipeline is not None:
+        pipeline.stop()
+    replay = ctx["hooks"].get("replay")
+    if replay is not None and replay.status().get("state") in ("running", "paused", "waiting_for_decision"):
+        replay.stop()
+    manager = flask_app.extensions.get("precog_workspaces")
+    if manager is not None and manager.active.pack_id != "demo-6":
+        manager.activate("demo-6")
+    for hook_name in ("events", "graph", "precog"):
+        hook = ctx["hooks"].get(hook_name)
+        if hook is not None and hasattr(hook, "reset"):
+            hook.reset()
+    containment = ctx["hooks"].get("containment")
+    if containment is not None and hasattr(containment, "reset_for_replay"):
+        containment.reset_for_replay()
     from addons.sample_loader import load_samples
 
-    ctx["world"].reset()
-    load_samples(ctx["world"], ctx["config"].contracts_dir)
-    return ctx["world"]
+    world = ctx["world"]
+    world.reset()
+    load_samples(world, ctx["config"].contracts_dir)
+    return world
 
 
 @pytest.fixture()

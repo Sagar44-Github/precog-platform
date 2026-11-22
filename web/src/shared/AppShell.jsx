@@ -10,10 +10,6 @@ import { api, apiGet } from './api.js'
 import GuidedTour from './GuidedTour.jsx'
 import './app-shell.css'
 
-function commandEvent(detail) {
-  window.dispatchEvent(new CustomEvent('precog:console-command', { detail }))
-}
-
 export function CommandPalette({ open, onClose }) {
   const navigate = useNavigate()
   const { theme, toggleTheme } = useTheme()
@@ -30,7 +26,7 @@ export function CommandPalette({ open, onClose }) {
     { label: 'Open what-if lab', detail: 'Explore containment counterfactuals without changing the replay', icon: 'sliders', keywords: 'what if counterfactual containment', run: () => navigate('/lab') },
     { label: 'Open model analytics', detail: 'Review calibration and run held-out experiments', icon: 'clock', keywords: 'evaluation metrics model calibration', run: () => navigate('/analytics') },
     { label: 'Open response governance', detail: 'Preview and confirm simulation-only response playbooks', icon: 'shield', keywords: 'containment actions approvals releases playbooks', run: () => navigate('/containment') },
-    { label: 'Open network twin', detail: 'Explore demo assets, paths and recorded states', icon: 'network', keywords: 'hosts topology digital twin', run: () => navigate('/twin') },
+    { label: 'Open network twin', detail: 'Explore active workspace assets, paths and recorded states', icon: 'network', keywords: 'hosts topology digital twin', run: () => navigate('/twin') },
     { label: 'Open replay studio', detail: 'Step through a scripted replay and compare runs', icon: 'play', keywords: 'replay studio runs timeline', run: () => navigate('/replay') },
     { label: 'Open scenario library', detail: 'Choose or build a scripted scenario', icon: 'layers', keywords: 'scenario builder library', run: () => navigate('/scenarios') },
     { label: 'Open run history', detail: 'Review completed runs and compare outcomes', icon: 'clock', keywords: 'runs history compare', run: () => navigate('/runs') },
@@ -38,7 +34,7 @@ export function CommandPalette({ open, onClose }) {
     { label: 'Compare datasets', detail: 'Compare scope, provenance, and supported workflows', icon: 'sliders', keywords: 'datasets compare capability', run: () => navigate('/datasets/compare') },
     { label: 'Open alert explorer', detail: 'Search and review detection events', icon: 'activity', keywords: 'alerts events', run: () => navigate('/alerts') },
     { label: 'Open session reports', detail: 'Review replay reports and timelines', icon: 'sliders', keywords: 'reports metrics', run: () => navigate('/reports') },
-    ...(role === 'viewer' ? [] : [{ label: 'Start Golden Path replay', detail: 'Start the deterministic simulation', icon: 'play', keywords: 'demo replay simulation', run: () => commandEvent({ type: 'start-demo' }) }]),
+    ...(role === 'viewer' ? [] : [{ label: 'Choose and start a replay', detail: 'Open scenarios available in the active workspace; Golden Path is available in demo-6', icon: 'play', keywords: 'golden path demo replay simulation', run: () => navigate('/replay') }]),
     { label: `Switch to ${theme === 'dark' ? 'light' : 'dark'} theme`, detail: 'Change the display theme', icon: theme === 'dark' ? 'sun' : 'moon', keywords: 'appearance color', run: toggleTheme },
   ], [navigate, role, theme, toggleTheme])
   const filtered = useMemo(() => {

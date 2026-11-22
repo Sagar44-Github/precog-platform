@@ -1,10 +1,11 @@
-import { useEffect, useReducer, useState } from 'react'
+import { useEffect, useReducer, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { Link } from 'react-router-dom'
 import { api, apiGet } from '../../shared/api.js'
 import { CollapsibleSection } from '../../shared/components.jsx'
 import { AccuracyCounter, AttackPath2D, ForecastBars, OutcomeCard, SeverityBadge, StateChip } from '../../shared/operational-widgets.jsx'
 import { AlertVolumeChart, ForecastAccuracyChart } from '../charts/index.jsx'
-import { containReducer, formatTime, hostName, initialContain, replayButtons, replayWord, sceneSummary, SPEEDS, threatLevel, timelineMarks } from './logic.js'
+import { chooseReplayScenario, containReducer, formatTime, hostName, initialContain, replayButtons, replayWord, sceneSummary, SPEEDS, threatLevel, timelineMarks } from './logic.js'
 import '../../shared/security-widgets.css'
 
 // The operator panels reuse shared event and forecast facts while keeping the app shell's presentation consistent.
@@ -13,20 +14,58 @@ export function ReplayControls({ replay, client = api, canOperate = true, permis
   const mayOperate = permissions ? Boolean(permissions.can_run_replay) : canOperate
   const mayRestart = permissions ? Boolean(permissions.can_restart_replay) : mayOperate
   const [scenarios, setScenarios] = useState([])
-  const [scenario, setScenario] = useState('golden-path')
+  const [scenario, setScenario] = useState('')
+  const [loadingScenarios, setLoadingScenarios] = useState(true)
   const [speed, setSpeed] = useState(1)
   const [problem, setProblem] = useState('')
-  useEffect(() => { apiGet('/api/x/replay/scenarios').then(setScenarios).catch(() => setScenarios([])) }, [])
+  useEffect(() => {
+    let active = true
+    const loadScenarios = async () => {
+      setLoadingScenarios(true)
+      try {
+        const items = await apiGet('/api/x/replay/scenarios')
+        if (!active) return
+        const available = Array.isArray(items) ? items : []
+        setScenarios(available)
+        setScenario((current) => chooseReplayScenario(available, current))
+        setProblem('')
+      } catch (error) {
+        if (!active) return
+        setScenarios([])
+        setScenario('')
+        setProblem(error.message || 'The active workspace scenarios could not be loaded.')
+      } finally {
+        if (active) setLoadingScenarios(false)
+      }
+    }
+    loadScenarios()
+    const onWorkspaceChanged = () => {
+      setScenarios([])
+      setScenario('')
+      loadScenarios()
+    }
+    window.addEventListener('precog:workspace-changed', onWorkspaceChanged)
+    return () => {
+      active = false
+      window.removeEventListener('precog:workspace-changed', onWorkspaceChanged)
+    }
+  }, [])
+  useEffect(() => {
+    setScenario((current) => chooseReplayScenario(scenarios, current, replay?.scenario_id))
+  }, [replay?.scenario_id, scenarios])
   const enabled = replayButtons(replay)
-  const run = (call) => () => { setProblem(''); call().catch((e) => setProblem(e.message)) }
+  const run = (call) => () => { setProblem(''); call().catch((e) => setProblem(e.message || 'Replay control failed.')) }
   const waiting = replay && replay.state === 'waiting_for_decision'
+  const canStart = mayOperate && enabled.start && Boolean(scenario) && !loadingScenarios
   return (
     <div className="c-replay" role="group" aria-label="Replay controls">
       <span className="c-control-label">REPLAY CONTROL</span>
-      {mayOperate && <select className="c-select-scenario" aria-label="Scenario" value={scenario} onChange={(e) => setScenario(e.target.value)} disabled={!mayOperate || !enabled.start}>
-        {(scenarios.length ? scenarios : [{ scenario_id: 'golden-path' }]).map((s) => <option key={s.scenario_id} value={s.scenario_id}>{s.scenario_id}</option>)}
+      {mayOperate && <select className="c-select-scenario" aria-label="Scenario" value={scenario} onChange={(e) => setScenario(e.target.value)} disabled={!mayOperate || !enabled.start || loadingScenarios || !scenarios.length}>
+        {scenarios.length
+          ? scenarios.map((s) => <option key={s.scenario_id} value={s.scenario_id}>{s.scenario_id}</option>)
+          : <option value="">{loadingScenarios ? 'Loading scenarios…' : 'No scenarios available'}</option>}
       </select>}
-      {mayOperate && <button type="button" className="c-btn c-btn-start" disabled={!mayOperate || !enabled.start} onClick={run(() => client.startReplay(scenario, speed))}>Start <span aria-hidden="true">▶</span></button>}
+      {mayOperate && <button type="button" className="c-btn c-btn-start" disabled={!canStart} onClick={run(() => client.startReplay(scenario, speed))}>Start <span aria-hidden="true">▶</span></button>}
       <button type="button" className="c-btn c-btn-icon" aria-label="Pause replay" title="Pause replay" disabled={!mayOperate || !enabled.pause} onClick={run(() => client.pauseReplay())}>Ⅱ</button>
       <button type="button" className="c-btn c-btn-icon" aria-label="Resume replay" title="Resume replay" disabled={!mayOperate || !enabled.resume} onClick={run(() => client.resumeReplay())}>▶</button>
       {mayRestart && <button type="button" className="c-btn c-btn-icon" aria-label="Restart replay" title="Restart replay" disabled={!mayRestart || !enabled.restart} onClick={run(() => client.restartReplay())}>↺</button>}
@@ -74,9 +113,19 @@ export function ConsoleContain({ state, client = api, onDone, allowed = true }) 
   const forecast = state && state.forecast && state.forecast.status === 'pending' ? state.forecast : null
   const target = forecast ? forecast.targets[0] : null
   const name = target ? hostName(state, target.host_id) : ''
+  const targetHost = target ? state.graph.hosts.find((host) => host.host_id === target.host_id) : null
+  const open = flow.step === 'confirming' || flow.step === 'sending'
+  const trigger = useRef(null)
+  const confirmButton = useRef(null)
+
+  const cancel = () => {
+    if (flow.action) client.cancelContainment(flow.action.action_id).catch(() => {})
+    dispatch({ type: 'cancel' })
+    window.requestAnimationFrame(() => trigger.current?.focus())
+  }
 
   useEffect(() => {
-    if (flow.step !== 'proposing' || !target) return
+    if (flow.step !== 'proposing' || !target || targetHost?.state === 'contained') return
     client.proposeContainment(target.host_id, forecast.forecast_id, 'console').then((action) => dispatch({ type: 'proposed', action })).catch((e) => dispatch({ type: 'error', message: e.message }))
   }, [flow.step])  // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
@@ -85,29 +134,46 @@ export function ConsoleContain({ state, client = api, onDone, allowed = true }) 
     return () => clearInterval(timer)
   }, [flow.step])
 
+  useEffect(() => {
+    if (!open) return undefined
+    confirmButton.current?.focus()
+    const onKeyDown = (event) => {
+      if (event.key === 'Escape' && flow.step === 'confirming') cancel()
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [open, flow.step])
+
   if (!target || !allowed) return null
-  const open = flow.step === 'confirming' || flow.step === 'sending'
+  if (!targetHost) return <p className="c-containment-note" role="status">This forecast target is not part of the active workspace. Refresh the console before proposing a response.</p>
+  if (targetHost.state === 'contained') return <p className="c-containment-note" role="status"><strong>Already contained</strong><span>{name} is already contained in this simulation. No additional action is available.</span></p>
   const confirm = () => {
     dispatch({ type: 'confirm' })
-    client.confirmContainment(flow.action.action_id).then((action) => { dispatch({ type: 'confirmed', action }); if (onDone) onDone(`${name} contained (simulated)`) }).catch((e) => dispatch({ type: 'error', message: e.message }))
+    client.confirmContainment(flow.action.action_id).then((action) => {
+      dispatch({ type: 'confirmed', action })
+      if (onDone) onDone({ kind: 'success', title: 'Containment completed', message: `${name} is contained in this simulation.`, status: 'SIMULATION' })
+    }).catch((e) => dispatch({ type: 'error', message: e.message }))
   }
-  const cancel = () => { if (flow.action) client.cancelContainment(flow.action.action_id).catch(() => {}); dispatch({ type: 'cancel' }) }
   return (
     <div>
-      <button type="button" className="c-btn c-btn-contain" disabled={flow.step === 'proposing' || open} onClick={() => dispatch({ type: 'tap' })}>
+      <button ref={trigger} type="button" className="c-btn c-btn-contain" disabled={flow.step === 'proposing' || open} onClick={() => dispatch({ type: 'tap' })}>
         {flow.step === 'proposing' ? 'Asking…' : `Contain ${name}`}
       </button>
       <div className="c-error" role="alert">{flow.step === 'error' || flow.step === 'expired' ? flow.message : ''}</div>
-      {open && (
-        <div className="c-dialog" role="dialog" aria-modal="true" aria-label={`Contain ${name}?`}>
-          <h3>Contain {name}?</h3>
-          <p>This marks the host as contained. It is a SIMULATION: nothing on a real network changes.</p>
-          <div className="c-row">
-            <button type="button" className="c-btn c-btn-contain" onClick={confirm} disabled={flow.step === 'sending'}>Confirm</button>
-            <button type="button" className="c-btn" onClick={cancel} disabled={flow.step === 'sending'}>Cancel</button>
-            <span className="c-mono c-muted">{flow.secondsLeft} s left</span>
-          </div>
-        </div>
+      {open && createPortal(
+        <div className="c-dialog-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget && flow.step === 'confirming') cancel() }}>
+          <section className="c-dialog" role="dialog" aria-modal="true" aria-labelledby="contain-dialog-title" aria-describedby="contain-dialog-copy">
+            <span className="c-dialog-kicker">SIMULATED RESPONSE · REVIEW REQUIRED</span>
+            <h3 id="contain-dialog-title">Contain {name}?</h3>
+            <p id="contain-dialog-copy">This marks the host as contained in the simulation. No real network or system changes.</p>
+            <div className="c-dialog-actions">
+              <button ref={confirmButton} type="button" className="c-btn c-btn-contain" onClick={confirm} disabled={flow.step === 'sending'}>{flow.step === 'sending' ? 'Applying…' : 'Confirm containment'}</button>
+              <button type="button" className="c-btn" onClick={cancel} disabled={flow.step === 'sending'}>Cancel</button>
+              <span className="c-mono c-muted">Expires in {flow.secondsLeft}s</span>
+            </div>
+          </section>
+        </div>,
+        document.body,
       )}
     </div>
   )
@@ -117,6 +183,7 @@ export function ForecastPanel({ state, resolved, onDone, canOperate = true }) {
   return (
     <div className="c-panel-body">
       <div className="c-panel-heading"><span className="c-eyebrow">PRECOG ENGINE / MODEL ESTIMATE</span><h2>Next likely targets</h2><p>Ranked from the current scripted attack path</p></div>
+      {state.replay?.state === 'idle' && <div className="c-empty-callout c-console-ready"><strong>Workspace ready</strong><span>Select an available scenario from Replay controls when you want to start the simulation.</span><Link to="/replay">Open Replay Studio ↗</Link></div>}
       <ForecastBars state={state} />
       {canOperate ? <ConsoleContain state={state} onDone={onDone} /> : <p className="c-muted">Viewer access is read-only. An analyst can propose and confirm simulated containment.</p>}
       <CollapsibleSection className="c-module" title="Observed attack path" meta={`${state.graph.compromised_path.length} hosts`} open>
@@ -188,5 +255,5 @@ export function TimelineStrip({ alerts, forecast }) {
 }
 
 export function SceneSummary({ state }) {
-  return <p className="c-summary" aria-live="polite">{sceneSummary(state)}</p>
+  return <p className="c-summary" aria-live="polite"><span>{sceneSummary(state)}</span><Link className="c-summary-host-link" to="/hosts">Browse hosts as a list ↗</Link></p>
 }

@@ -111,6 +111,22 @@ def test_reads_return_copies_not_the_inside_objects(w):
     assert w.alerts()[0]["host"] == "host-a"
 
 
+def test_time_travel_graphs_stay_immutable_and_returned_snapshots_are_copies(w):
+    first = sample("graph_snapshot")
+    w.set_graph(first)
+    first_snapshot = w.time_travel()[-1]
+
+    second = copy.deepcopy(first)
+    second["hosts"][0]["state"] = "compromised"
+    w.set_graph(second)
+    history = w.time_travel()
+    assert history[-2]["graph"]["hosts"][0]["state"] == first["hosts"][0]["state"]
+    assert history[-1]["graph"]["hosts"][0]["state"] == "compromised"
+
+    first_snapshot["graph"]["hosts"][0]["state"] = "tampered"
+    assert w.time_travel()[-2]["graph"]["hosts"][0]["state"] == first["hosts"][0]["state"]
+
+
 def test_reset_forgets_the_replay_but_keeps_history_and_bumps_version(w):
     w.load_full_state(sample("world_state"))
     w.set_session(sample("session_record"))

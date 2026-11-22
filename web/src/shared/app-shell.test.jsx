@@ -39,7 +39,7 @@ test('the desktop shell provides workspace navigation and a permanent simulation
 
 test('the command palette exposes replay, navigation, and theme actions', () => {
   const html = render(<CommandPalette open onClose={() => {}} permissions={{ can_run_replay: true }} />)
-  for (const label of ['Open live console', 'Open alert explorer', 'Open session reports', 'Open dataset workspaces', 'Compare datasets', 'Start Golden Path replay', 'Switch to light theme']) {
+  for (const label of ['Open live console', 'Open alert explorer', 'Open session reports', 'Open dataset workspaces', 'Compare datasets', 'Choose and start a replay', 'Switch to light theme']) {
     assert.match(html, new RegExp(label.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')))
   }
   assert.doesNotMatch(html, /mobile SOC|phone PWA/i)

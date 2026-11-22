@@ -19,11 +19,11 @@
 .c-threat-contained > span:first-child, .c-threat-contained b { color: var(--state-contained); }
 .c-replay { flex: 1 1 auto; display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 340px; padding: 5px 7px; border: 1px solid var(--border); border-radius: var(--radius-m); background: var(--surface-sunken); }
 .c-control-label { margin: 0 5px; color: var(--text-muted); font: 8px var(--font-mono); letter-spacing: 0.12em; white-space: nowrap; }
-.c-replay select, .c-btn { min-height: 34px; padding: 0 10px; border: 1px solid var(--border); border-radius: var(--radius-s); background: var(--surface-raised); color: var(--text); font: 11px var(--font-mono); cursor: pointer; }
+.c-replay select, .c-btn { min-height: 40px; padding: 0 10px; border: 1px solid var(--border); border-radius: var(--radius-s); background: var(--surface-raised); color: var(--text); font: 11px var(--font-mono); cursor: pointer; }
 .c-replay select { min-width: 62px; }
 .c-replay .c-select-scenario { width: 128px; text-transform: uppercase; letter-spacing: 0.04em; }
 .c-replay select:focus-visible, .c-btn:focus-visible { outline: var(--focus-ring); outline-offset: 2px; }
-.c-btn { transition: border-color var(--duration-fast) ease, background var(--duration-fast) ease; }
+.c-btn { transition: transform var(--duration-fast) var(--motion-ease), border-color var(--duration-fast) ease, background-color var(--duration-fast) ease, color var(--duration-fast) ease; }
 .c-btn:hover:not(:disabled) { border-color: var(--accent); }
 .c-btn:disabled, .c-replay select:disabled { opacity: 0.4; cursor: default; }
 .c-btn-start { display: inline-flex; align-items: center; gap: 6px; border-color: var(--accent); background: var(--accent); color: var(--accent-ink); font-family: var(--font-ui); font-weight: 650; }
@@ -42,7 +42,7 @@
 .c-app .stale-banner { grid-area: stale; z-index: 8; padding: 7px; }
 .c-rail { grid-area: rail; z-index: 4; display: flex; align-items: center; gap: 6px; padding: 8px 18px; border-bottom: 1px solid var(--border); background: var(--surface); }
 .c-rail-caption { margin: 0 8px 0 0; color: var(--text-muted); font: 9px var(--font-mono); letter-spacing: 0.1em; }
-.c-rail-btn { position: relative; min-height: 34px; display: inline-flex; align-items: center; gap: 7px; padding: 0 10px; border: 1px solid transparent; border-radius: var(--radius-s); background: transparent; color: var(--text-muted); cursor: pointer; transition: color var(--duration-fast) ease, border-color var(--duration-fast) ease, background var(--duration-fast) ease; }
+.c-rail-btn { position: relative; min-height: 40px; display: inline-flex; align-items: center; gap: 7px; padding: 0 10px; border: 1px solid transparent; border-radius: var(--radius-s); background: transparent; color: var(--text-muted); cursor: pointer; transition: transform var(--duration-fast) var(--motion-ease), color var(--duration-fast) ease, border-color var(--duration-fast) ease, background-color var(--duration-fast) ease; }
 .c-rail-btn:hover { color: var(--text); background: var(--surface-raised); }
 .c-rail-btn[aria-pressed="true"] { border-color: var(--border); background: var(--surface-raised); color: var(--text); }
 .c-rail-btn[aria-pressed="true"] .c-rail-icon { color: var(--accent); }
@@ -61,7 +61,7 @@
 .c-map-totals span:nth-child(2) b { color: var(--forecast-text); }
 .c-map-totals span:nth-child(3) b { color: var(--severity-medium); }
 .c-summary { position: absolute; z-index: 2; left: 24px; bottom: 16px; margin: 0; max-width: 56%; color: var(--text-muted); font: 10px/1.5 var(--font-mono); pointer-events: none; }
-.c-demo-launch { position: absolute; z-index: 5; top: 55%; left: 50%; width: min(660px, calc(100% - 52px)); max-height: calc(100% - 154px); overflow-y: auto; transform: translate(-50%, -43%); }
+.c-summary-host-link { display: inline-flex; min-height: 32px; align-items: center; margin-top: 3px; color: var(--accent); font: 11px/1.3 var(--font-ui); text-decoration: underline; text-underline-offset: 3px; pointer-events: auto; }
 .c-right { grid-area: right; z-index: 3; min-width: 0; padding: 18px; background: var(--surface); }
 .c-right[data-focus="true"] { outline: 1px solid var(--forecast); outline-offset: -5px; }
 .c-panel-body { display: grid; align-content: start; gap: 14px; }
@@ -83,7 +83,20 @@
 .c-panel-body .c-alert:first-of-type { border-top: 1px solid var(--border); }
 .c-panel-body .c-alert p { color: var(--text); font-size: 12px; line-height: 1.5; }
 .c-panel-body .c-mono { font-size: 10px; }
-.c-panel-body .c-dialog { box-shadow: 0 12px 40px var(--shadow-dialog); }
+.c-dialog-backdrop { position: fixed; z-index: var(--z-dialog); inset: 0; display: grid; place-items: center; padding: 20px; background: var(--overlay); backdrop-filter: blur(3px); animation: precog-scrim-enter 120ms ease-out both; }
+.c-dialog { display: grid; gap: 12px; width: min(440px, 100%); max-height: calc(100dvh - 40px); overflow-y: auto; padding: 22px; border: 1px solid var(--border-strong); border-radius: var(--radius-xl); background: var(--surface-raised); color: var(--text); box-shadow: 0 18px 56px var(--shadow-dialog); animation: precog-dialog-enter var(--duration-normal) var(--motion-ease) both; }
+.c-dialog-kicker { color: var(--text-muted); font: 10px var(--font-mono); letter-spacing: .08em; }
+.c-dialog h3 { margin: 0; font-size: 20px; line-height: 1.25; }
+.c-dialog p { margin: 0; color: var(--text-muted); font-size: 14px; line-height: 1.5; }
+.c-dialog-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 5px; }
+.c-dialog-actions .c-btn { min-height: 40px; font: 14px var(--font-ui); }
+.c-dialog-actions .c-mono { margin-left: auto; font-size: 12px; }
+.c-containment-note { display: grid; gap: 4px; margin: 0; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-m); background: var(--surface-sunken); color: var(--text-muted); font-size: 13px; line-height: 1.45; }
+.c-containment-note strong { color: var(--state-contained); }
+.c-console-ready { padding: 13px 14px; text-align: left; }
+.c-console-ready strong { color: var(--text); font-size: 14px; }
+.c-console-ready span { font-size: 13px; line-height: 1.45; }
+.c-console-ready a { width: fit-content; font-size: 13px; text-decoration: none; }
 .c-panel-body .c-btn-contain { border-radius: 10px; background: var(--surface-contained-wash); }
 .c-panel-body .c-btn-contain:hover:not(:disabled) { background: var(--surface-contained-wash-hover); }
 .c-panel-body .c-btn-text { padding: 0; color: var(--accent); }
@@ -107,7 +120,6 @@
   .c-top-actions { margin-left: 0; }
   .c-centre { height: clamp(500px, 62vh, 680px); border-right: 0; }
   .c-right { min-height: 280px; border-top: 1px solid var(--border); }
-  .c-demo-launch { top: 54%; }
 }
 @media (max-width: 620px) {
   .c-app { display: grid; }
@@ -123,17 +135,21 @@
   .c-rail { justify-content: flex-start; overflow-x: auto; padding-inline: 12px; }
   .c-rail-caption { display: none; }
   .c-rail-btn { flex: 0 0 auto; min-width: 82px; justify-content: center; }
+  .c-btn, .c-replay select, .c-rail-btn { min-height: 44px; }
+  .c-btn-icon { min-width: 44px; }
   .c-centre { height: 560px; min-height: 0; }
   .c-map-heading { top: 16px; left: 16px; right: 16px; }
   .c-map-heading h1 { font-size: 15px; }
   .c-map-totals { gap: 9px; padding: 7px; }
   .c-map-totals span { font-size: 7px; }
   .c-map-totals b { font-size: 11px; }
-  .c-demo-launch { top: 56%; width: calc(100% - 24px); max-height: calc(100% - 120px); padding: 18px; gap: 14px; }
-  .c-demo-launch .demo-launch-copy h2 { font-size: 28px; }
-  .c-summary { left: 12px; bottom: 10px; max-width: calc(100% - 24px); font-size: 8px; }
+  .c-summary { left: 12px; bottom: 10px; max-width: calc(100% - 24px); font: 11px/1.45 var(--font-mono); }
+  .c-summary-host-link { min-height: 44px; }
   .c-right { min-height: 320px; padding: 16px 14px; }
   .c-timeline { min-height: 72px; padding: 10px 12px; gap: 10px; }
   .c-timeline-label { flex-basis: 104px; }
   .c-timeline-empty { font-size: 9px; }
+  .c-dialog-backdrop { padding: 14px; }
+  .c-dialog { padding: 18px; }
+  .c-dialog-actions .c-mono { flex-basis: 100%; margin-left: 0; }
 }

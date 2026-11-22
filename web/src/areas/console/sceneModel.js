@@ -31,6 +31,10 @@ export function pulseScale(elapsedMs) {
   return elapsedMs < half ? 1 + 0.6 * (elapsedMs / half) : 1.6 - 0.6 * ((elapsedMs - half) / half)
 }
 
+export function shouldPulseHost(previousState, nextState, reducedMotion = false) {
+  return !reducedMotion && previousState !== undefined && previousState !== nextState && nextState === 'compromised'
+}
+
 export const coneWidth = (confidence) => 0.6 + confidence * 2.4
 export const coneOpacity = (confidence) => 0.05 + confidence * 0.18
 

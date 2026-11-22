@@ -138,6 +138,36 @@ def validate_pack(pack_dir, contracts_dir=None, require_matching_dir=True) -> di
     for source, targets in model["counts"].items():
         if source not in host_ids or not isinstance(targets, dict) or set(targets) - host_ids or any(type(n) is not int or n < 0 for n in targets.values()):
             raise PackError("model.json contains invalid transition counts")
+    prediction_context = model.get("meta", {}).get("prediction_context") if isinstance(model.get("meta", {}), dict) else None
+    if prediction_context is not None:
+        if not isinstance(prediction_context, dict) or prediction_context.get("kind") not in (
+                "route-stage-zone-v1", "route-stage-source-zone-v2"):
+            raise PackError("model.json prediction context has an unsupported format")
+        weight = prediction_context.get("context_weight")
+        source_weight = prediction_context.get("source_zone_weight", 0.5)
+        zones = prediction_context.get("host_zones")
+        stage_counts = prediction_context.get("stage_zone_counts")
+        if isinstance(weight, bool) or not isinstance(weight, (int, float)) or not 0 <= weight <= 1:
+            raise PackError("model.json prediction context weight must be between 0 and 1")
+        if isinstance(source_weight, bool) or not isinstance(source_weight, (int, float)) or not 0 <= source_weight <= 1:
+            raise PackError("model.json source-zone context weight must be between 0 and 1")
+        if not isinstance(zones, dict) or set(zones) != host_ids or any(not isinstance(zone, str) or not zone for zone in zones.values()):
+            raise PackError("model.json prediction context host zones must cover every pack host")
+        if not isinstance(stage_counts, dict) or set(stage_counts) - {"0", "1", "2"}:
+            raise PackError("model.json prediction context requires stage buckets 0, 1, or 2")
+        known_zones = set(zones.values())
+        for stage, counts in stage_counts.items():
+            if not isinstance(counts, dict) or set(counts) - known_zones or any(type(value) is not int or value < 0 for value in counts.values()):
+                raise PackError("model.json prediction context has invalid stage-zone counts")
+        source_counts = prediction_context.get("stage_source_zone_counts", {})
+        if not isinstance(source_counts, dict) or set(source_counts) - {"0", "1", "2"}:
+            raise PackError("model.json prediction context requires valid stage/source-zone counts")
+        for stage, sources in source_counts.items():
+            if not isinstance(sources, dict) or set(sources) - known_zones:
+                raise PackError("model.json prediction context has an unknown source zone")
+            for targets in sources.values():
+                if not isinstance(targets, dict) or set(targets) - known_zones or any(type(value) is not int or value < 0 for value in targets.values()):
+                    raise PackError("model.json prediction context has invalid source/target-zone counts")
     evaluation = _read_json(pack_dir / "evaluation.json")
     if not isinstance(evaluation, dict) or not isinstance(evaluation.get("limitations"), list):
         raise PackError("evaluation.json must include a limitations list")
@@ -149,6 +179,7 @@ def validate_pack(pack_dir, contracts_dir=None, require_matching_dir=True) -> di
             path = "/".join(map(str, result_errors[0].absolute_path)) or "(root)"
             raise PackError("evaluation_result violates its contract at %s: %s" % (path, result_errors[0].message))
     routes = []
+    feasible_edges = {(edge["src"], edge["dst"]) for edge in topology["feasible_edges"]}
     try:
         with (pack_dir / "routes.jsonl").open(encoding="utf-8") as fh:
             for line_num, line in enumerate(fh, 1):
@@ -157,6 +188,8 @@ def validate_pack(pack_dir, contracts_dir=None, require_matching_dir=True) -> di
                 route = json.loads(line)
                 if not isinstance(route.get("path"), list) or any(host not in host_ids for host in route["path"]):
                     raise PackError("routes.jsonl line %d references an unknown host" % line_num)
+                if any((source, target) not in feasible_edges for source, target in zip(route["path"], route["path"][1:])):
+                    raise PackError("routes.jsonl line %d contains a hop that is not a feasible topology edge" % line_num)
                 routes.append(route)
     except (OSError, UnicodeError, json.JSONDecodeError) as exc:
         raise PackError("routes.jsonl is invalid: %s" % exc) from exc

@@ -9,6 +9,7 @@ import pytest
 
 
 ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "lead-core" / "backend"))
 from addons.dataset_packs import PackError, validate_pack
 from addons.topology_zoo_builder import build_topology_zoo_pack

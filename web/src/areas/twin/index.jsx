@@ -8,6 +8,7 @@ import { useWorldState } from '../../shared/usePolling.js'
 import Scene3D from '../console/Scene3D.jsx'
 import { buildTwinScene } from '../console/sceneModel.js'
 import { buildLiteLayout } from '../../shared/network3d/lite-layout.js'
+import { defaultReachablePair, hasFeasibleRoute } from './workspace-defaults.js'
 import './twin.css'
 
 function supportsWebGL() {
@@ -51,7 +52,7 @@ function HostInspector({ detail, history, onClose }) {
   return <aside className="twin-inspector twin-card" aria-label={`${host.name} inspector`}>
     <div className="twin-inspector-head"><div><p className="twin-kicker">{host.zone.replaceAll('-', ' ').toUpperCase()} · {host.host_id}</p><h2>{host.name}</h2></div><button type="button" className="twin-icon-button" onClick={onClose} aria-label="Close host inspector">×</button></div>
     <span className={`twin-state-pill state-${host.state}`}>{host.state}</span>
-    <p className="twin-muted">{host.role} · {host.address || 'Demo address'}</p>
+    <p className="twin-muted">{host.role} · {host.address || 'Address unavailable'}</p>
     <div className="twin-stat-grid"><div><b>{host.risk}/10</b><span>Estimated risk</span></div><div><b>{Math.round(host.criticality * 100)}%</b><span>Criticality</span></div><div><b>{host.exposure}</b><span>Exposure</span></div></div>
     <section><h3>Services</h3><div className="twin-chip-row">{host.services.length ? host.services.map((service) => <span key={service} className="twin-chip">{service}</span>) : <span className="twin-muted">No exposed services</span>}</div></section>
     <section><h3>Simulated weaknesses</h3>{host.weaknesses.length ? host.weaknesses.map((weakness) => <article className="twin-weakness" key={weakness.weakness_id}><b>{weakness.weakness_id} · {weakness.service}</b><p>{weakness.description}</p><small>SIMULATED · CVSS {weakness.cvss}</small></article>) : <p className="twin-muted">No simulated weakness listed.</p>}</section>
@@ -86,13 +87,13 @@ export default function TwinPage() {
   const [displayMode, setDisplayMode] = useState(() => webglAvailable && !compactViewport ? '3d' : 'lite')
   const [runId, setRunId] = useState('')
   const [snapshotVersion, setSnapshotVersion] = useState('')
-  const [pathFrom, setPathFrom] = useState('host-a')
-  const [pathTo, setPathTo] = useState('db-server')
+  const [pathFrom, setPathFrom] = useState('')
+  const [pathTo, setPathTo] = useState('')
   const [paths, setPaths] = useState(null)
   const [pathIndex, setPathIndex] = useState(0)
-  const [segSource, setSegSource] = useState('host-a')
-  const [segFrom, setSegFrom] = useState('host-a')
-  const [segTo, setSegTo] = useState('host-b')
+  const [segSource, setSegSource] = useState('')
+  const [segFrom, setSegFrom] = useState('')
+  const [segTo, setSegTo] = useState('')
   const [segmentation, setSegmentation] = useState(null)
   const [error, setError] = useState('')
 
@@ -170,8 +171,11 @@ export default function TwinPage() {
     if (!topology?.hosts?.length) return
     const ids = new Set(topology.hosts.map((host) => host.host_id))
     const fallback = topology.hosts[0].host_id
-    if (!ids.has(pathFrom)) setPathFrom(fallback)
-    if (!ids.has(pathTo)) setPathTo(topology.hosts.at(-1).host_id)
+    const defaultPair = defaultReachablePair(topology.hosts, topology.feasible_edges)
+    if (!ids.has(pathFrom) || !ids.has(pathTo) || !hasFeasibleRoute(pathFrom, pathTo, topology.feasible_edges)) {
+      setPathFrom(defaultPair.from)
+      setPathTo(defaultPair.to)
+    }
     if (!ids.has(segSource)) setSegSource(fallback)
     const validSegment = (from, to) => topology.feasible_edges.some((edge) => edge.from_host === from && edge.to_host === to)
     if (!validSegment(segFrom, segTo)) {
@@ -218,12 +222,13 @@ export default function TwinPage() {
     </div>
     <div className="twin-tools-grid">
       <section className="twin-card"><div className="twin-card-heading"><div><p className="twin-kicker">PATH TRACER</p><h2>How can the attacker reach a host?</h2></div><span className="twin-readonly">FEASIBLE ROUTES</span></div>
-        <div className="twin-form-row"><label>From<select value={pathFrom} onChange={(event) => setPathFrom(event.target.value)}>{topology.hosts.map((host) => <option key={host.host_id} value={host.host_id}>{host.name}</option>)}</select></label><label>To<select value={pathTo} onChange={(event) => setPathTo(event.target.value)}>{topology.hosts.map((host) => <option key={host.host_id} value={host.host_id}>{host.name}</option>)}</select></label><button type="button" className="twin-primary-button" onClick={tracePath}>Trace routes</button></div>
+        <div className="twin-form-row"><label>From<select value={pathFrom} onChange={(event) => setPathFrom(event.target.value)}>{topology.hosts.map((host) => <option key={host.host_id} value={host.host_id}>{host.name}</option>)}</select></label><label>To<select value={pathTo} onChange={(event) => setPathTo(event.target.value)}>{topology.hosts.map((host) => <option key={host.host_id} value={host.host_id}>{host.name}</option>)}</select></label><button type="button" className="twin-primary-button" onClick={tracePath} disabled={topology.hosts.length < 2}>Trace routes</button></div>
         {paths && <div className="twin-results" aria-live="polite">{paths.paths.length ? paths.paths.map((path, index) => <button type="button" key={path.hosts.join('>')} className="twin-route" aria-pressed={pathIndex === index} onClick={() => setPathIndex(index)}><span>Route {index + 1}</span><b>{path.hosts.map((id) => hostById[id]?.name || id).join(' → ')}</b><small>Model-based likelihood estimate {Math.round(path.likelihood * 100)}%</small></button>) : <p>No feasible route connects these hosts.</p>}<p className="twin-basis">{paths.basis}</p></div>}
         {!paths && <p className="twin-muted">Routes and likelihoods use the active workspace topology and simulated weaknesses.</p>}
       </section>
       <section className="twin-card"><div className="twin-card-heading"><div><p className="twin-kicker">SEGMENTATION PREVIEW</p><h2>Project an edge removal</h2></div><span className="twin-readonly">READ ONLY</span></div>
-        <div className="twin-form-row"><label>Start from<select value={segSource} onChange={(event) => setSegSource(event.target.value)}>{topology.hosts.map((host) => <option key={host.host_id} value={host.host_id}>{host.name}</option>)}</select></label><label>Remove link<select value={`${segFrom}>${segTo}`} onChange={(event) => { const [from, to] = event.target.value.split('>'); setSegFrom(from); setSegTo(to) }}>{edges.map((edge) => <option key={`${edge.from_host}>${edge.to_host}`} value={`${edge.from_host}>${edge.to_host}`}>{hostById[edge.from_host]?.name} → {hostById[edge.to_host]?.name}</option>)}</select></label><button type="button" className="twin-primary-button" onClick={previewSegmentation}>Preview</button></div>
+        <div className="twin-form-row"><label>Start from<select value={segSource} onChange={(event) => setSegSource(event.target.value)}>{topology.hosts.map((host) => <option key={host.host_id} value={host.host_id}>{host.name}</option>)}</select></label><label>Remove link<select value={edges.length ? `${segFrom}>${segTo}` : ''} onChange={(event) => { const [from, to] = event.target.value.split('>'); setSegFrom(from); setSegTo(to) }} disabled={!edges.length}>{edges.map((edge) => <option key={`${edge.from_host}>${edge.to_host}`} value={`${edge.from_host}>${edge.to_host}`}>{hostById[edge.from_host]?.name} → {hostById[edge.to_host]?.name}</option>)}</select></label><button type="button" className="twin-primary-button" onClick={previewSegmentation} disabled={!edges.length}>Preview</button></div>
+        {!edges.length && <p className="twin-muted">This workspace has no feasible links to remove.</p>}
         {segmentation ? <div className="twin-results" aria-live="polite"><p><b>{segmentation.newly_unreachable.length}</b> hosts become unreachable in this projection.</p><div className="twin-chip-row">{segmentation.newly_unreachable.length ? segmentation.newly_unreachable.map((id) => <span className="twin-chip" key={id}>{hostById[id]?.name || id}</span>) : <span className="twin-muted">No reachability change for this source.</span>}</div><p className="twin-basis">{segmentation.basis}</p></div> : <p className="twin-muted">Try removing a feasible link to see the projected reachability change. No live topology is modified.</p>}
       </section>
     </div>
@@ -268,7 +273,7 @@ export function HostDetailPage() {
   if (error) return <div className="twin-page"><p className="twin-error" role="alert">{error}</p><Link to="/hosts">Back to assets</Link></div>
   if (!detail) return <div className="twin-page"><LoadingState /></div>
   const host = detail.host
-  return <div className="twin-page twin-host-detail"><Link className="twin-back-link" to="/hosts">← Asset directory</Link><header className="twin-page-head"><div><p className="twin-kicker">{host.zone.toUpperCase()} · {host.host_id}</p><h1>{host.name}</h1><p>{host.role} · {host.address || 'Demo asset address'}</p></div><Link className="twin-primary-link" to={`/twin?host=${encodeURIComponent(host.host_id)}`}>View in network twin ↗</Link></header>
+  return <div className="twin-page twin-host-detail"><Link className="twin-back-link" to="/hosts">← Asset directory</Link><header className="twin-page-head"><div><p className="twin-kicker">{host.zone.toUpperCase()} · {host.host_id}</p><h1>{host.name}</h1><p>{host.role} · {host.address || 'Address unavailable'}</p></div><Link className="twin-primary-link" to={`/twin?host=${encodeURIComponent(host.host_id)}`}>View in network twin ↗</Link></header>
     <div className="twin-stat-grid twin-detail-stats"><div><b>{host.state}</b><span>Simulation state</span></div><div><b>{host.risk}/10</b><span>Estimated risk</span></div><div><b>{Math.round(host.criticality * 100)}%</b><span>Criticality</span></div><div><b>{host.exposure}</b><span>Exposure count</span></div></div>
     <div className="twin-tools-grid"><section className="twin-card"><h2>Services</h2><div className="twin-chip-row">{host.services.map((service) => <span className="twin-chip" key={service}>{service}</span>)}</div><h2 className="twin-section-gap">Simulated weaknesses</h2>{host.weaknesses.map((weakness) => <article className="twin-weakness" key={weakness.weakness_id}><b>{weakness.weakness_id} · {weakness.service}</b><p>{weakness.description}</p><small>SIMULATED · CVSS {weakness.cvss}</small></article>)}</section>
       <section className="twin-card"><h2>Related work</h2><p>{detail.alerts.length} alerts · {detail.forecasts.length} forecasts · {detail.actions.length} simulated actions</p>{detail.incidents.map((incident) => <p key={incident.incident_id}><Link to={`/incidents/${encodeURIComponent(incident.incident_id)}`}>{incident.title} · {incident.status} ↗</Link></p>)}{!detail.incidents.length && <p className="twin-muted">No related incident currently recorded.</p>}<p className="twin-basis">{detail.basis}</p></section></div>

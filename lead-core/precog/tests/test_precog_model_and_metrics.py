@@ -3,6 +3,7 @@ import math
 import pytest
 
 from precog_engine.metrics import calibration_bins, containment_success_rate, expected_calibration_error, session_metrics, zero_metrics
+from precog_engine.evaluation import evaluate
 from precog_engine.model import NodeModel, count_moves, negative_log_likelihood, split_sequences, tune_alpha
 
 
@@ -48,6 +49,62 @@ def test_top_is_sorted_cut_to_k_and_ties_go_to_the_host_id():
     assert [h for h, _ in model.top("a", ["b", "c", "d", "e"], k=3)] == ["d", "b", "c"]
     assert model.top("a", [], 3) == []
     assert len(model.top("a", ["b", "c"], 3)) == 2
+
+
+def test_route_stage_zone_context_changes_rankings_and_probabilities_sum_to_one():
+    data = seqs(*([("start-a", "app-a", "data-a")] * 8 + [("start-b", "edge-b", "user-b")] * 2))
+    zones = {"start-a": "user", "start-b": "edge", "app-a": "application", "data-a": "data",
+             "edge-b": "edge", "user-b": "user"}
+    model = NodeModel.train(data, alpha=1.0, host_zones=zones, context_weight=0.0)
+    candidates = ["app-a", "data-a", "edge-b", "user-b"]
+
+    at_start = model.probabilities("unseen-source", candidates, stage=0)
+    after_first_hop = model.probabilities("unseen-source", candidates, stage=1)
+    assert sum(at_start.values()) == pytest.approx(1.0)
+    assert sum(after_first_hop.values()) == pytest.approx(1.0)
+    assert model.top("unseen-source", candidates, stage=0)[0][0] == "app-a"
+    assert model.top("unseen-source", candidates, stage=1)[0][0] == "data-a"
+    assert at_start != after_first_hop
+
+
+def test_context_blend_round_trips_and_missing_stage_falls_back_to_exact_node():
+    data = seqs(*([("s", "a", "x")] * 4 + [("t", "b", "y")] * 2))
+    zones = {"s": "user", "t": "edge", "a": "application", "b": "edge", "x": "data", "y": "user"}
+    model = NodeModel.train(data, alpha=0.5, host_zones=zones, context_weight=0.25)
+    restored = NodeModel.from_dict(model.to_dict())
+    candidates = ["a", "b", "x", "y"]
+    assert restored.probabilities("s", candidates, stage=0) == model.probabilities("s", candidates, stage=0)
+    assert restored.probability_components("s", candidates, stage=0)["context_weight"] == 0.25
+    assert model.probabilities("s", candidates) == model.probabilities("s", candidates, stage=None)
+    assert sum(model.probabilities("s", candidates, stage=0).values()) == pytest.approx(1.0)
+
+
+def test_context_evaluation_reports_candidate_confusion_and_trains_only_on_outer_train_split():
+    links = {"s": ["a", "b", "c"], "t": ["a", "b", "c"],
+             "a": ["x", "y"], "b": ["x", "y"], "c": ["x", "y"]}
+    candidates = lambda here, path: [item for item in links[here] if item not in path]
+    data = seqs(*([("s", "a", "x")] * 18 + [("s", "b", "y")] * 6 +
+                  [("t", "b", "x")] * 12 + [("t", "c", "y")] * 4))
+    zones = {"s": "user", "t": "operations", "a": "application", "b": "application",
+             "c": "edge", "x": "data", "y": "operations"}
+    model, result = evaluate(data, candidates, lambda _source, _target: 0.5, seed=4,
+                             extended_metrics=True, host_zones=zones)
+    repeated = evaluate(data, candidates, lambda _source, _target: 0.5, seed=4,
+                        extended_metrics=True, host_zones=zones)[1]
+    train, _test = split_sequences(data, seed=4, test_fraction=0.2)
+    expected_counts = NodeModel.train(train, result["alpha"]["chosen"], host_zones=zones,
+                                      context_weight=result["prediction_context"]["context_weight"],
+                                      source_zone_weight=result["prediction_context"]["source_zone_weight"])
+    assert result == repeated
+    assert model.stage_zone_counts == expected_counts.stage_zone_counts
+    assert model.stage_source_zone_counts == expected_counts.stage_source_zone_counts
+    classification = result["classification"]
+    tn, fp = classification["confusion_matrix"]["matrix"][0]
+    fn, tp = classification["confusion_matrix"]["matrix"][1]
+    assert classification["top1_forecast_accuracy"] == result["node_model"]["precision_at_1"]
+    assert classification["precision"] == classification["recall"] == classification["f1"]
+    decisions = sum(int(size) * count for size, count in result["candidate_set_distribution"].items())
+    assert tn + fp + fn + tp == decisions
 
 
 def test_a_negative_alpha_is_refused():

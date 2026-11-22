@@ -11,12 +11,14 @@ calibration, containment success) in the shared world state, so both clients sho
 import json
 import logging
 import os
+import time
 from datetime import datetime, timezone
 from pathlib import Path
 
 from .metrics import session_metrics, zero_metrics
 
 log = logging.getLogger("precog.engine")
+SESSION_WRITE_INTERVAL_SECONDS = 1.0
 
 
 def utc_now():
@@ -31,6 +33,7 @@ class PrecogEngine:
         self._counter = 0
         self._pending = None
         self._resolved = []
+        self._last_session_write_at = None
         # Explanation context is a bounded sidecar so the public forecast contract
         # remains backward compatible while analysts can inspect the exact inputs.
         self._explanations = {}
@@ -40,6 +43,7 @@ class PrecogEngine:
         self._counter = 0
         self._pending = None
         self._resolved = []
+        self._last_session_write_at = None
         self._explanations.clear()
 
     def on_compromise(self, host):
@@ -52,7 +56,10 @@ class PrecogEngine:
         if not candidates:
             self._pending = None
             return None          # "no forecast available": nothing reachable is left
-        ranked = self._rank(graph, host, candidates)
+        graph_snapshot = graph.snapshot()
+        compromised_path = graph_snapshot.get("compromised_path", [])
+        stage = compromised_path.index(host) if host in compromised_path else max(len(compromised_path) - 1, 0)
+        ranked = self._rank(graph, host, candidates, stage)
         hint, source = self.layer.hint(self._last_technique(host)) if self.layer else (None, "lookup")
         self._counter += 1
         forecast = {"forecast_id": "fc-%06d" % self._counter, "ts": self._clock(), "from_host": host,
@@ -70,6 +77,7 @@ class PrecogEngine:
             "candidate_ids": list(candidates), "host_states": states,
             "transition_counts": {candidate: int(row.get(candidate, 0)) for candidate in candidates},
             "alpha": self.model.alpha if self.model is not None else None,
+            "stage": stage,
             "edge_likelihoods": {candidate: float(topology.edge_probability(host, candidate)) if topology else 0.0 for candidate in candidates},
             "technique_id": self._last_technique(host),
         }
@@ -120,14 +128,18 @@ class PrecogEngine:
         self._write_session(metrics)
         return metrics
 
+    def flush_session(self):
+        """Persist the latest session snapshot, bypassing the interim write throttle."""
+        return self._write_session(self.metrics(), force=True)
+
     def describe(self):
         return {"node_model": "markov" if self.model else "rule-based fallback", "alpha": self.model.alpha if self.model else None,
                 "technique_source": self.layer.default_source if self.layer else "lookup"}
 
     # ---------- internals ----------
-    def _rank(self, graph, host, candidates):
+    def _rank(self, graph, host, candidates, stage=None):
         if self.model is not None:
-            return self.model.top(host, candidates, self.top_k)
+            return self.model.top(host, candidates, self.top_k, stage=stage)
         topology = getattr(graph, "topology", None)           # fallback: easier targets first
         weights = {c: max(topology.edge_probability(host, c), 0.01) if topology else 1.0 for c in candidates}
         total = sum(weights.values())
@@ -151,11 +163,19 @@ class PrecogEngine:
             except Exception:
                 log.exception("Could not write the audit entry")
 
-    def _write_session(self, metrics):
+    def _write_session(self, metrics, force=False):
         """Saves the session to a JSON file (TRD 8.8). A problem here must never disturb the demo."""
         session = self.world.session()
         if not self.sessions_dir or not session:
-            return
+            return False
+        now = time.monotonic()
+        if (not force and self._last_session_write_at is not None and
+                now - self._last_session_write_at < SESSION_WRITE_INTERVAL_SECONDS):
+            return False
+        # Persist occasional checkpoints during replay, then force a final snapshot when
+        # the run is archived. Re-serializing the growing forecast list on every event
+        # made larger workspaces spend most of their time rewriting the same session.
+        self._last_session_write_at = now
         try:
             folder = Path(self.sessions_dir)
             folder.mkdir(parents=True, exist_ok=True)
@@ -163,5 +183,7 @@ class PrecogEngine:
             temp = target.with_suffix(".tmp")
             temp.write_text(json.dumps({"session": session, "forecasts": self.world.forecasts(), "actions": self.world.actions(), "metrics": metrics}, indent=1) + "\n", encoding="utf-8")
             os.replace(temp, target)
+            return True
         except Exception:
             log.exception("Could not save the session file")
+            return False

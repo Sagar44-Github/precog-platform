@@ -10,6 +10,7 @@ import pytest
 
 
 ROOT = Path(__file__).resolve().parents[3]
+sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "lead-core" / "backend"))
 from addons.dataset_packs import PackError, validate_pack
 from addons.real_dataset_builders import SPECS, build_real_dataset_pack, parse_dataset

@@ -518,6 +518,11 @@ def analytics_model():
 @auth.role_required("analyst")
 @auth.rate_limit(max_requests=3, window_seconds=60)
 def analytics_evaluate():
+    # Import only when the Precog analytics route is called. A few standalone
+    # replay and data tools import the add-on package for shared errors/hooks
+    # without adding the Precog package to sys.path.
+    from precog_engine.model import ALPHA_GRID
+
     data = _body()
     try:
         if _ctx()["contracts"]:
@@ -528,15 +533,16 @@ def analytics_evaluate():
         raise ApiError("bad_request", "Only seed, test_fraction and alpha_grid are accepted.", 400)
     seed = data.get("seed", 0)
     fraction = data.get("test_fraction", 0.2)
-    grid = data.get("alpha_grid", [0.01, 0.05, 0.1, 0.2, 0.5, 1.0])
+    lab = current_app.extensions["precog_lab"]
+    grid = data["alpha_grid"] if "alpha_grid" in data else lab.default_alpha_grid()
     if isinstance(seed, bool) or not isinstance(seed, int) or abs(seed) > 1000000:
         raise ApiError("bad_request", "seed must be a whole number between -1000000 and 1000000.", 400)
     if isinstance(fraction, bool) or not isinstance(fraction, (int, float)) or not 0.1 <= float(fraction) <= 0.5:
         raise ApiError("bad_request", "test_fraction must be between 0.1 and 0.5.", 400)
-    if not isinstance(grid, list) or not 1 <= len(grid) <= 6 or any(isinstance(value, bool) or not isinstance(value, (int, float)) or not 0.001 <= float(value) <= 2 for value in grid) or len(set(grid)) != len(grid):
-        raise ApiError("bad_request", "alpha_grid must contain 1–6 unique numbers from 0.001 to 2.", 400)
+    if not isinstance(grid, list) or not 1 <= len(grid) <= len(ALPHA_GRID) or any(isinstance(value, bool) or not isinstance(value, (int, float)) or not 0.001 <= float(value) <= 20 for value in grid) or len(set(grid)) != len(grid):
+        raise ApiError("bad_request", "alpha_grid must contain 1–%d unique numbers from 0.001 to 20." % len(ALPHA_GRID), 400)
     try:
-        result = current_app.extensions["precog_lab"].run_evaluation(seed, float(fraction), [float(value) for value in grid])
+        result = lab.run_evaluation(seed, float(fraction), [float(value) for value in grid])
     except TimeoutError as exc:
         raise ApiError("evaluation_timeout", str(exc), 503)
     return jsonify(_out("evaluation_run", result))
@@ -1271,7 +1277,7 @@ def topology_paths_get():
     except ValueError as exc:
         raise ApiError("bad_request", str(exc), 400)
     except KeyError as exc:
-        raise ApiError("not_found", "Unknown demo host %s." % exc.args[0], 404)
+        raise ApiError("not_found", "Unknown host %s." % exc.args[0], 404)
     return jsonify(_out("topology_paths", result))
 
 
@@ -1289,7 +1295,7 @@ def topology_segmentation_preview():
     except ValueError as exc:
         raise ApiError("bad_request", str(exc), 400)
     except KeyError as exc:
-        raise ApiError("not_found", "Unknown demo host %s." % exc.args[0], 404)
+        raise ApiError("not_found", "Unknown host %s." % exc.args[0], 404)
     return jsonify(_out("segmentation_preview", result))
 
 
@@ -1649,7 +1655,9 @@ def forecast_what_if():
     if not candidates:
         raise ApiError("no_candidates", "No feasible predicted targets remain for this host.", 409)
     model = engine.model
-    probabilities = model.probabilities(from_host, candidates) if model is not None else {}
+    compromised_path = graph.snapshot().get("compromised_path", [])
+    stage = compromised_path.index(from_host) if from_host in compromised_path else None
+    probabilities = model.probabilities(from_host, candidates, stage=stage) if model is not None else {}
     if not probabilities:
         weights = {host_id: max(float(graph.topology.edge_probability(from_host, host_id)), 0.01) for host_id in candidates}
         total = sum(weights.values()) or 1.0

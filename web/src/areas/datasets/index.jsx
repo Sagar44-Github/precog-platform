@@ -1,9 +1,9 @@
-import { useCallback, useMemo } from 'react'
-import { Link, useParams, useSearchParams } from 'react-router-dom'
+import { useCallback, useMemo, useState } from 'react'
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { api } from '../../shared/api.js'
 import { useAuth } from '../../shared/AuthContext.jsx'
 import { Button, ErrorMessage, LoadingMessage, PageFrame, PageHeader, useResource } from '../ops/shared.jsx'
-import { capabilityLabel, comparisonRows, isSwitchable } from './model.js'
+import { capabilityLabel, comparisonRows, isSwitchable, workspaceDetailPath } from './model.js'
 import './datasets.css'
 
 function DatasetCounts({ counts = {} }) {
@@ -23,12 +23,24 @@ function WorkspaceButton({ item, current }) {
 }
 
 function WorkspaceActivateButton({ item }) {
+  const navigate = useNavigate()
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
   const activate = async () => {
     if (!window.confirm(`Switch to ${item.name}? The current replay state will reset.`)) return
-    await api.activateWorkspace(item.id)
-    window.location.assign(`/datasets/${encodeURIComponent(item.id)}`)
+    setBusy(true)
+    setError('')
+    try {
+      await api.activateWorkspace(item.id)
+      window.dispatchEvent(new CustomEvent('precog:workspace-changed', { detail: { workspaceId: item.id } }))
+      navigate(workspaceDetailPath(item.id))
+    } catch (reason) {
+      setError(reason.message || 'Workspace could not be activated.')
+    } finally {
+      setBusy(false)
+    }
   }
-  return <Button type="button" onClick={activate}>Switch workspace</Button>
+  return <><Button type="button" disabled={busy} onClick={activate}>{busy ? 'Switching…' : 'Switch workspace'}</Button>{error && <span className="dataset-switch-error" role="alert">{error}</span>}</>
 }
 
 export default function DatasetsPage() {

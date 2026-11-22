@@ -13,6 +13,9 @@ const artifactsDir = process.env.AUDIT_OUTPUT_DIR
   : join(repoRoot, 'docs', 'audit')
 const screenshots = join(artifactsDir, 'screenshots')
 const screenshotOverride = process.env.AUDIT_SCREENSHOT_DIR ? resolve(repoRoot, process.env.AUDIT_SCREENSHOT_DIR) : screenshots
+const screenshotRouteNames = process.env.AUDIT_SCREENSHOT_ROUTES
+  ? new Set(process.env.AUDIT_SCREENSHOT_ROUTES.split(',').map((value) => value.trim()).filter(Boolean))
+  : null
 const basePort = Number(process.env.AUDIT_PORT || 55120)
 const settleMs = Number(process.env.AUDIT_SETTLE_MS || 1800)
 const password = randomBytes(18).toString('hex')
@@ -112,31 +115,70 @@ async function checkViewport(page, mode, routeName, path, size) {
   if (routeName === 'alerts') await page.getByRole('heading', { name: 'Alerts' }).waitFor({ timeout: 12000 }).catch(() => {})
   if (routeName === 'reports') await page.getByRole('heading', { name: 'Session reports' }).waitFor({ timeout: 12000 }).catch(() => {})
   if (routeName === 'response-governance') await page.getByRole('heading', { name: 'Response governance' }).waitFor({ timeout: 12000 }).catch(() => {})
+  if (routeName === 'incidents') await page.locator('.incident-filter-grid label').first().waitFor({ timeout: 12000 }).catch(() => {})
+  if (routeName === 'asset-directory') await page.locator('.virtual-table-window > .virtual-table-row').first().waitFor({ timeout: 12000 }).catch(() => {})
   if (routeName === 'console') {
     await page.locator('.c-app').waitFor({ timeout: 8000 }).catch(() => {})
     await page.waitForFunction(() => document.querySelector('.c-scene canvas'), null, { timeout: 15000 }).catch(() => {})
   }
   await page.waitForTimeout(settleMs)
-  const state = await page.evaluate(() => ({
+  const state = await page.evaluate((currentRoute) => ({
     width: window.innerWidth,
     scrollWidth: document.documentElement.scrollWidth,
     hasSimulationLabel: document.body.innerText.includes('SIMULATION'),
     title: document.title,
     bodyTextPreview: document.body.innerText.slice(0, 360),
     canvasCount: document.querySelectorAll('canvas').length,
+    readingSizes: (() => {
+      const pick = (selector) => {
+        const element = document.querySelector(selector)
+        return element ? Number.parseFloat(getComputedStyle(element).fontSize) : null
+      }
+      return {
+        incidentFilterLabel: currentRoute === 'incidents' ? pick('.incident-filter-grid label') : null,
+        assetTableRow: currentRoute === 'asset-directory' ? pick('.virtual-table-window > .virtual-table-row') : null,
+        twinLiteHostName: currentRoute === 'network-twin' ? pick('.twin-lite-compact button b') : null,
+        twinLiteHostMeta: currentRoute === 'network-twin' ? pick('.twin-lite-compact button small') : null,
+        bodyCopy: pick('.app-shell-content p:not([class*="eyebrow"]):not([class*="kicker"])') || null,
+      }
+    })(),
     hasSidebar: Boolean(document.querySelector('.app-sidebar')),
     hasCommandTrigger: Boolean(document.querySelector('.command-trigger')),
+    touchTargets: Array.from(document.querySelectorAll('.mobile-menu-trigger, .mobile-bottom-link, .command-trigger, .top-theme-toggle, .icon-button')).map((element) => {
+      const rect = element.getBoundingClientRect()
+      const style = getComputedStyle(element)
+      return { label: element.getAttribute('aria-label') || element.innerText.trim().slice(0, 30), width: Math.round(rect.width), height: Math.round(rect.height), visible: style.display !== 'none' && rect.width > 0 && rect.height > 0 }
+    }),
     overflowElements: Array.from(document.querySelectorAll('body *')).map((element) => {
       const rect = element.getBoundingClientRect()
       return { tag: element.tagName.toLowerCase(), className: typeof element.className === 'string' ? element.className : '', left: Math.round(rect.left), right: Math.round(rect.right), width: Math.round(rect.width) }
     }).filter((element) => element.left < -1 || element.right > window.innerWidth + 1).slice(0, 8),
-  }))
-  const check = { mode, route: routeName, viewport: size.name, ...state, screenshot: `${mode}-${routeName}-${size.name}.png` }
+  }), routeName)
+  const screenshot = `${mode}-${routeName}-${size.name}.png`
+  const check = { mode, route: routeName, viewport: size.name, ...state, screenshot: null }
   const failures = []
   if (state.scrollWidth > state.width) failures.push(`horizontal overflow ${state.scrollWidth}px > ${state.width}px`)
+  if (size.width <= 767) {
+    const undersized = state.touchTargets.filter((target) => target.visible && (target.width < 44 || target.height < 44))
+    if (undersized.length) failures.push(`mobile primary touch targets below 44px: ${undersized.map(({ label, width, height }) => `${label || 'control'} ${width}x${height}`).join(', ')}`)
+  }
   if (!state.hasSimulationLabel) failures.push('SIMULATION label missing')
   if (routeName === 'console' && state.canvasCount === 0) failures.push('3D canvas is missing')
   if (routeName === 'console' && !state.hasCommandTrigger) failures.push('command palette trigger is missing')
+  if (routeName === 'incidents' && state.readingSizes.incidentFilterLabel !== null && state.readingSizes.incidentFilterLabel < 14) failures.push('incident filter labels are below the 14px reading minimum')
+  if (routeName === 'asset-directory' && state.readingSizes.assetTableRow !== null && state.readingSizes.assetTableRow < 13) failures.push('asset table rows are below the 13px reading minimum')
+  if (routeName === 'network-twin' && size.width < 760 && state.readingSizes.twinLiteHostName !== null && state.readingSizes.twinLiteHostName < 14) failures.push('Lite-view host names are below the 14px reading minimum')
+  if (routeName === 'network-twin' && size.width < 760 && state.readingSizes.twinLiteHostMeta !== null && state.readingSizes.twinLiteHostMeta < 12) failures.push('Lite-view host details are below the 12px reading minimum')
+  if (state.readingSizes.bodyCopy !== null && state.readingSizes.bodyCopy < 14) failures.push('application body copy is below the 14px reading minimum')
+  if (routeName === 'network-twin' && size.width < 760) {
+    const overlap = await page.evaluate(() => {
+      const list = document.querySelector('.twin-lite-compact')
+      const note = document.querySelector('.twin-lite-note')
+      if (!list || !note) return false
+      return note.getBoundingClientRect().top < list.getBoundingClientRect().bottom - 1
+    })
+    if (overlap) failures.push('mobile Lite-view caption overlaps the host list')
+  }
   if (!['login', 'landing'].includes(routeName) && !state.hasSidebar) failures.push('shared navigation sidebar is missing')
   if (routeName === 'landing' && !await page.locator('.landing-stage-visual').count()) failures.push('public landing page did not render its demonstration stage')
   if (['login', 'landing', 'alerts', 'alert-detail', 'reports', 'report-detail', 'incidents', 'incident-detail', 'replay-studio', 'scenario-library', 'scenario-builder', 'scenario-edit', 'run-history', 'run-detail', 'run-compare', 'network-twin', 'asset-directory', 'host-detail', 'forecasts', 'forecast-detail', 'whatif-lab', 'analytics-lab', 'response-governance'].includes(routeName)) {
@@ -154,7 +196,28 @@ async function checkViewport(page, mode, routeName, path, size) {
     if (accessibility.violations.length) failures.push(`axe found ${accessibility.violations.length} accessibility violation(s)`)
   }
   if (failures.length) check.failure = failures.join('; ')
-  await page.screenshot({ path: join(screenshotOverride, check.screenshot), animations: 'disabled' })
+  if (!screenshotRouteNames || screenshotRouteNames.has(routeName)) {
+    check.screenshot = screenshot
+    await page.screenshot({ path: join(screenshotOverride, screenshot), animations: 'disabled' })
+  }
+  if (routeName === 'console' || routeName === 'network-twin') {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+    await page.waitForFunction((currentRoute) => window.matchMedia('(prefers-reduced-motion: reduce)').matches
+      && (currentRoute !== 'console' || document.querySelector('.c-scene')?.dataset.reducedMotion === 'true'), routeName, { timeout: 1500 }).catch(() => {})
+    check.reducedMotion = await page.evaluate((currentRoute) => {
+      const nav = document.querySelector('.app-nav-link')
+      const scene = currentRoute === 'console' ? document.querySelector('.c-scene') : null
+      return {
+        mediaMatches: window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+        navTransitionDuration: nav ? getComputedStyle(nav).transitionDuration : null,
+        scenePreference: scene?.dataset.reducedMotion || null,
+      }
+    }, routeName)
+    if (check.reducedMotion.navTransitionDuration !== '0s') failures.push('reduced-motion preference did not disable navigation transitions')
+    if (routeName === 'console' && check.reducedMotion.scenePreference !== 'true') failures.push('reduced-motion preference did not reach the 3D scene')
+    await page.emulateMedia({ reducedMotion: 'no-preference' })
+  }
+  if (failures.length) check.failure = failures.join('; ')
   return check
 }
 
@@ -426,7 +489,11 @@ async function runMode(browser, mode, port, dbDir, errors) {
     await page.goto(`${base}/app/analytics`, { waitUntil: 'domcontentloaded' })
     await page.getByRole('heading', { name: 'Can we defend the estimate?' }).waitFor({ timeout: 10000 })
     await page.getByRole('button', { name: 'Run evaluation' }).click()
-    await page.locator('.precog-experiment-result').waitFor({ timeout: 15000 })
+    await page.locator('.precog-experiment-result, .precog-error[role="alert"]').first().waitFor({ timeout: 15000 })
+    if (!await page.locator('.precog-experiment-result').count()) {
+      const reason = await page.locator('.precog-error[role="alert"]').innerText().catch(() => 'no evaluation result was returned')
+      throw new Error(`Precog evaluation failed in the browser flow: ${reason}`)
+    }
     report.precogLabFlow = 'opened a forecast explanation, ran a read-only Web Server B containment what-if, and reproduced the seed-zero held-out evaluation'
 
     if (mode === 'sample') {

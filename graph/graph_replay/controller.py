@@ -418,6 +418,9 @@ class ReplayController:
         session = dict(self._session, ended_at=_now_text(), forecasts=self.world.forecasts(), actions=self.world.actions())
         self.world.set_session(session)
         self.world.archive_session()
+        precog = self.hooks.get("precog")
+        if precog is not None and hasattr(precog, "flush_session"):
+            precog.flush_session()
         incidents = self.hooks.get("incidents")
         if incidents is not None and hasattr(incidents, "refresh"):
             incidents.refresh()

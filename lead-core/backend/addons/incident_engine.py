@@ -105,7 +105,7 @@ class IncidentAwareEvents:
     def process_dataset_event(self, row, compromised=False):
         event = self._delegate.process_dataset_event(row, compromise=compromised)
         if event is not None:
-            self._service.ingest_alert(event, compromised=bool(compromised))
+            self._service.ingest_alert(event, compromised=bool(compromised), return_snapshot=False)
         return event
 
     def reset(self, *args, **kwargs):
@@ -384,7 +384,7 @@ class IncidentService:
             label = self._technique_name(event)
         incident["title"] = "%s from %s" % (label, self._host_name(event.get("host")))
 
-    def ingest_alert(self, event, compromised=False):
+    def ingest_alert(self, event, compromised=False, return_snapshot=True):
         if not isinstance(event, dict) or not event.get("event_id"):
             return None
         with self._lock:
@@ -444,7 +444,10 @@ class IncidentService:
             self._seen_alerts.add(event_id)
             self._bump("incidents")
             self._trim_locked()
-            return deepcopy(incident)
+            # Dataset playback can emit thousands of alerts in one run. Its caller
+            # consumes the alert event, not the incident response; copying the full
+            # bounded evidence and timeline for every row adds quadratic work.
+            return deepcopy(incident) if return_snapshot else None
 
     # ---------- synchronizing forecasts, actions and host state ----------
     def _incident_for_host_locked(self, host_id, forecast_id=None):

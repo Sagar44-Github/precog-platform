@@ -66,7 +66,12 @@ def build_topology_zoo_pack(graph_path, license_record_path, output_dir, *, seed
         # TEST-NET addresses are generated placeholders; source labels and addresses are discarded.
         "address": ("192.0.2.%d" % index) if index <= 254 else ("198.51.100.%d" % (index - 254)),
         "zone": "observed", "role": "topology node", "services": []} for index, raw in enumerate(raw_nodes, 1)]
-    edges = sorted({tuple(sorted((node_ids[str(src)], node_ids[str(dst)]))) for src, dst in graph.edges() if src != dst})
+    undirected_edges = sorted({tuple(sorted((node_ids[str(src)], node_ids[str(dst)])))
+                               for src, dst in graph.edges() if src != dst})
+    # The replay topology treats feasible connections as directed arcs. The
+    # source graph is undirected, so preserve both legal directions instead of
+    # storing one sorted orientation and generating routes in the other.
+    edges = sorted({arc for left, right in undirected_edges for arc in ((left, right), (right, left))})
     rng = random.Random(int(seed))
     routes, events = [], []
     starts = sorted(adjacency)
@@ -99,13 +104,15 @@ def build_topology_zoo_pack(graph_path, license_record_path, output_dir, *, seed
     for event in events:
         edge = (event["src"], event["dst"])
         edge_events[edge] = edge_events.get(edge, 0) + 1
-    edge_rows = [{"src": src, "dst": dst, "count": edge_events.get((src, dst), 0) + edge_events.get((dst, src), 0),
-        "first_seen": min((event["t"] for event in events if {event["src"], event["dst"]} == {src, dst}), default=None),
-        "last_seen": max((event["t"] for event in events if {event["src"], event["dst"]} == {src, dst}), default=None)}
+    edge_rows = [{"src": src, "dst": dst, "count": edge_events.get((src, dst), 0),
+        "first_seen": min((event["t"] for event in events if event["src"] == src and event["dst"] == dst), default=None),
+        "last_seen": max((event["t"] for event in events if event["src"] == src and event["dst"] == dst), default=None)}
         for src, dst in edges]
     topology = {"network_id": "synth-topology-zoo", "hosts": hosts,
         "feasible_edges": [{"src": src, "dst": dst} for src, dst in edges],
-        "observed_edges": [{"src": edge["src"], "dst": edge["dst"], "count": edge["count"], "provenance": "source-topology-and-generated-replay"} for edge in edge_rows],
+        "observed_edges": [{"src": src, "dst": dst,
+            "count": edge_events.get((src, dst), 0) + edge_events.get((dst, src), 0),
+            "provenance": "source-topology-and-generated-replay"} for src, dst in undirected_edges],
         "assets": {host["host_id"]: {"services": [], "criticality": 0.5, "source": "source-topology"} for host in hosts},
         "clusters": [{"id": "topology", "name": "Source topology", "host_ids": [host["host_id"] for host in hosts]}]}
     scenario = _scenario("synth-topology-zoo", events)

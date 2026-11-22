@@ -60,7 +60,12 @@ class WorldState:
             "version": self.version,
             "captured_at": datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"),
             "session_id": self._session.get("session_id") if self._session else None,
-            "graph": copy.deepcopy(self._graph),
+            # Graph snapshots are immutable after assignment: set_graph(), reset()
+            # and restore() always replace the object with a fresh deep copy. Reuse
+            # that frozen value here instead of copying hundreds of hosts for every
+            # recorded alert in a large workspace. time_travel() still deep-copies
+            # its result before returning it to a caller.
+            "graph": self._graph,
             "alerts": copy.deepcopy(self._alerts[:20]),
             "forecast": copy.deepcopy(self._forecasts[-1]) if self._forecasts else None,
             "actions": copy.deepcopy(self._actions[-20:]),

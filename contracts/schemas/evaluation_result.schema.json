@@ -19,6 +19,45 @@
       "additionalProperties": false
     },
     "metrics": { "$ref": "#/$defs/score" },
+    "prediction_context": {
+      "type": "object",
+      "properties": {
+        "kind": { "type": "string", "enum": ["route-stage-zone-v1", "route-stage-source-zone-v2"] },
+        "context_weight": { "type": "number", "minimum": 0, "maximum": 1 },
+        "source_zone_weight": { "type": "number", "minimum": 0, "maximum": 1 },
+        "context_weight_grid": { "type": "array", "items": { "type": "number", "minimum": 0, "maximum": 1 }, "minItems": 1, "maxItems": 10 },
+        "source_zone_weight_grid": { "type": "array", "items": { "type": "number", "minimum": 0, "maximum": 1 }, "minItems": 1, "maxItems": 10 },
+        "validation_surprise": { "type": "object", "additionalProperties": { "type": "number", "minimum": 0 } }
+      },
+      "required": ["kind", "context_weight", "source_zone_weight", "context_weight_grid", "source_zone_weight_grid", "validation_surprise"],
+      "additionalProperties": false
+    },
+    "classification": {
+      "type": "object",
+      "properties": {
+        "unit": { "const": "candidate-one-vs-rest" },
+        "positive_label": { "type": "string" },
+        "prediction_rule": { "type": "string" },
+        "top1_forecast_accuracy": { "type": "number", "minimum": 0, "maximum": 1 },
+        "accuracy": { "type": "number", "minimum": 0, "maximum": 1 },
+        "precision": { "type": "number", "minimum": 0, "maximum": 1 },
+        "recall": { "type": "number", "minimum": 0, "maximum": 1 },
+        "f1": { "type": "number", "minimum": 0, "maximum": 1 },
+        "false_positive_rate": { "type": "number", "minimum": 0, "maximum": 1 },
+        "false_negative_rate": { "type": "number", "minimum": 0, "maximum": 1 },
+        "confusion_matrix": {
+          "type": "object",
+          "properties": {
+            "labels": { "type": "array", "prefixItems": [{ "const": "not next" }, { "const": "actual next" }], "minItems": 2, "maxItems": 2 },
+            "matrix": { "type": "array", "prefixItems": [{ "type": "array", "prefixItems": [{ "type": "integer", "minimum": 0 }, { "type": "integer", "minimum": 0 }], "minItems": 2, "maxItems": 2 }, { "type": "array", "prefixItems": [{ "type": "integer", "minimum": 0 }, { "type": "integer", "minimum": 0 }], "minItems": 2, "maxItems": 2 }], "minItems": 2, "maxItems": 2 }
+          },
+          "required": ["labels", "matrix"],
+          "additionalProperties": false
+        }
+      },
+      "required": ["unit", "positive_label", "prediction_rule", "top1_forecast_accuracy", "accuracy", "precision", "recall", "f1", "false_positive_rate", "false_negative_rate", "confusion_matrix"],
+      "additionalProperties": false
+    },
     "baselines": {
       "type": "object",
       "properties": {
@@ -63,6 +102,7 @@
         "precision_at_1": { "type": "number", "minimum": 0, "maximum": 1 },
         "precision_at_1_std_error": { "type": "number", "minimum": 0, "maximum": 1 },
         "precision_at_3": { "type": "number", "minimum": 0, "maximum": 1 },
+        "log_loss": { "type": "number", "minimum": 0 },
         "mean_reciprocal_rank": { "type": "number", "minimum": 0, "maximum": 1 },
         "expected_calibration_error": { "type": "number", "minimum": 0, "maximum": 1 },
         "max_candidates": { "type": "integer", "minimum": 1 },

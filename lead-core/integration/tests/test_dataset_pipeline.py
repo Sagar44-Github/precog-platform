@@ -61,7 +61,11 @@ def _run_to_completion(client, flask_app, *, mode="labels", decision_point_limit
     pipeline = flask_app.extensions["precog_pipeline"]
     pipeline.start(detector_mode=mode, speed=1000, batch_size=batch_size,
                    decision_point_limit=decision_point_limit)
-    pipeline._worker.join(30)
+    # Larger recorded packs run every labelled attack through graph transitions,
+    # forecast metrics and audit hooks. Allow a bounded time proportional to the
+    # actual event count instead of applying the demo-sized 30-second limit.
+    timeout = max(30.0, min(120.0, pipeline.status()["total_events"] * 0.025))
+    pipeline._worker.join(timeout)
     assert not pipeline._worker.is_alive()
     status = pipeline.status()
     assert status["state"] == "finished", status

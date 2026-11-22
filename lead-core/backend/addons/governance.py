@@ -353,7 +353,7 @@ class GovernanceService:
         try:
             graph.host_state(host_id.strip())
         except ValueError:
-            raise ApiError("unknown_host", "Unknown demo host id.", 404)
+            raise ApiError("unknown_host", "Unknown host id in the active workspace.", 404)
         return host_id.strip()
 
     def _forecast(self, forecast_id):

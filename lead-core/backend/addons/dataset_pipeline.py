@@ -496,6 +496,9 @@ class DatasetPipeline:
             self.ctx.world.set_session(dict(current, ended_at=_utc_now(), forecasts=self.ctx.world.forecasts(),
                                              actions=self.ctx.world.actions()))
             self.ctx.world.archive_session()
+            precog = self.ctx.hooks.get("precog")
+            if precog is not None and hasattr(precog, "flush_session"):
+                precog.flush_session()
             incidents = self.ctx.hooks.get("incidents")
             if incidents is not None and hasattr(incidents, "refresh"):
                 incidents.refresh()
@@ -510,6 +513,9 @@ class DatasetPipeline:
                 self.ctx.world.set_session(dict(current, ended_at=_utc_now(), forecasts=self.ctx.world.forecasts(),
                                                  actions=self.ctx.world.actions()))
                 self.ctx.world.archive_session()
+                precog = self.ctx.hooks.get("precog")
+                if precog is not None and hasattr(precog, "flush_session"):
+                    precog.flush_session()
             if self.workspaces.active.pack_id == pack.manifest["id"]:
                 with self._condition:
                     self._publish_locked(state="stopped", decision_point=None)
